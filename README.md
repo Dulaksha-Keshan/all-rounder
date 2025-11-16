@@ -19,7 +19,10 @@ In the current Sri Lankan education system, a student's potential is often judge
 ## ✨ Our Solution: The "All-Rounder" Platform
 
 "All-Rounder" is a secure ecosystem that connects students, teachers, schools, and organizations. It provides the verification, visibility, and resources needed to make every student's achievements count.
+     
 
+
+  
 ### Key Features
 
 - **✅ Verified Profiles:** Secure, multi-role profiles for Students, Teachers, Schools, and Third-Party Clubs (e.g., Leo, Interact).
