@@ -19,12 +19,6 @@ In the current Sri Lankan education system, a student's potential is often judge
 ## ✨ Our Solution: The "All-Rounder" Platform
 
 "All-Rounder" is a secure ecosystem that connects students, teachers, schools, and organizations. It provides the verification, visibility, and resources needed to make every student's achievements count.
-     
-
-
-
-
-
   
 ### Key Features
 
@@ -34,5 +28,3 @@ In the current Sri Lankan education system, a student's potential is often judge
 - **🤝 Resource & Donation Requests:** A transparent way for under-resourced schools to request specific items (e.g., sports equipment, lab tools) from donors.
 - **🤖 AI-Powered Tools:** An integrated AI model to help users generate event descriptions and posts in Sinhala, lowering the barrier for non-technical users.
 
-another test
-test again
