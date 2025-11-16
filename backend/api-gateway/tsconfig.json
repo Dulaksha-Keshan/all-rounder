@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    // --- Project Structure ---
+    "rootDir": "./src", // Where your .ts files are
+    "outDir": "./dist", // Where the compiled .js files will go
+    // --- Modern Node.js Module Settings ---
+    "module": "nodenext", // Use Node.js's native ES Modules
+    "target": "esnext", // Compile to modern JavaScript
+    "lib": [
+      "esnext"
+    ], // Use modern JavaScript features
+    "moduleDetection": "force", // Ensure files are treated as modules
+    // --- Type Checking (Good settings from your file) ---
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    // --- Interoperability ---
+    "verbatimModuleSyntax": true, // Be strict about import/export syntax
+    "skipLibCheck": true, // Don't type-check 3rd-party libraries
+    // --- Node.js Specific (CRITICAL FIX) ---
+    "types": [
+      "node"
+    ] // <-- This was missing. It adds Node.js types (like 'process')
+  },
+  "include": [
+    "src/**/*"
+  ], // Only compile files in the src folder
+  "exclude": [
+    "node_modules"
+  ]
+}

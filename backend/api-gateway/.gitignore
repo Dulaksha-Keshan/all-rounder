@@ -1,0 +1,14 @@
+# .gitignore
+
+# Dependencies
+/node_modules
+
+# Compiled code
+/dist
+
+# Environment variables
+.env
+
+# Logs
+logs
+*.log
