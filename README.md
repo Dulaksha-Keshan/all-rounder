@@ -3,7 +3,7 @@ All-Rounder
 
 Welcome to the official repository for **All-Rounder**. This project is a web-based platform dedicated to empowering Sri Lankan students by providing a central, verified, and accessible space to showcase their extracurricular achievements. Our mission is to bridge the urban-rural opportunity gap and ensure every student's talent is visible.
 
-This repository contains the complete source code for the "All-Rounder" platform, developed for the 5COSC021C.Y Software Development Group Project.
+This repository contains the complete source code for the "All-Rounder" platform, developed for the Software Development Group Project.
 
 ---
 
