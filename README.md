@@ -30,4 +30,4 @@ In the current Sri Lankan education system, a student's potential is often judge
 
 ## Test push 2
 
-Checking if pushing to the main branch is allowed
+Checking if branching works
