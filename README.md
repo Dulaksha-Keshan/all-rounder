@@ -31,3 +31,4 @@ In the current Sri Lankan education system, a student's potential is often judge
 ## Test commit
 
 This is to test if commits work on the main branch
+Test 2
