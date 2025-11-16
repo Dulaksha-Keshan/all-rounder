@@ -30,4 +30,5 @@ In the current Sri Lankan education system, a student's potential is often judge
 
 ## Test commit
 
-Testing if commit to the main repo is allowed
+Testing if commit to the main repo is allowed.
+pushing to the main brach was allowed...
