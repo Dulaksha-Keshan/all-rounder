@@ -27,3 +27,7 @@ In the current Sri Lankan education system, a student's potential is often judge
 - **🗓️ Event & Competition Hub:** A central hub for schools and clubs to host, manage, and promote events to a national audience.
 - **🤝 Resource & Donation Requests:** A transparent way for under-resourced schools to request specific items (e.g., sports equipment, lab tools) from donors.
 - **🤖 AI-Powered Tools:** An integrated AI model to help users generate event descriptions and posts in Sinhala, lowering the barrier for non-technical users.
+
+## Test commit
+
+This is to test if commits work on the main branch
