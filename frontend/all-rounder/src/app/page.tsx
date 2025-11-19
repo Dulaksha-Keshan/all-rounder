@@ -1,28 +1,27 @@
-import React from 'react';
+
+import { Camera, Trophy, Palette, Award, MessageSquare, Users } from 'lucide-react';
 
 export default function StudentProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-2">
-                {/* <span className="text-2xl">🎓</span> */}
-                {/* <span className="font-semibold text-gray-900">Student Profiles</span> */}
-                <img src="Logo.png" className="w-auto h-30" ></img>
+            <div className="flex items-center space-x-12">
+              <div className="flex items-center">
+                <img src="logo.png" alt="Logo" className="h-8 w-auto" />
               </div>
-              <nav className="hidden md:flex space-x-6">
-                <a href="#" className="px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">Overview</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">How it works</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">For students</a>
-                <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">For educators</a>
+              <nav className="hidden md:flex items-center space-x-7">
+                <a href="#" className="px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">Overview</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">How it works</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">For students</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">For educators</a>
               </nav>
             </div>
-            <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-gray-900 text-sm font-medium">Log in</button>
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+            <div className="flex items-center space-x-6">
+              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium">Log in</button>
+              <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
                 Sign up
               </button>
             </div>
@@ -33,73 +32,59 @@ export default function StudentProfilePage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <div>
-            {/* <div className="inline-block mb-4">
-              <span className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                📱 App for students • We're in a pilot phase, but here's the progress
-              </span>
-            </div> */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Show the full story of who you are — beyond grades.
-            </h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Applying isn't getting any easier, so here's a way to stand out from the app pile: profile you can build, so your life truly shows up.
+        <div className="grid md:grid-cols-2 gap-12 mb-16 items-center">
+          <div className="space-y-6">
+            {/* Staggered Heading */}
+            <div className="space-y-2">
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
+                Show the full story
+              </h1>
+              <h1 className="text-5xl md:text-6xl font-bold text-indigo-600 leading-tight pl-8">
+                of who you are
+              </h1>
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight pl-16">
+                beyond grades
+              </h1>
+            </div>
+
+            <p className="text-lg text-gray-600 pl-4">
+              Your journey deserves to be seen. Build a profile that transforms your achievements, passions, and experiences into a powerful first impression.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <button className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 flex items-center">
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-3 pl-4">
+              <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 flex items-center shadow-lg hover:shadow-xl transition-all">
                 <span>📝 Make your first submission</span>
               </button>
-              <button className="px-5 py-2.5 bg-indigo-100 text-indigo-700 rounded-lg font-medium hover:bg-indigo-200 flex items-center">
-                <span>💬 Explore your newsfeed</span>
+              <button className="px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-xl font-medium hover:bg-indigo-50 flex items-center transition-all">
+                <span>💬 Explore newsfeed</span>
               </button>
             </div>
-            <div className="flex flex-wrap gap-3 mt-4">
-              <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium flex items-center">
+
+            {/* Feature Tags */}
+            <div className="flex flex-wrap gap-3 pt-4 pl-4">
+              <span className="px-5 py-2.5 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 rounded-full text-base font-medium inline-flex items-center shadow-sm">
                 🏆 Achievements & highlights
               </span>
-              <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium flex items-center">
+              <span className="px-5 py-2.5 bg-gradient-to-r from-indigo-100 to-blue-100 text-indigo-700 rounded-full text-base font-medium inline-flex items-center shadow-sm">
                 👥 Clubs & organizations
               </span>
-            </div>
-            <div className="mt-4">
-              <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                ✨ All in one place. One platform.
+              <span className="px-5 py-2.5 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 rounded-full text-base font-medium inline-flex items-center shadow-sm">
+                ✨ All in one platform
               </span>
             </div>
           </div>
           
-          {/* Profile Card */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex items-start mb-4">
-              <div className="w-12 h-12 bg-amber-200 rounded-full mr-3 flex items-center justify-center text-xl">👤</div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Alex Min</h3>
-                <p className="text-sm text-gray-500">West Geauga High School, 2023</p>
-              </div>
+          {/* Avatar/Sticker Image */}
+          <div className="flex justify-center items-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full blur-3xl opacity-30"></div>
+              <img 
+                src="Avatar.png" 
+                alt="Student Avatar"
+                className="relative w-64 h-64 md:w-96 md:h-96 object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+              />
             </div>
-            <div className="flex space-x-2 mb-4">
-              <button className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium">🌍 Community</button>
-              <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm">📚 About school</button>
-              <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm">📰 My feed</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-purple-700 font-medium">25 Comments</p>
-              </div>
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-purple-700 font-medium">50 in 8 hours</p>
-              </div>
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-purple-700 font-medium">Grade</p>
-                <p className="text-sm font-bold text-purple-900">12th</p>
-              </div>
-            </div>
-            <img 
-              src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&h=300&fit=crop" 
-              alt="School activity" 
-              className="w-full h-48 object-cover rounded-lg"
-            />
           </div>
         </div>
 
@@ -118,8 +103,8 @@ export default function StudentProfilePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Achievements */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-2xl">
-                🏆
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <Trophy className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Achievements</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -133,8 +118,8 @@ export default function StudentProfilePage() {
 
             {/* Portfolio */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-2xl">
-                🎨
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <Palette className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Portfolio</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -148,8 +133,8 @@ export default function StudentProfilePage() {
 
             {/* Honors & Certifications */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-2xl">
-                🎖️
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <Award className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Honors & Certifications</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -163,8 +148,8 @@ export default function StudentProfilePage() {
 
             {/* Engaging Voice Feed */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-2xl">
-                💬
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <MessageSquare className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Engaging Voice Feed</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -178,8 +163,8 @@ export default function StudentProfilePage() {
 
             {/* Leader-organizer */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-2xl">
-                👥
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-indigo-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Leader-organizer</h3>
               <p className="text-sm text-gray-600 mb-4">
