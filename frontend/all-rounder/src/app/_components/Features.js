@@ -52,7 +52,7 @@ const Feature = [
   const Events = [
     {
       id: 1,
-      image: "/images/Event1.jpeg",
+      image: "/images/Event1.png",
       title: "Tech Innovation Summit",
       date: "Dec 15, 2024",
       time: "2:00 PM - 5:00 PM",
@@ -62,7 +62,7 @@ const Feature = [
     },
     {
       id: 2,
-      image: "/images/Event2.jpg",
+      image: "/images/Event2.png",
       title: "Annual Sports Day",
       date: "Jan 20, 2025",
       time: "9:00 AM - 4:00 PM",
@@ -72,7 +72,7 @@ const Feature = [
     },
     {
       id: 3,
-      image: "/images/Event3.jpg",
+      image: "/images/Event3.png",
       title: "Cultural Night Gala",
       date: "Feb 10, 2025",
       time: "6:00 PM - 10:00 PM",
@@ -82,7 +82,7 @@ const Feature = [
     },
     {
       id: 4,
-      image: "/images/Event4.jpg",
+      image: "/images/Event4.png",
       title: "Career Fair 2025",
       date: "Mar 5, 2025",
       time: "10:00 AM - 4:00 PM",
@@ -92,7 +92,7 @@ const Feature = [
     },
     {
       id: 5,
-      image: "/images/Event5.jpg",
+      image: "/images/Event5.png",
       title: "Hackathon Weekend",
       date: "Mar 22-24, 2025",
       time: "48 Hours",
