@@ -1,5 +1,6 @@
 'use client';
 import { Feature } from './Features';
+import {  ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -37,14 +38,14 @@ const FeatureCard = () => {
   const nextFeature = getFeatureAt(1);
 
   return (
-    <section id="features" aria-labelledby="features-heading" className="relative py-16 px-4">
+    <section id="features" aria-labelledby="features-heading" className="relative py-16 px-4 bg-purple-100">
   
     <h2 id="features-heading" className="text-3xl md:text-4xl font-bold text-gray-700 mb-6 text-center">
       Platform Features
     </h2>
 
       {/* Feature Navigation Tabs */}
-      <nav className="feature-tabs flex flex-wrap justify-center gap-4 mb-12" aria-label="Feature Navigation">
+      <nav className="feature-tabs flex flex-wrap justify-center gap-4 mb-12 text-lg" aria-label="Feature Navigation">
         {Feature.map((feature, index) => {
           const isActive = index === currentIndex;
           return (
@@ -69,31 +70,22 @@ const FeatureCard = () => {
         {/* Navigation Arrows */}
         <div className="arrows flex justify-between items-center mb-8 px-4">
           <button
-            className="flex items-center gap-3 text-[#34365C] hover:text-[#8387CC] transition-colors group"
+            className="flex items-center gap-3 text-[#34365C] hover:text-[#8387CC] transition-colors group text-xl"
             onClick={() => goToSlide(currentIndex - 1)}
             aria-label={`Previous feature: ${prevFeature.name}`}
           >
-            <img 
-              src="/images/right-side.svg" 
-              alt="" 
-              aria-hidden="true"
-              className="w-8 h-8 rotate-180 group-hover:scale-110 transition-transform"
-            />
+
+            <ArrowLeft/>
             <span className="font-medium hidden sm:inline">{prevFeature.name}</span>
           </button>
 
           <button
-            className="flex items-center gap-3 text-[#34365C] hover:text-[#8387CC] transition-colors group"
+            className="flex items-center gap-3 text-[#34365C] hover:text-[#8387CC] transition-colors group text-xl"
             onClick={() => goToSlide(currentIndex + 1)}
             aria-label={`Next feature: ${nextFeature.name}`}
           >
             <span className="font-medium hidden sm:inline">{nextFeature.name}</span>
-            <img 
-              src="/images/left-side.svg" 
-              alt="" 
-              aria-hidden="true"
-              className="w-8 h-8 group-hover:scale-110 transition-transform"
-            />
+            <ArrowRight/>
           </button>
         </div>
 
