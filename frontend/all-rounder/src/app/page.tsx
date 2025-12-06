@@ -4,7 +4,7 @@ import FeatureCard from './_components/FeatureCard';
 import { EventDetails } from './_components/Events';
 import { HeroSection } from './_components/Hero';
 
-export default function StudentProfilePage() {
+export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-100"> 
       {/* Header */}
@@ -16,15 +16,15 @@ export default function StudentProfilePage() {
                 <img src="logo.png" alt="Logo" className="h-15 w-auto" />
               </div>
               <nav className="hidden md:flex items-center space-x-7">
-                <a href="#" className="px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">Overview</a>
-                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">How it works</a>
-                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">For students</a>
-                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm">For educators</a>
+                <a href="#" className="px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-m font-medium">Overview</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-m">How it works</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-m">For students</a>
+                <a href="#" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-m">For educators</a>
               </nav>
             </div>
             <div className="flex items-center space-x-6">
-              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium">Log in</button>
-              <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 text-m font-medium">Log in</button>
+              <button className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-m font-medium hover:bg-indigo-700">
                 Sign up
               </button>
             </div>
