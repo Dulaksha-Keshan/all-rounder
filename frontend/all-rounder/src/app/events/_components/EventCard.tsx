@@ -1,4 +1,3 @@
-
 import { Event } from "../_types/event";
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
@@ -14,6 +13,7 @@ export const EventCard = ({ event }: { event: Event }) => {
             alt={event.title}
             className="w-full h-full object-cover"
           />
+    
           {/* Status Badge */}
           {event.status === "Registered" && (
             <div className="absolute top-4 right-4 px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold shadow-lg">
