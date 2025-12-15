@@ -1,13 +1,13 @@
 // Student interface
 export interface Student {
-    id: number;
-    name: string;
-    email: string;
-    photoUrl: string;
-    age: number;
-    school: string;
-  }
-  
+  id: number;
+  name: string;
+  email: string;
+  photoUrl: string;
+  age: number;
+  school: string;
+  sex: "MALE" | "FEMALE";
+}
   // Teacher interface
   export interface Teacher {
     id: number;
@@ -15,6 +15,7 @@ export interface Student {
     email: string;
     photoUrl: string;
     school: string;
+    sex: "MALE" | "FEMALE";
   }
   
   // School interface 
