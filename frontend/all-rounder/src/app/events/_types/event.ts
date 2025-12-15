@@ -5,6 +5,7 @@ export interface Event {
   description: string;
   fullDescription?: string;
   date: string;
+  school:string;
   deadline?: string;
   location: string;
   imageUrl: string;

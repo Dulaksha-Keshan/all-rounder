@@ -1,4 +1,3 @@
-
 import { Event } from "../_types/event";
 
 export const Events: Event[] = [
@@ -29,7 +28,8 @@ This is an excellent opportunity for students to test their knowledge against pe
       "Cash prizes for top 3 teams",
       "Participation certificates for all"
     ],
-    contactEmail: "inquiro2025@example.com"
+    contactEmail: "inquiro2025@example.com",
+    school: "All Schools",
   },
   {
     id: 2,
@@ -58,7 +58,8 @@ This competition offers a unique platform for young debaters to voice their opin
       "Champion and Runner-up trophies",
       "Certificates for all participants"
     ],
-    contactEmail: "ciencias2025@example.com"
+    contactEmail: "ciencias2025@example.com",
+    school: "All Schools",
   },
   {
     id: 3,
@@ -86,7 +87,8 @@ This competition celebrates creativity, technical skill, and the ability to comm
       "Featured showcase on official platforms",
       "Certificates and design software subscriptions"
     ],
-    contactEmail: "synapse2025@example.com"
+    contactEmail: "synapse2025@example.com",
+    school: "All Schools",
   },
   {
     id: 4,
@@ -115,7 +117,8 @@ Throughout the course, students will build multiple real-world projects includin
       "Job placement assistance",
       "Lifetime access to course materials"
     ],
-    contactEmail: "talentraa@example.com"
+    contactEmail: "talentraa@example.com",
+    school: "All Schools",
   },
   {
     id: 5,
@@ -161,7 +164,8 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
       "Certificates for all participants",
       "Cash prizes for top performers"
     ],
-    contactEmail: "nalandasciencesociety@example.com"
+    contactEmail: "nalandasciencesociety@example.com",
+    school: "Nalanda College",
   },
   {
     id: 6,
@@ -195,154 +199,7 @@ This competition promotes holistic development by testing different skill sets�
       "Certificates and medals",
       "Recognition on social media platforms"
     ],
-    contactEmail: "vishwabhiyathra@example.com"
+    contactEmail: "vishwabhiyathra@example.com",
+    school: "Bandaranayake College Gampaha",
   },
-  {
-    id: 7,
-    title: "DevFest Sri Lanka 2025",
-    description:
-      "Google tech event with free Codelabs and Main Conference tickets.",
-    fullDescription: `DevFest Sri Lanka 2025 is the country's largest Google Developer Group organized tech conference, bringing together developers, tech enthusiasts, students, and industry professionals for a day of learning, networking, and innovation.
-
-The event features keynote speeches from industry leaders, technical workshops (Codelabs), panel discussions, and networking sessions. Topics cover the latest in web development, mobile app development, cloud computing, machine learning, Android development, and Google technologies.
-
-**Codelabs**: Hands-on coding workshops where participants learn by doing. Build Android apps, create web applications, work with Firebase, explore machine learning with TensorFlow, and more—all guided by experienced facilitators.
-
-**Main Conference**: Inspiring talks from tech leaders, startup founders, and Google Developer Experts. Sessions cover technical deep-dives, career advice, industry trends, and innovation stories.
-
-DevFest is perfect for students looking to jumpstart their tech careers, developers wanting to stay updated with latest technologies, and anyone passionate about building with Google's developer tools. Networking opportunities abound, with chances to connect with potential mentors, collaborators, and employers.`,
-    date: "2025-12-10",
-    location: "Colombo",
-    imageUrl: '/images/Events/Event7.jpeg',
-    categories: ["Tech", "Conference"],
-    status: "Open",
-    requirements: [
-      "Laptop required for Codelabs",
-      "Basic programming knowledge recommended",
-      "Register in advance (limited seats)",
-      "Students bring student ID for verification"
-    ],
-    prizes: [
-      "Free conference tickets worth LKR 5,000",
-      "Google swag and merchandise",
-      "Certificates of attendance",
-      "Networking with industry professionals"
-    ],
-    contactEmail: "devfestlk@example.com"
-  },
-  {
-    id: 8,
-    title: "VISUALIZEARA '26 – Seventh Edition",
-    description:
-      "The All-Island Interschool Visual Graphics Competition by Ananda College Science Union.",
-    fullDescription: `VISUALIZEARA '26 marks the seventh edition of the All-Island Interschool Visual Graphics Competition, a prestigious event organized by the Ananda College Science Union. This competition has established itself as a premier platform for young designers to showcase their creative prowess.
-
-Participants are challenged to create stunning visual graphics based on specified themes using digital design tools. The competition emphasizes both artistic creativity and technical skill in graphic design, illustration, and digital art.
-
-Themes typically revolve around science, technology, environmental conservation, social awareness, and futuristic concepts. Participants must demonstrate originality, aesthetic appeal, effective use of color theory, typography, and composition principles.
-
-VISUALIZEARA has launched numerous young designers into successful creative careers. Past winners have gone on to work with leading design agencies and pursue higher education in design fields. The competition includes preliminary judging followed by a grand finale where shortlisted designs are displayed and final winners announced.
-
-Professional graphic designers, art directors, and visual communication experts serve as judges, providing valuable feedback to participants. This competition is more than just a contest—it's a celebration of youth creativity and visual storytelling.`,
-    date: "2025-01-15",
-    location: "Online",
-    imageUrl: '/images/Events/Event8.jpeg',
-    categories: ["Visual Arts", "Competition"],
-    status: "Open",
-    requirements: [
-      "Original artwork only",
-      "Specific dimensions and file format requirements",
-      "Theme-based submissions",
-      "Design process documentation may be required"
-    ],
-    prizes: [
-      "Winner and runner-up trophies",
-      "Design software licenses",
-      "Feature in official publications",
-      "Certificates for all participants"
-    ],
-    contactEmail: "visualizeara@example.com"
-  },
-  {
-    id: 9,
-    title: "VERDE Vol 4",
-    description:
-      "Join us as we set sail for the next chapter of VERDE - where innovation, unity, and purpose meet under one horizon.",
-    fullDescription: `VERDE Vol 4 is an immersive beachside conference that brings together young innovators, environmental activists, entrepreneurs, and change-makers for a day of inspiration, collaboration, and action. Set against the beautiful backdrop of Mount Lavinia Beach, this event combines the energy of a tech conference with the passion of environmental advocacy.
-
-The fourth volume of VERDE focuses on sustainable innovation, green technology, social entrepreneurship, and youth-led environmental initiatives. The event features TED-style talks, interactive workshops, startup pitch sessions, and collaborative problem-solving activities.
-
-**Morning Sessions**: Keynote speeches from environmental leaders, social entrepreneurs, and sustainability experts. Topics include climate action, circular economy, renewable energy, and sustainable living.
-
-**Afternoon Workshops**: Hands-on sessions on topics like sustainable business models, environmental project management, green tech innovations, and community organizing.
-
-**Evening Activities**: Networking sessions, beach cleanup initiative, cultural performances, and the famous VERDE bonfire gathering where participants share their visions for a sustainable future.
-
-VERDE is more than an event—it's a movement. Participants leave inspired, connected, and equipped with knowledge and networks to drive positive change in their communities. The beachside setting creates a unique atmosphere that fosters creativity and meaningful connections.`,
-    date: "2025-12-04 07:00",
-    location: "Mount Lavinia Beach",
-    imageUrl: '/images/Events/Event9.jpeg',
-    categories: ["Conference", "Innovation"],
-    status: "Open",
-    requirements: [
-      "Interest in sustainability and innovation",
-      "Bring reusable water bottles (eco-friendly event)",
-      "Comfortable clothing for beach activities",
-      "Open mind and collaborative spirit"
-    ],
-    prizes: [
-      "Participation certificates",
-      "Networking opportunities",
-      "Pitch competition prizes for startups",
-      "VERDE merchandise and sustainability kits"
-    ],
-    contactEmail: "verde@example.com"
-  },
-  {
-    id: 10,
-    title: "ESPER AWARDS '26 – Schools Overall Championship",
-    description:
-      "Who will be the crowning champion on Sri Lanka's premier science and innovation stage?",
-    fullDescription: `The ESPER AWARDS '26 represents the pinnacle of academic and innovative achievement for schools across Sri Lanka. This prestigious championship recognizes and celebrates schools that excel in science, technology, innovation, and academic competitions throughout the year.
-
-Unlike single-event competitions, the ESPER AWARDS is a year-long championship where schools accumulate points based on their performance in various science fairs, innovation competitions, olympiads, and academic contests. The school with the highest cumulative score is crowned the ESPER Schools Overall Champion.
-
-**Evaluation Criteria**:
-- Science fair achievements
-- Innovation project submissions
-- Competition wins and placements
-- Research paper publications
-- STEM outreach initiatives
-- Student-led innovation projects
-
-The awards ceremony is a grand event featuring:
-- Recognition of top-performing schools
-- Individual achievement awards
-- Showcase of best innovations and projects
-- Networking opportunities for educators
-- Keynote speeches from leading scientists and innovators
-
-ESPER AWARDS motivates schools to foster cultures of scientific inquiry and innovation. It encourages institutional commitment to STEM education and celebrates the collective achievements of students, teachers, and school administrators.
-
-The competition creates healthy rivalry among schools while promoting knowledge sharing and collaboration in the scientific community. Winning the ESPER Overall Championship is considered one of the highest honors in Sri Lankan school education.`,
-    date: "2025-12-01",
-    location: "Online / Event Venue",
-    imageUrl: '/images/Events/Event10.jpeg',
-    categories: ["Awards", "Science", "Innovation"],
-    status: "Open",
-    requirements: [
-      "School-level participation (not individual)",
-      "Documentation of all achievements",
-      "Submission of innovation projects",
-      "Participation in qualifying events throughout the year"
-    ],
-    prizes: [
-      "Overall Championship Trophy",
-      "Category-wise awards",
-      "Recognition certificates",
-      "Featured in educational publications",
-      "Grants for science programs"
-    ],
-    contactEmail: "esperawards@example.com"
-  },
-];
+]
