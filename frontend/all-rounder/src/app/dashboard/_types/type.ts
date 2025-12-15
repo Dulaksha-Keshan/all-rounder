@@ -7,6 +7,7 @@ export interface Student {
   age: number;
   school: string;
   sex: "MALE" | "FEMALE";
+  registeredEvents?: number[];
 }
   // Teacher interface
   export interface Teacher {

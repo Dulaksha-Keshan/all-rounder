@@ -4,16 +4,16 @@ import { Student, Teacher, School } from "../_types/type";
 // Mock student data
 
 export const Students: Student[] = [
-  { id: 1, name: "Aanya Perera", email: "aanya@example.com", photoUrl: "/images/students/student1.jpeg", age: 11, school: "Ananda College", sex: "FEMALE" },
-  { id: 2, name: "Kamal Silva", email: "kamal@example.com", photoUrl: "/images/students/student2.jpeg", age: 12, school: "Ananda College", sex: "MALE" },
+  { id: 1, name: "Aanya Perera", email: "aanya@example.com", photoUrl: "/images/students/student1.jpeg", age: 11, school: "Ananda College", sex: "FEMALE", registeredEvents: [1,3] },
+  { id: 2, name: "Kamal Silva", email: "kamal@example.com", photoUrl: "/images/students/student2.jpeg", age: 12, school: "Ananda College", sex: "MALE", registeredEvents: [2,4,5] },
   { id: 3, name: "Nisha Fernando", email: "nisha@example.com", photoUrl: "/images/students/student3.jpeg", age: 13, school: "Ananda College", sex: "FEMALE" },
-  { id: 4, name: "Samantha De Silva", email: "samantha@example.com", photoUrl: "/images/students/student4.jpeg", age: 14, school: "Ananda College", sex: "FEMALE" },
+  { id: 4, name: "Samantha De Silva", email: "samantha@example.com", photoUrl: "/images/students/student4.jpeg", age: 14, school: "Ananda College", sex: "FEMALE" ,  registeredEvents: [1] },
   { id: 5, name: "Ruwan Jayasuriya", email: "ruwan@example.com", photoUrl: "/images/students/student5.jpeg", age: 15, school: "Ananda College", sex: "MALE" },
   { id: 6, name: "Ishara Kumara", email: "ishara@example.com", photoUrl: "/images/students/student6.jpeg", age: 16, school: "Ananda College", sex: "MALE" },
   { id: 7, name: "Tharushi Rajapaksa", email: "tharushi@example.com", photoUrl: "/images/students/student7.jpeg", age: 17, school: "Ananda College", sex: "FEMALE" },
-  { id: 8, name: "Sandun Perera", email: "sandun@example.com", photoUrl: "/images/students/student8.jpeg", age: 18, school: "Ananda College", sex: "MALE" },
+  { id: 8, name: "Sandun Perera", email: "sandun@example.com", photoUrl: "/images/students/student8.jpeg", age: 18, school: "Ananda College", sex: "MALE" ,  registeredEvents: [3]},
   { id: 9, name: "Himali Wijesinghe", email: "himali@example.com", photoUrl: "/images/students/student9.jpeg", age: 19, school: "Ananda College", sex: "FEMALE" },
-  { id: 10, name: "Vihanga Fernando", email: "vihanga@example.com", photoUrl: "/images/students/student10.jpeg", age: 12, school: "Nalanda College", sex: "MALE" },
+  { id: 10, name: "Vihanga Fernando", email: "vihanga@example.com", photoUrl: "/images/students/student10.jpeg", age: 12, school: "Nalanda College", sex: "MALE" ,  registeredEvents: [2, 5]},
   { id: 11, name: "Anjali Perera", email: "anjali@example.com", photoUrl: "/images/students/student11.jpeg", age: 13, school: "Royal College", sex: "FEMALE" },
   { id: 12, name: "Kasun Silva", email: "kasun@example.com", photoUrl: "/images/students/student12.jpeg", age: 14, school: "St. Joseph's College", sex: "MALE" },
   { id: 13, name: "Nadeesha Fernando", email: "nadeesha@example.com", photoUrl: "/images/students/student13.jpeg", age: 15, school: "Musaeus College", sex: "FEMALE" },
