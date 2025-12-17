@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import CountChart from "./CountChart";
-import { Students } from "../_data/data";  // import your student data
+import { Students } from "../_data/data";
 
 const CountChartContainer = () => {
   // Count boys and girls from the static data
@@ -9,11 +9,12 @@ const CountChartContainer = () => {
   const girls = Students.filter((s) => s.sex === "FEMALE").length;
 
   return (
-    <div className="bg-white rounded-xl w-full h-full p-4">
+    <div className="bg-white rounded-xl w-full h-[500px] p-4">
       {/* TITLE */}
       <div className="flex justify-between items-center">
         <h1 className="text-lg font-semibold">Students</h1>
-        <Image src="/moreDark.png" alt="" width={20} height={20} />
+        <Image src='/images/maleFemale.webp' alt="Male Female" width={20} height={20} />
+
       </div>
 
       {/* CHART */}
@@ -41,3 +42,4 @@ const CountChartContainer = () => {
 };
 
 export default CountChartContainer;
+

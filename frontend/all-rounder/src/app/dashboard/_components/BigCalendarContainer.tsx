@@ -18,7 +18,7 @@ const BigCalendarContainer: React.FC<BigCalendarContainerProps> = ({ school }) =
   
   
   return (
-    <div className="h-full p-4 bg-white rounded-md shadow">
+    <div className="h-[700px] p-4 bg-white rounded-md shadow">
       <h2 className="text-xl font-semibold mb-4">{school} Events</h2>
       <BigCalendar data={calendarEvents} />
     </div>

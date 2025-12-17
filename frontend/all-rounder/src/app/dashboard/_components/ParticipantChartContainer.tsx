@@ -13,18 +13,24 @@ const ParticipantsChartContainer = () => {
     let participantsCount = 0;
 
     Students.forEach((student) => {
-      if (student.registeredEvents?.some((eventId) => {
-        const event = Events.find((e) => e.id === eventId);
-        if (!event) return false;
-
-        const eventDate = new Date(event.date);
-        const eventDay = eventDate.getDay(); 
-        const dayIndex = daysOfWeek.indexOf(day); 
-        return eventDay === (dayIndex + 1) % 7; 
-      })) {
+      if (
+        student.registeredEvents?.some((registration) => {
+          const event = Events.find(
+            (e) => e.id === Number(registration.eventId)
+          );
+          if (!event) return false;
+    
+          const eventDate = new Date(event.date);
+          const eventDay = eventDate.getDay(); // 0 = Sunday
+          const dayIndex = daysOfWeek.indexOf(day); // 0 = Monday
+    
+          return eventDay === (dayIndex + 1) % 7;
+        })
+      ) {
         participantsCount += 1;
       }
     });
+    
 
     return {
       day,

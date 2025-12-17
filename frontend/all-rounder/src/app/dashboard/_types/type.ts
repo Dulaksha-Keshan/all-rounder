@@ -7,7 +7,11 @@ export interface Student {
   age: number;
   school: string;
   sex: "MALE" | "FEMALE";
-  registeredEvents?: number[];
+  
+  registeredEvents?: {
+    eventId: string;
+    registeredAt: string;
+  }[];
 }
   // Teacher interface
   export interface Teacher {
