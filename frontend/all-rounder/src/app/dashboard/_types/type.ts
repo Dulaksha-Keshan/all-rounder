@@ -21,6 +21,11 @@ export interface Student {
     photoUrl: string;
     school: string;
     sex: "MALE" | "FEMALE";
+    
+    registeredEvents?: {
+      eventId: string;
+      registeredAt: string;
+    }[];
   }
   
   // School interface 

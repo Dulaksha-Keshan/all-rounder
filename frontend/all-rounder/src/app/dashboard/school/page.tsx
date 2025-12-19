@@ -224,7 +224,6 @@ import { Events } from "@/app/events/_data/events";
 import UserCard from "../_components/UserCard";
 import CountChartContainer from "../_components/CountChartContainer";
 import BigCalendarContainer from "../_components/BigCalendarContainer";
-import { EventList } from "@/app/events/_components/EventList";
 import Menu from "../_components/Menu";
 import Image from "next/image";
 
@@ -285,7 +284,6 @@ const SchoolDashboard = () => {
               {/* Right Column - Calendar and Events */}
               <div className="lg:col-span-2 space-y-6">
                 <BigCalendarContainer school={schoolName} />
-                <EventList events={schoolEvents} />
               </div>
             </div>
           </div>
