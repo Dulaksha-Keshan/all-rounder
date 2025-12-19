@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Students, Teachers } from "../_data/data";
 
+
 const UserCard = ({ type }: { type: "teacher" | "student" }) => {
     // Count users based on type
     let count = 0;
@@ -13,8 +14,8 @@ const UserCard = ({ type }: { type: "teacher" | "student" }) => {
     // Card background using your palette
     const bgColor =
       type === "student"
-        ? "bg-gradient-to-br from-[#DCD0FF] to-[#F8F8FF]"
-        : "bg-gradient-to-br from-[#8387CC] to-[#4169E1]";
+        ? "bg-[#DCD0FF]"
+        : "bg-[#8387CC]";
   
     return (
       <div className={`rounded-2xl ${bgColor} p-4 flex-1 min-w-[130px]`}>
@@ -22,10 +23,10 @@ const UserCard = ({ type }: { type: "teacher" | "student" }) => {
           <span className="text-[10px] bg-white px-2 py-1 rounded-full text-green-600">
             2024/25
           </span>
-          <Image src="/more.png" alt="" width={20} height={20} />
+          <Image src="/images/Dashboard/student.png" alt="" width={20} height={20} />
         </div>
         <h1 className="text-2xl font-semibold my-4">{count}</h1>
-        <h2 className="capitalize text-sm font-medium text-gray-500">{type}s</h2>
+        <h2 className="capitalize text-lg font-medium text-white">{type}s</h2>
       </div>
     );
   };
