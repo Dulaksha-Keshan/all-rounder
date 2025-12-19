@@ -23,8 +23,9 @@
     ] // <-- This was missing. It adds Node.js types (like 'process')
   },
   "include": [
-    "src/**/*"
-  ], // Only compile files in the src folder
+    "src/**/*",
+    "global.d.ts"
+  ], // Include src and global declaration file
   "exclude": [
     "node_modules"
   ]
