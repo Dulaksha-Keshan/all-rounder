@@ -22,7 +22,7 @@ export default function VisionPage() {
       </section>
 
       {/* MEET OUR TEAM */}
-      <section className="max-w-6xl mx-auto mt-20">
+      <section className="max-w-6xl mx-auto mt-10">
         <MeetOurTeam />
       </section>
 
@@ -31,14 +31,16 @@ export default function VisionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             
-            {/* Brand */}
-            <div>
-              <img
-                src="logo.png"
-                alt="All-Rounder Logo"
-                className="h-12 w-auto mb-4 brightness-0 invert"
-              />
-            </div>
+            
+  {/* Brand */}
+        <div className="flex items-start">
+          <img
+          src="logo.png"
+            alt="All-Rounder Logo"
+            className="w-40 md:w-48 lg:w-56 h-auto brightness-0 invert"
+          />
+        </div>
+
 
             {/* Quick Links */}
             <div>
