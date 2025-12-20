@@ -4,7 +4,19 @@ import { Student, Teacher, School } from "../_types/type";
 // Mock student data
 
 export const Students: Student[] = [
-  { id: 1, name: "Aanya Perera", email: "aanya@example.com", photoUrl: "/images/students/student1.jpeg", age: 11, school: "Ananda College", sex: "FEMALE", registeredEvents: [
+  { id: 1, name: "Aanya Perera", email: "aanya@example.com", photoUrl: "/images/students/student1.jpeg", age: 11, school: "Ananda College", sex: "FEMALE", 
+  profile: {
+    bio: "Hello, I'm Anshan Handgun Creative Graphic Designer & User Experience Designer based in Website, I create digital Products a more Beautiful and usable place. Morbid accusant ipsum. Nam nec tellus at.",
+    phone: "(+94) 77 178 4997",
+    address: "Street 110-B Kalians Bag, Dewan, M.P. INDIA",
+    zipCode: "12345",
+  },
+  skills: [
+    { name: "Singing"},
+    { name: "Dancing" }
+  ],
+  
+  registeredEvents: [
     {
       eventId: "1",
       registeredAt: "2025-01-10",
@@ -70,7 +82,16 @@ export const Students: Student[] = [
 
 // Teachers (15 total, 5 Ananda, 10 others)
 export const Teachers: Teacher[] = [
-  { id: 1, name: "Mr. Fernando", email: "fernando@example.com", photoUrl: "/images/teachers/teacher1.jpeg", school: "Ananda College", sex: "MALE", registeredEvents: [
+  { id: 1, name: "Mr. Fernando", email: "fernando@example.com", photoUrl: "/images/teachers/teacher1.jpeg", school: "Ananda College", sex: "MALE",
+  
+  profile: {
+    bio: "Hello, I'm Anshan Handgun Creative Graphic Designer & User Experience Designer based in Website, I create digital Products a more Beautiful and usable place. Morbid accusant ipsum. Nam nec tellus at.",
+    phone: "(+94) 77 178 9887",
+    address: "Street 110-B Kalians Bag, Dewan, M.P. Sri Lanka",
+    zipCode: "23456",
+  },
+  
+  registeredEvents: [
     {
       eventId: "1",
       registeredAt: "2025-01-10",

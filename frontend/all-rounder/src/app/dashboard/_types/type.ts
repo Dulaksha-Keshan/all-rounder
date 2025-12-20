@@ -12,6 +12,26 @@ export interface Student {
     eventId: string;
     registeredAt: string;
   }[];
+
+  profile?: {
+    bio: string;
+    phone: string;
+    address: string;
+    zipCode: string;
+  }
+
+  stats?: {
+    mails: number;
+    followers: number;
+    following: number;
+  };
+
+  skills?: {
+    name: string;
+  }[];
+
+
+
 }
   // Teacher interface
   export interface Teacher {
@@ -26,6 +46,13 @@ export interface Student {
       eventId: string;
       registeredAt: string;
     }[];
+
+    profile?: {
+      bio: string;
+      phone: string;
+      address: string;
+      zipCode: string;
+    }
   }
   
   // School interface 
