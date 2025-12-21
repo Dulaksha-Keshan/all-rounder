@@ -105,3 +105,5 @@ export const EventCard = ({ event }: { event: Event }) => {
     </div>
   );
 }
+
+

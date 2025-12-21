@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, MapPin, Clock, ArrowLeft, Users, Trophy, Share2, ChevronDown, Mail, Plus, Minus, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
 import { Events } from '../_data/events';
-
+import { gsap } from 'gsap';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -11,6 +11,42 @@ export default function EventDetailPage() {
   const eventId = Number(params.id);
   
   const event = Events.find(e => e.id === eventId);
+
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (titleRef.current && descRef.current) {
+      // Animate title
+      gsap.fromTo(titleRef.current, 
+        { 
+          y: 50,
+          opacity: 0 
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out"
+        }
+      );
+
+      // Animate description
+      gsap.fromTo(descRef.current,
+        {
+          y: 30,
+          opacity: 0
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: 0.2
+        }
+      );
+    }
+  }, [eventId]);
 
   if (!event) {
     return (
@@ -79,11 +115,19 @@ export default function EventDetailPage() {
             ))}
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 max-w-5xl leading-tight">
+          <h1 
+            ref={titleRef}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 max-w-5xl leading-tight"
+            style={{ opacity: 0 }}
+          >
             {event.title}
           </h1>
 
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl">
+          <p 
+            ref={descRef}
+            className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl"
+            style={{ opacity: 0 }}
+          >
             {event.description}
           </p>
 
