@@ -1,6 +1,3 @@
-
-
-
 "use client";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,69 +7,118 @@ import { usePathname } from "next/navigation";
 interface MenuProps {
   schoolId?: string;
   orgId?: string;
+  type?: "School" | "Organization";
 }
 
-const Menu = ({ schoolId, orgId }: MenuProps) => {
+const Menu = ({ schoolId, orgId, type }: MenuProps) => {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const pathname = usePathname();
 
   // Determine the base path based on what's provided
   const getBasePath = () => {
     if (schoolId) return `/dashboard/schools/${schoolId}`;
-    if (orgId) return `/dashboard/organizations/${orgId}`;
+    if (orgId) return `/dashboard/orgs/${orgId}`;
     return "/dashboard";
   };
 
   const basePath = getBasePath();
 
-  const menuItems = [
-    {
-      title: "MENU",
-      items: [
+  // Different menu items based on type
+  const getMenuItems = () => {
+    if (type === "Organization") {
+      // Organization menu - no students/teachers
+      return [
         {
-          icon: "/images/Dashboard/home.png",
-          label: "Home",
-          href: basePath,
-        },
-        {
-          icon: "/images/Dashboard/teacher.png",
-          label: "Teachers",
-          href: `${basePath}/teachers`,
-        },
-        {
-          icon: "/images/Dashboard/student.png",
-          label: "Students",
-          href: `${basePath}/students`,
-        },
-        {
-          icon: "/images/Dashboard/calendar.png",
-          label: "Events",
-          href: `${basePath}/events`,
-          hasSubmenu: true,
-          submenu: [
+          title: "MENU",
+          items: [
             {
-              label: "All Events",
-              href: "/events",
+              icon: "/images/Dashboard/home.png",
+              label: "Home",
+              href: basePath,
             },
             {
-              label: "Analytics",
-              href: `${basePath}/analytics`,
+              icon: "/images/Dashboard/calendar.png",
+              label: "Events",
+              href: `${basePath}/events`,
+              hasSubmenu: true,
+              submenu: [
+                {
+                  label: "All Events",
+                  href: "/events",
+                },
+                {
+                  label: "Analytics",
+                  href: `${basePath}/analytics`,
+                },
+              ],
             },
           ],
         },
-      ],
-    },
-    {
-      title: "OTHER",
-      items: [
         {
-          icon: "/images/Dashboard/profile.png",
-          label: "Profile",
-          href: "/profile",
+          title: "OTHER",
+          items: [
+            {
+              icon: "/images/Dashboard/profile.png",
+              label: "Profile",
+              href: "/profile",
+            },
+          ],
         },
-      ],
-    },
-  ];
+      ];
+    }
+
+    // School menu - includes students/teachers
+    return [
+      {
+        title: "MENU",
+        items: [
+          {
+            icon: "/images/Dashboard/home.png",
+            label: "Home",
+            href: basePath,
+          },
+          {
+            icon: "/images/Dashboard/teacher.png",
+            label: "Teachers",
+            href: `${basePath}/teachers`,
+          },
+          {
+            icon: "/images/Dashboard/student.png",
+            label: "Students",
+            href: `${basePath}/students`,
+          },
+          {
+            icon: "/images/Dashboard/calendar.png",
+            label: "Events",
+            href: `${basePath}/events`,
+            hasSubmenu: true,
+            submenu: [
+              {
+                label: "All Events",
+                href: "/events",
+              },
+              {
+                label: "Analytics",
+                href: `${basePath}/analytics`,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: "OTHER",
+        items: [
+          {
+            icon: "/images/Dashboard/profile.png",
+            label: "Profile",
+            href: "/profile",
+          },
+        ],
+      },
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
