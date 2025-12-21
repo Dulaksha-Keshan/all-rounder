@@ -11,8 +11,8 @@ export const Events: Event[] = [
 The competition will be conducted in multiple rounds, starting with preliminary online quizzes on Wayground/Quizziz platform, followed by live elimination rounds on Zoom. Participants will compete in teams, showcasing their quick thinking, teamwork, and breadth of knowledge.
 
 This is an excellent opportunity for students to test their knowledge against peers from other schools, develop their critical thinking skills, and gain recognition for their academic achievements. Winners will receive certificates, prizes, and the prestigious title of Inquiro'25 Champions.`,
-    date: "2024-11-28",
-    deadline: "2024-11-26 18:00",
+    date: "2026-1-20",
+    deadline: "2025-11-26 18:00",
     location: "Zoom & Wayground/Quizziz",
     imageUrl: '/images/Events/Event1.jpeg',
     categories: ["Quiz", "Inter-school"],
@@ -29,7 +29,7 @@ This is an excellent opportunity for students to test their knowledge against pe
       "Participation certificates for all"
     ],
     contactEmail: "inquiro2025@example.com",
-    school: "All Schools",
+    school: "Dudley Senanayaka Vidyalaya",
     time: "6 pm Onwards"
   },
   {
@@ -42,8 +42,8 @@ This is an excellent opportunity for students to test their knowledge against pe
 The tournament follows the Asian Parliamentary Debate format, with motions covering topics from biotechnology and climate change to artificial intelligence and space exploration. Participants will develop their public speaking, critical thinking, and argumentation skills while engaging with cutting-edge scientific topics.
 
 This competition offers a unique platform for young debaters to voice their opinions on matters that shape our future. Experienced judges from various fields will evaluate the debates, providing valuable feedback to participants. Whether you're a seasoned debater or new to the art, Ciencias'25 promises an enriching experience.`,
-    date: "2024-11-24",
-    deadline: "2024-11-24",
+    date: "2025-12-14",
+    deadline: "2025-12-14",
     location: "Online",
     imageUrl: '/images/Events/Event2.jpeg',
     categories: ["Debate", "Inter-school"],
@@ -90,7 +90,7 @@ This competition celebrates creativity, technical skill, and the ability to comm
       "Certificates and design software subscriptions"
     ],
     contactEmail: "synapse2025@example.com",
-    school: "All Schools",
+    school: "Dudley Senanayaka Vidyalaya",
     time: "7 pm Onwards"
   },
   {
@@ -121,7 +121,7 @@ Throughout the course, students will build multiple real-world projects includin
       "Lifetime access to course materials"
     ],
     contactEmail: "talentraa@example.com",
-    school: "All Schools",
+    school: "Dudley Senanayaka Vidyalaya",
     time: "7 pm Onwards"
   },
   {
