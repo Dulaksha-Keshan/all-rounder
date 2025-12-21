@@ -1,4 +1,4 @@
-import { Event } from "../_types/event";
+import { Event } from "@/app/_type/type"
 
 export const Events: Event[] = [
   {
@@ -29,8 +29,10 @@ This is an excellent opportunity for students to test their knowledge against pe
       "Participation certificates for all"
     ],
     contactEmail: "inquiro2025@example.com",
-    school: "Dudley Senanayaka Vidyalaya",
-    time: "6 pm Onwards"
+    time: "6 pm Onwards",
+    organizerId: "1",
+    organizerType: "School",
+
   },
   {
     id: 2,
@@ -60,8 +62,10 @@ This competition offers a unique platform for young debaters to voice their opin
       "Certificates for all participants"
     ],
     contactEmail: "ciencias2025@example.com",
-    school: "All Schools",
-    time: "7 pm Onwards"
+    time: "7 pm Onwards",
+    organizerId: "1",
+    organizerType: "Organization",
+
   },
   {
     id: 3,
@@ -90,8 +94,11 @@ This competition celebrates creativity, technical skill, and the ability to comm
       "Certificates and design software subscriptions"
     ],
     contactEmail: "synapse2025@example.com",
-    school: "Dudley Senanayaka Vidyalaya",
-    time: "7 pm Onwards"
+    time: "7 pm Onwards",
+
+    organizerId: "1",
+    organizerType: "Organization",
+
   },
   {
     id: 4,
@@ -121,8 +128,9 @@ Throughout the course, students will build multiple real-world projects includin
       "Lifetime access to course materials"
     ],
     contactEmail: "talentraa@example.com",
-    school: "Dudley Senanayaka Vidyalaya",
-    time: "7 pm Onwards"
+    time: "7 pm Onwards",
+    organizerId: "1",
+    organizerType: "School"
   },
   {
     id: 5,
@@ -169,8 +177,10 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
       "Cash prizes for top performers"
     ],
     contactEmail: "nalandasciencesociety@example.com",
-    school: "Nalanda College",
-    time: "10 am Onwards"
+    time: "10 am Onwards",
+    organizerId: "2",
+    organizerType: "School",
+
   },
   {
     id: 6,
@@ -205,7 +215,9 @@ This competition promotes holistic development by testing different skill setsâ€
       "Recognition on social media platforms"
     ],
     contactEmail: "vishwabhiyathra@example.com",
-    school: "Bandaranayake College Gampaha",
-    time: "08:30 Onwards"
+    time: "08:30 Onwards",
+    organizerId: "9",
+    organizerType: "School",
+
   },
 ]

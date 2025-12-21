@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import ParticipantsChart from "./ParticipantChart";
-import { Students } from "../_data/data"; // 
+import { Students } from "@/app/_data/data"; // 
 import { Events } from "@/app/events/_data/events";
 
 const ParticipantsChartContainer = () => {

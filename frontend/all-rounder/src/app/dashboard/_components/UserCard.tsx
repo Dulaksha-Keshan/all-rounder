@@ -1,28 +1,25 @@
-
-
 "use client";
-
 import Image from "next/image";
-import { Students, Teachers } from "../_data/data";
+import { Students, Teachers } from "@/app/_data/data";
 
 interface UserCardProps {
   type: "teacher" | "student";
-  school?: string; // optional school filter
+  schoolId?: string; // ← Changed from 'school' to 'schoolId'
 }
 
-const UserCard = ({ type, school }: UserCardProps) => {
-  // Count users based on type and school
+const UserCard = ({ type, schoolId }: UserCardProps) => {
+  // Count users based on type and schoolId
   let count = 0;
-
+  
   if (type === "student") {
-    count = school
-      ? Students.filter((s) => s.school === school).length
+    count = schoolId
+      ? Students.filter((s) => s.schoolId === schoolId).length  // ← Changed
       : Students.length;
   }
-
+  
   if (type === "teacher") {
-    count = school
-      ? Teachers.filter((t) => t.school === school).length
+    count = schoolId
+      ? Teachers.filter((t) => t.schoolId === schoolId).length  // ← Changed
       : Teachers.length;
   }
 

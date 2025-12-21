@@ -1,45 +1,14 @@
-// "use client";
-
-// import React from "react";
-// import BigCalendar from "./BigCalender";
-// import { Events } from "@/app/events/_data/events";
-
-// interface BigCalendarContainerProps {
-//   school: string; // school name to filter events
-// }
-
-// const BigCalendarContainer: React.FC<BigCalendarContainerProps> = ({ school }) => {
-//   // Filter events for the given school
-//   const calendarEvents = Events.filter(event => event.school === school).map(event => ({
-//     title: event.title,
-//     start: new Date(event.date),
-//     end: new Date(event.date), 
-//   }));
-  
-  
-//   return (
-//     <div className="h-[700px] p-4 bg-white rounded-md shadow">
-//       <h2 className="text-xl font-semibold mb-4">{school} Events</h2>
-//       <BigCalendar data={calendarEvents} />
-//     </div>
-//   );
-// };
-
-// export default BigCalendarContainer;
-
-
-// "use client";
-
 import BigCalendar from "./BigCalender";
 import { Events } from "@/app/events/_data/events";
 
 interface BigCalendarContainerProps {
-  school: string;
+  schoolId: string;  // ← Changed from 'school' to 'schoolId'
 }
 
-const BigCalendarContainer = async ({ school }: BigCalendarContainerProps) => {
+const BigCalendarContainer = async ({ schoolId }: BigCalendarContainerProps) => {
+  // Filter events where organizerId matches schoolId and organizerType is "School"
   const filteredEvents = Events.filter(
-    (event) => event.school === school || event.school === "All Schools"
+    (event) => event.organizerId === schoolId && event.organizerType === "School"
   );
 
   const data = filteredEvents.map((event) => ({
@@ -52,7 +21,7 @@ const BigCalendarContainer = async ({ school }: BigCalendarContainerProps) => {
 
   return (
     <div className="h-[700px] p-4 bg-white rounded-md shadow">
-      <h2 className="text-xl font-semibold mb-4">{school} Events</h2>
+      <h2 className="text-xl font-semibold mb-4">School Events</h2>
       <BigCalendar data={data} />
     </div>
   );
