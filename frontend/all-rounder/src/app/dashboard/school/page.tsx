@@ -228,7 +228,7 @@ import Menu from "../_components/Menu";
 import Image from "next/image";
 
 const SchoolDashboard = () => {
-  const schoolName = "Ananda College";
+  const schoolName = "Dudley Senanayaka Vidyalaya";
   const schoolStudents = Students.filter((s) => s.school === schoolName);
   const schoolTeachers = Teachers.filter((t) => t.school === schoolName);
   const schoolEvents = Events.filter((e) => e.school === schoolName);
@@ -250,8 +250,8 @@ const SchoolDashboard = () => {
           <div className="max-w-[1400px] mx-auto">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <UserCard type="student" />
-              <UserCard type="teacher" />
+              <UserCard type="student" school="Dudley Senanayaka Vidyalaya"/>
+              <UserCard type="teacher" school="Dudley Senanayaka Vidyalaya"/>
               
               {/* Events Card */}
               <div className="rounded-2xl bg-gradient-to-br from-[#8387CC] to-[#4169E1] p-4 flex-1 min-w-[130px] shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
