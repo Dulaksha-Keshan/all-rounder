@@ -1,22 +1,53 @@
 "use client";
 
-import { useState } from 'react';
-import ChangePassword from '../_components/ChangePassword';
-import MyAccount from '../_components/MyAccount';
-import { Teachers } from '@/app/dashboard/_data/data'; // Adjust path as needed
+import { useState, use } from 'react';
+import { Teachers, Schools} from '@/app/_data/data';
+import { Events } from '@/app/events/_data/events';
+import { notFound } from 'next/navigation';
+import ChangePassword from '../../_components/ChangePassword';
+import MyAccount from '../../_components/MyAccount';
 
-export default function TeacherAccountPage() {
-  // Use the first teacher from your data file as the logged-in user
-  // Later, you'll filter by actual logged-in user ID
-  const [teacherData, setTeacherData] = useState(Teachers[0]);
+interface TeacherProfileProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default function TeacherProfile({ params }: TeacherProfileProps) {
+  const { id } = use(params);
+
+  // Find the teacher by ID
+  const teacher = Teachers.find(t => t.id === Number(id));
+  
+  if (!teacher) {
+    notFound();
+  }
+
+  // Get school name
+  const school = Schools.find(s => s.id === teacher.schoolId);
+  const schoolName = school?.name || 'Unknown School';
+
+  // TODO: Get this from your auth system
+  // For now, assuming logged-in user is teacher with ID 1
+  const loggedInUserId = 1; // Replace with actual auth
+  const loggedInUserType = "teacher"; // Replace with actual auth
+  
+  // Check if viewing own profile
+  const isOwnProfile = loggedInUserId === teacher.id && loggedInUserType === "teacher";
 
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ ...teacherData });
-  
-  // Set this to true if viewing own profile, false if viewing someone else's profile
-  // You can determine this by comparing logged-in user ID with profile user ID
-  const [isOwnProfile, setIsOwnProfile] = useState(true);
+  const [teacherData, setTeacherData] = useState(teacher);
+  const [editData, setEditData] = useState({ ...teacher });
+
+  // Get full event details for registered events
+  const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
+    const event = Events.find(e => e.id === Number(reg.eventId));
+    return {
+      ...reg,
+      eventDetails: event
+    };
+  }) || [];
 
   const handleSave = () => {
     setTeacherData(editData);
@@ -30,10 +61,10 @@ export default function TeacherAccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8F8FF] via-[#DCD0FF]/20 to-[#F8F8FF] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-[#DCD0FF]/50">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
               <img 
@@ -44,42 +75,45 @@ export default function TeacherAccountPage() {
               <div>
                 <h1 className="text-3xl font-bold text-[#34365C]">{teacherData.name}</h1>
                 <p className="text-gray-600 mt-1">{teacherData.email}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {teacherData.school}
-                </p>
+                <p className="text-sm text-gray-500 mt-1">{schoolName}</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              {isOwnProfile && !isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] transition-colors"
-                >
-                  Edit Profile
-                </button>
-              ) : isOwnProfile && isEditing ? (
-                <>
+            
+            {/* Edit buttons - only show if viewing own profile */}
+            {isOwnProfile && (
+              <div className="flex gap-2">
+                {!isEditing ? (
                   <button
-                    onClick={handleSave}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    onClick={() => setIsEditing(true)}
+                    className="px-4 py-2 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] transition-colors"
                   >
-                    Save Changes
+                    Edit Profile
                   </button>
-                  <button
-                    onClick={handleCancel}
-                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : null}
-            </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-sm mb-6">
+        <div className="bg-white rounded-xl shadow-lg mb-6 border border-[#DCD0FF]/50">
           <div className="flex border-b overflow-x-auto">
+            {/* Overview tab - always visible */}
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
@@ -91,7 +125,7 @@ export default function TeacherAccountPage() {
               Overview
             </button>
             
-            {/* Only show private tabs if viewing own profile */}
+            {/* Private tabs - only show if viewing own profile */}
             {isOwnProfile && (
               <>
                 <button
@@ -139,40 +173,49 @@ export default function TeacherAccountPage() {
           </div>
         </div>
 
-        {/* Content Area */}
+        {/* OVERVIEW TAB - PUBLIC (Everyone can see) */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
                 <p className="text-gray-600 text-sm">Events Registered</p>
-                <p className="text-3xl font-bold text-[#8387CC]">{teacherData.registeredEvents?.length || 0}</p>
+                <p className="text-3xl font-bold text-[#8387CC]">
+                  {teacherData.registeredEvents?.length || 0}
+                </p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
                 <p className="text-gray-600 text-sm">School</p>
-                <p className="text-xl font-bold text-[#4169E1]">{teacherData.school}</p>
+                <p className="text-xl font-bold text-[#4169E1]">{schoolName}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
                 <p className="text-gray-600 text-sm">Gender</p>
                 <p className="text-xl font-bold text-green-600">{teacherData.sex}</p>
               </div>
             </div>
 
             {/* Registered Events */}
-            {teacherData.registeredEvents && teacherData.registeredEvents.length > 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+            {registeredEventsWithDetails.length > 0 ? (
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <div className="space-y-3">
-                  {teacherData.registeredEvents.map((event, index) => (
+                  {registeredEventsWithDetails.map((reg, index) => (
                     <div 
                       key={index}
                       className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF] hover:border-[#8387CC] transition-all"
                     >
                       <div>
-                        <h4 className="font-semibold text-[#34365C]">Event #{event.eventId}</h4>
+                        <h4 className="font-semibold text-[#34365C]">
+                          {reg.eventDetails?.title || `Event #${reg.eventId}`}
+                        </h4>
                         <p className="text-sm text-gray-600">
-                          Registered on {new Date(event.registeredAt).toLocaleDateString()}
+                          Registered on {new Date(reg.registeredAt).toLocaleDateString()}
                         </p>
+                        {reg.eventDetails && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(reg.eventDetails.date).toLocaleDateString()} • {reg.eventDetails.location}
+                          </p>
+                        )}
                       </div>
                       <button className="px-4 py-2 text-[#8387CC] hover:text-[#4169E1] font-medium transition-colors">
                         View Details →
@@ -182,7 +225,7 @@ export default function TeacherAccountPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <p className="text-gray-500 text-center py-8">No events registered yet.</p>
               </div>
@@ -190,16 +233,17 @@ export default function TeacherAccountPage() {
 
             {/* Bio Section */}
             {teacherData.profile?.bio && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-[#34365C] mb-4">About Me</h2>
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+                <h2 className="text-xl font-bold text-[#34365C] mb-4">About</h2>
                 <p className="text-gray-700 leading-relaxed">{teacherData.profile.bio}</p>
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'personal' && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
+        {/* PERSONAL INFO TAB - PRIVATE */}
+        {activeTab === 'personal' && isOwnProfile && (
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
             <h2 className="text-xl font-bold text-[#34365C] mb-6">Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -232,7 +276,7 @@ export default function TeacherAccountPage() {
 
               <div>
                 <label className="block text-sm font-medium text-[#34365C] mb-2">School</label>
-                <p className="text-gray-800">{teacherData.school}</p>
+                <p className="text-gray-800">{schoolName}</p>
               </div>
 
               <div>
@@ -240,25 +284,20 @@ export default function TeacherAccountPage() {
                 <p className="text-gray-800">{teacherData.sex}</p>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Address</label>
+              <div>
+                <label className="block text-sm font-medium text-[#34365C] mb-2">Phone</label>
                 {isEditing ? (
-                  <textarea
-                    value={editData.profile?.address || ''}
+                  <input
+                    type="text"
+                    value={editData.profile?.phone || ''}
                     onChange={(e) => setEditData({
                       ...editData, 
-                      profile: {
-                        bio: editData.profile?.bio || '',
-                        phone: editData.profile?.phone || '',
-                        address: e.target.value,
-                        zipCode: editData.profile?.zipCode || ''
-                      }
+                      profile: { ...editData.profile, phone: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
-                    rows={3}
                   />
                 ) : (
-                  <p className="text-gray-800">{teacherData.profile?.address || 'N/A'}</p>
+                  <p className="text-gray-800">{teacherData.profile?.phone || 'N/A'}</p>
                 )}
               </div>
 
@@ -270,17 +309,29 @@ export default function TeacherAccountPage() {
                     value={editData.profile?.zipCode || ''}
                     onChange={(e) => setEditData({
                       ...editData, 
-                      profile: {
-                        bio: editData.profile?.bio || '',
-                        phone: editData.profile?.phone || '',
-                        address: editData.profile?.address || '',
-                        zipCode: e.target.value
-                      }
+                      profile: { ...editData.profile, zipCode: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
                   <p className="text-gray-800">{teacherData.profile?.zipCode || 'N/A'}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#34365C] mb-2">Address</label>
+                {isEditing ? (
+                  <textarea
+                    value={editData.profile?.address || ''}
+                    onChange={(e) => setEditData({
+                      ...editData, 
+                      profile: { ...editData.profile, address: e.target.value } as any
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                    rows={3}
+                  />
+                ) : (
+                  <p className="text-gray-800">{teacherData.profile?.address || 'N/A'}</p>
                 )}
               </div>
 
@@ -291,12 +342,7 @@ export default function TeacherAccountPage() {
                     value={editData.profile?.bio || ''}
                     onChange={(e) => setEditData({
                       ...editData, 
-                      profile: {
-                        bio: e.target.value,
-                        phone: editData.profile?.phone || '',
-                        address: editData.profile?.address || '',
-                        zipCode: editData.profile?.zipCode || ''
-                      }
+                      profile: { ...editData.profile, bio: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                     rows={4}
@@ -309,23 +355,25 @@ export default function TeacherAccountPage() {
           </div>
         )}
 
-        {activeTab === 'activities' && (
+        {/* ACTIVITIES TAB - PRIVATE */}
+        {activeTab === 'activities' && isOwnProfile && (
           <div className="space-y-6">
-            {/* Event History */}
-            {teacherData.registeredEvents && teacherData.registeredEvents.length > 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-[#34365C] mb-4">Event History</h2>
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+              <h2 className="text-xl font-bold text-[#34365C] mb-4">Event History</h2>
+              {registeredEventsWithDetails.length > 0 ? (
                 <div className="space-y-3">
-                  {teacherData.registeredEvents.map((event, index) => (
+                  {registeredEventsWithDetails.map((reg, index) => (
                     <div 
                       key={index}
                       className="p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF]"
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold text-[#34365C]">Event #{event.eventId}</h4>
+                          <h4 className="font-semibold text-[#34365C]">
+                            {reg.eventDetails?.title || `Event #${reg.eventId}`}
+                          </h4>
                           <p className="text-xs text-gray-500 mt-1">
-                            Registered: {new Date(event.registeredAt).toLocaleDateString()}
+                            Registered: {new Date(reg.registeredAt).toLocaleDateString()}
                           </p>
                         </div>
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
@@ -335,32 +383,20 @@ export default function TeacherAccountPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-[#34365C] mb-4">Event History</h2>
+              ) : (
                 <p className="text-gray-500 text-center py-8">No event history available.</p>
-              </div>
-            )}
-
-            {/* Teaching Information */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-[#34365C] mb-4">Teaching Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-gray-600">School</p>
-                  <p className="font-semibold text-[#34365C] mt-1">{teacherData.school}</p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
 
-        {activeTab === 'account' && (
+        {/* ACCOUNT TAB - PRIVATE */}
+        {activeTab === 'account' && isOwnProfile && (
           <MyAccount teacher={teacherData} />
         )}
 
-        {activeTab === 'security' && (
+        {/* SECURITY TAB - PRIVATE */}
+        {activeTab === 'security' && isOwnProfile && (
           <ChangePassword />
         )}
       </div>
