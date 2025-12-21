@@ -1,0 +1,32 @@
+# Use this Dockerfile in each service folder
+# Path: backend/api-gateway/Dockerfile
+# Path: backend/user-service/Dockerfile  
+# Path: backend/content-service/Dockerfile
+
+FROM node:20-alpine
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application code
+COPY . .
+
+# user-service: Generate Prisma Client
+RUN npx prisma generate
+
+# Expose port
+EXPOSE 3000
+
+# Start application
+CMD ["npm", "run", "dev"]
+
+
