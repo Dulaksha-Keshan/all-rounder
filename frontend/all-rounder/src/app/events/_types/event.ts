@@ -14,6 +14,6 @@ export interface Event {
   requirements?: string[];
   prizes?: string[];
   contactEmail?: string;
-  
+  time?: string;
   
 }

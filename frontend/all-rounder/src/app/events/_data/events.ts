@@ -30,6 +30,7 @@ This is an excellent opportunity for students to test their knowledge against pe
     ],
     contactEmail: "inquiro2025@example.com",
     school: "All Schools",
+    time: "6 pm Onwards"
   },
   {
     id: 2,
@@ -60,6 +61,7 @@ This competition offers a unique platform for young debaters to voice their opin
     ],
     contactEmail: "ciencias2025@example.com",
     school: "All Schools",
+    time: "7 pm Onwards"
   },
   {
     id: 3,
@@ -89,6 +91,7 @@ This competition celebrates creativity, technical skill, and the ability to comm
     ],
     contactEmail: "synapse2025@example.com",
     school: "All Schools",
+    time: "7 pm Onwards"
   },
   {
     id: 4,
@@ -100,7 +103,7 @@ This competition celebrates creativity, technical skill, and the ability to comm
 Participants will learn both frontend and backend development, including HTML, CSS, JavaScript, React, Node.js, databases, and API development. What makes this masterclass unique is the integration of AI tools like GitHub Copilot and ChatGPT to accelerate learning and development processes.
 
 Throughout the course, students will build multiple real-world projects including e-commerce platforms, social media applications, and portfolio websites. The curriculum is designed by industry professionals and includes live coding sessions, code reviews, and one-on-one mentorship. By the end, participants will have a strong portfolio and the skills needed to pursue careers in software development.`,
-    date: "2025-12-20 19:00",
+    date: "2025-12-20",
     location: "Online",
     imageUrl: '/images/Events/Event4.jpeg',
     categories: ["Workshop", "AI", "Full-Stack Development"],
@@ -119,6 +122,7 @@ Throughout the course, students will build multiple real-world projects includin
     ],
     contactEmail: "talentraa@example.com",
     school: "All Schools",
+    time: "7 pm Onwards"
   },
   {
     id: 5,
@@ -166,6 +170,7 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
     ],
     contactEmail: "nalandasciencesociety@example.com",
     school: "Nalanda College",
+    time: "10 am Onwards"
   },
   {
     id: 6,
@@ -181,7 +186,7 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
 **Presentation Competition**: Students deliver presentations on assigned topics, showcasing their research abilities, communication skills, and stage presence. Topics range from social issues to scientific innovations.
 
 This competition promotes holistic development by testing different skill setsâ€”knowledge, creativity, and communication. It's a platform for students to shine in their areas of strength while building confidence and gaining recognition. The event fosters healthy competition and camaraderie among schools in the region.`,
-    date: "2025-12-15 08:30",
+    date: "2025-12-15",
     deadline: "2025-12-15",
     location: "Online Platform",
     imageUrl: '/images/Events/Event6.jpeg',
@@ -201,5 +206,6 @@ This competition promotes holistic development by testing different skill setsâ€
     ],
     contactEmail: "vishwabhiyathra@example.com",
     school: "Bandaranayake College Gampaha",
+    time: "08:30 Onwards"
   },
 ]

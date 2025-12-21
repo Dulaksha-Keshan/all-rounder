@@ -49,60 +49,7 @@ const Feature = [
     },
   ];
 
-  const Events = [
-    {
-      id: 1,
-      image: "/images/Event1.png",
-      title: "Tech Innovation Summit",
-      date: "Dec 15, 2024",
-      time: "2:00 PM - 5:00 PM",
-      location: "Main Auditorium",
-      description: "Explore cutting-edge technology trends and network with industry leaders",
-      category: "Workshop"
-    },
-    {
-      id: 2,
-      image: "/images/Event2.png",
-      title: "Annual Sports Day",
-      date: "Jan 20, 2025",
-      time: "9:00 AM - 4:00 PM",
-      location: "University Sports Complex",
-      description: "Compete in various sports and celebrate athletic excellence with your peers",
-      category: "Competition"
-    },
-    {
-      id: 3,
-      image: "/images/Event3.png",
-      title: "Cultural Night Gala",
-      date: "Feb 10, 2025",
-      time: "6:00 PM - 10:00 PM",
-      location: "Grand Hall",
-      description: "Experience diverse cultures through music, dance, and traditional performances",
-      category: "Social"
-    },
-    {
-      id: 4,
-      image: "/images/Event4.png",
-      title: "Career Fair 2025",
-      date: "Mar 5, 2025",
-      time: "10:00 AM - 4:00 PM",
-      location: "Convention Center",
-      description: "Connect with top employers and explore exciting career opportunities",
-      category: "Career"
-    },
-    {
-      id: 5,
-      image: "/images/Event5.png",
-      title: "Hackathon Weekend",
-      date: "Mar 22-24, 2025",
-      time: "48 Hours",
-      location: "Tech Lab Building",
-      description: "Build innovative solutions and compete for prizes in this intense coding marathon",
-      category: "Competition"
-    },
-  ];
   
   export { 
-    Feature,
-    Events
+    Feature
  };
