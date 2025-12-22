@@ -1,5 +1,6 @@
 'use client';
-import { Events } from './Features';
+// import { Events } from './Features';
+import { Events } from '../events/_data/events';
 import { useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -173,20 +174,14 @@ export function EventDetails() {
               {/* Image with parallax effect on hover */}
               <div className="overflow-hidden relative">
                 <img 
-                  src={currentEvent.image} 
+                  src={currentEvent.imageUrl} 
                   alt={currentEvent.title}
                   className="event-image w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 
                 {/* Gradient overlay for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                
-                {/* Category Badge */}
-                <div className="absolute top-6 right-6 event-info-item">
-                  <span className={`${categoryColors[currentEvent.category] || 'bg-gray-500'} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg`}>
-                    {currentEvent.category}
-                  </span>
-                </div>
+              
 
                 {/* Event Title Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-8 text-white">

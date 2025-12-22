@@ -2,61 +2,130 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
-const menuItems = [
-  {
-    title: "MENU",
-    items: [
+interface MenuProps {
+  schoolId?: string;
+  orgId?: string;
+  type?: "School" | "Organization";
+}
+
+const Menu = ({ schoolId, orgId, type }: MenuProps) => {
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  // Determine the base path based on what's provided
+  const getBasePath = () => {
+    if (schoolId) return `/dashboard/schools/${schoolId}`;
+    if (orgId) return `/dashboard/orgs/${orgId}`;
+    return "/dashboard";
+  };
+
+  const basePath = getBasePath();
+
+  // Different menu items based on type
+  const getMenuItems = () => {
+    if (type === "Organization") {
+      // Organization menu - no students/teachers
+      return [
+        {
+          title: "MENU",
+          items: [
+            {
+              icon: "/images/Dashboard/home.png",
+              label: "Home",
+              href: basePath,
+            },
+            {
+              icon: "/images/Dashboard/calendar.png",
+              label: "Events",
+              href: `${basePath}/events`,
+              hasSubmenu: true,
+              submenu: [
+                {
+                  label: "All Events",
+                  href: "/events",
+                },
+                {
+                  label: "Analytics",
+                  href: `${basePath}/analytics`,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          title: "OTHER",
+          items: [
+            {
+              icon: "/images/Dashboard/profile.png",
+              label: "Profile",
+              href: "/profile",
+            },
+          ],
+        },
+      ];
+    }
+
+    // School menu - includes students/teachers
+    return [
       {
-        icon: "/images/Dashboard/home.png",
-        label: "Home",
-        href: "/dashboard/school",
-      },
-      {
-        icon: "/images/Dashboard/teacher.png",
-        label: "Teachers",
-        href: "/dashboard/list/teachers",
-      },
-      {
-        icon: "/images/Dashboard/student.png",
-        label: "Students",
-        href: "/dashboard/list/students",
-      },
-      {
-        icon: "/images/Dashboard/calendar.png",
-        label: "Events",
-        href: "/dashboard/list/events",
-        hasSubmenu: true,
-        submenu: [
+        title: "MENU",
+        items: [
           {
-            label: "All Events",
-            href: "/events",
+            icon: "/images/Dashboard/home.png",
+            label: "Home",
+            href: basePath,
           },
           {
-            label: "Analytics",
-            href: "/dashboard/list/analytics",
+            icon: "/images/Dashboard/teacher.png",
+            label: "Teachers",
+            href: `${basePath}/teachers`,
+          },
+          {
+            icon: "/images/Dashboard/student.png",
+            label: "Students",
+            href: `${basePath}/students`,
+          },
+          {
+            icon: "/images/Dashboard/calendar.png",
+            label: "Events",
+            href: `${basePath}/events`,
+            hasSubmenu: true,
+            submenu: [
+              {
+                label: "All Events",
+                href: "/events",
+              },
+              {
+                label: "Analytics",
+                href: `${basePath}/analytics`,
+              },
+            ],
           },
         ],
       },
-    ],
-  },
-  {
-    title: "OTHER",
-    items: [
       {
-        icon: "/images/Dashboard/profile.png",
-        label: "Profile",
-        href: "/profile",
+        title: "OTHER",
+        items: [
+          {
+            icon: "/images/Dashboard/profile.png",
+            label: "Profile",
+            href: "/profile",
+          },
+        ],
       },
-    ],
-  },
-];
+    ];
+  };
 
-const Menu = () => {
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const menuItems = getMenuItems();
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
+  };
+
+  const isActive = (href: string) => {
+    return pathname === href;
   };
 
   return (
@@ -67,18 +136,15 @@ const Menu = () => {
             {i.title}
           </span>
           {i.items.map((item) => {
-            const isClickable =
-              item.href === "/dashboard/list/students" ||
-              item.href === "/dashboard/list/teachers" ||
-              item.hasSubmenu;
-
             // If item has submenu (Events)
             if (item.hasSubmenu && item.submenu) {
               return (
                 <div key={item.label}>
                   <div
                     onClick={() => toggleSubmenu(item.label)}
-                    className="flex items-center justify-center lg:justify-start gap-4 text-white py-2 md:px-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors"
+                    className={`flex items-center justify-center lg:justify-start gap-4 text-white py-2 md:px-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors ${
+                      isActive(item.href) ? "bg-white/20" : ""
+                    }`}
                   >
                     <Image
                       src={item.icon}
@@ -104,7 +170,7 @@ const Menu = () => {
                       />
                     </svg>
                   </div>
-                  
+
                   {/* Submenu */}
                   {openSubmenu === item.label && (
                     <div className="ml-8 mt-1 space-y-1">
@@ -112,7 +178,9 @@ const Menu = () => {
                         <Link
                           key={subItem.label}
                           href={subItem.href}
-                          className="flex items-center gap-2 text-white/80 py-2 px-2 rounded-md hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-sm"
+                          className={`flex items-center gap-2 text-white/80 py-2 px-2 rounded-md hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-sm ${
+                            isActive(subItem.href) ? "bg-white/20 text-white" : ""
+                          }`}
                         >
                           <span className="w-1.5 h-1.5 bg-white/60 rounded-full"></span>
                           <span className="hidden lg:block">{subItem.label}</span>
@@ -124,31 +192,14 @@ const Menu = () => {
               );
             }
 
-            // Clickable items (Students, Teachers)
-            if (isClickable) {
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="flex items-center justify-center lg:justify-start gap-4 text-white py-2 md:px-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors"
-                >
-                  <Image
-                    src={item.icon}
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="brightness-0 invert"
-                  />
-                  <span className="hidden lg:block">{item.label}</span>
-                </Link>
-              );
-            }
-
-            // Non-clickable items
+            // All other menu items are clickable
             return (
-              <div
+              <Link
                 key={item.label}
-                className="flex items-center justify-center lg:justify-start gap-4 text-white py-2 md:px-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors"
+                href={item.href}
+                className={`flex items-center justify-center lg:justify-start gap-4 text-white py-2 md:px-2 rounded-md hover:bg-white/10 cursor-pointer transition-colors ${
+                  isActive(item.href) ? "bg-white/20" : ""
+                }`}
               >
                 <Image
                   src={item.icon}
@@ -158,7 +209,7 @@ const Menu = () => {
                   className="brightness-0 invert"
                 />
                 <span className="hidden lg:block">{item.label}</span>
-              </div>
+              </Link>
             );
           })}
         </div>

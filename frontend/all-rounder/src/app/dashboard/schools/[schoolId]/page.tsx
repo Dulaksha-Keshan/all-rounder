@@ -1,47 +1,52 @@
-import UserCard from "../_components/UserCard";
-import CountChartContainer from "../_components/CountChartContainer";
-import BigCalendarContainer from "../_components/BigCalendarContainer";
-import { EventList } from "@/app/events/_components/EventList";
-import Menu from "../_components/Menu";
-import Image from "next/image";
 
-const OrganizationDashboard = () => {
-  const organizationName = "IEEE Sri Lanka Section";
+import { Students, Teachers, Schools } from "@/app/_data/data";
+import { Events } from "@/app/events/_data/events";
+import UserCard from "@/app/dashboard/_components/UserCard";
+import CountChartContainer from "@/app/dashboard/_components/CountChartContainer";
+import BigCalendarContainer from "@/app/dashboard/_components/BigCalendarContainer";
+import Menu from "@/app/dashboard/_components/Menu";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+
+interface SchoolDashboardProps {
+  params: Promise<{
+    schoolId: string;
+  }>;
+}
+
+export default async function SchoolDashboard({ params }: SchoolDashboardProps) {
+  const { schoolId } = await params;
+
+  // Find the school to get its name
+  const school = Schools.find((s) => s.id === schoolId);
   
-  // Mock data for the organization
-  const mockEvents = [
-    { 
-      id: 1, 
-      title: "Inter-School Sports Meet", 
-      date: "2024-12-22",
-      school: "All Schools",
-      type: "Sports"
-    },
-    { 
-      id: 2, 
-      title: "Annual Education Conference", 
-      date: "2024-12-28",
-      school: organizationName,
-      type: "Conference"
-    },
-    { 
-      id: 3, 
-      title: "Teacher Training Workshop", 
-      date: "2025-01-05",
-      school: organizationName,
-      type: "Workshop"
-    },
-  ];
+  // If school not found, show 404
+  if (!school) {
+    notFound();
+  }
+
+  // Filter data by schoolId
+  const schoolStudents = Students.filter((s) => s.schoolId === schoolId);
+  const schoolTeachers = Teachers.filter((t) => t.schoolId === schoolId);
+  const schoolEvents = Events.filter(
+    (e) => e.organizerId === schoolId && e.organizerType === "School"
+  );
 
   return (
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}
       <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[#34365C] to-[#4169E1] p-4 shadow-xl">
         <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
-          <Image src="/logo.png" alt="Logo" width={32} height={32} className="brightness-0 invert" />
+          <Image 
+            src="/logo.png" 
+            alt="Logo" 
+            width={32} 
+            height={32} 
+            className="brightness-0 invert" 
+          />
           <span className="hidden lg:block font-bold text-white">All-Rounder</span>
         </div>
-        <Menu />
+        <Menu schoolId={schoolId} />
       </div>
 
       {/* RIGHT CONTENT */}
@@ -50,15 +55,15 @@ const OrganizationDashboard = () => {
           <div className="max-w-[1400px] mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">{organizationName}</h1>
-              <p className="text-gray-600 text-sm mt-1">Organization Dashboard Overview</p>
+              <h1 className="text-3xl font-bold text-[#34365C]">{school.name}</h1>
+              <p className="text-gray-600">{school.location}</p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <UserCard type="student" />
-              <UserCard type="teacher" />
-
+              <UserCard type="student" schoolId={schoolId} />
+              <UserCard type="teacher" schoolId={schoolId} />
+              
               {/* Events Card */}
               <div className="rounded-2xl bg-gradient-to-br from-[#8387CC] to-[#4169E1] p-4 flex-1 min-w-[130px] shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
                 <div className="flex justify-between items-center">
@@ -72,7 +77,7 @@ const OrganizationDashboard = () => {
                   </svg>
                 </div>
                 <h1 className="text-2xl font-semibold my-4 text-white">
-                  {mockEvents.length}
+                  {schoolEvents.length}
                 </h1>
                 <h2 className="capitalize text-sm font-medium text-white/90">
                   Events
@@ -82,14 +87,14 @@ const OrganizationDashboard = () => {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Stats Chart */}
+              {/* Left Column - Students Chart */}
               <div className="lg:col-span-1">
-                <CountChartContainer />
+                <CountChartContainer schoolId={schoolId}/>
               </div>
 
               {/* Right Column - Calendar and Events */}
               <div className="lg:col-span-2 space-y-6">
-                <BigCalendarContainer school={organizationName} />
+                <BigCalendarContainer schoolId={schoolId} />
               </div>
             </div>
           </div>
@@ -97,6 +102,4 @@ const OrganizationDashboard = () => {
       </div>
     </div>
   );
-};
-
-export default OrganizationDashboard;
+}

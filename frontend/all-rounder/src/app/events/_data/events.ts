@@ -1,4 +1,4 @@
-import { Event } from "../_types/event";
+import { Event } from "@/app/_type/type"
 
 export const Events: Event[] = [
   {
@@ -11,8 +11,8 @@ export const Events: Event[] = [
 The competition will be conducted in multiple rounds, starting with preliminary online quizzes on Wayground/Quizziz platform, followed by live elimination rounds on Zoom. Participants will compete in teams, showcasing their quick thinking, teamwork, and breadth of knowledge.
 
 This is an excellent opportunity for students to test their knowledge against peers from other schools, develop their critical thinking skills, and gain recognition for their academic achievements. Winners will receive certificates, prizes, and the prestigious title of Inquiro'25 Champions.`,
-    date: "2024-11-28",
-    deadline: "2024-11-26 18:00",
+    date: "2026-1-20",
+    deadline: "2025-11-26 18:00",
     location: "Zoom & Wayground/Quizziz",
     imageUrl: '/images/Events/Event1.jpeg',
     categories: ["Quiz", "Inter-school"],
@@ -29,7 +29,10 @@ This is an excellent opportunity for students to test their knowledge against pe
       "Participation certificates for all"
     ],
     contactEmail: "inquiro2025@example.com",
-    school: "All Schools",
+    time: "6 pm Onwards",
+    organizerId: "1",
+    organizerType: "School",
+
   },
   {
     id: 2,
@@ -41,8 +44,8 @@ This is an excellent opportunity for students to test their knowledge against pe
 The tournament follows the Asian Parliamentary Debate format, with motions covering topics from biotechnology and climate change to artificial intelligence and space exploration. Participants will develop their public speaking, critical thinking, and argumentation skills while engaging with cutting-edge scientific topics.
 
 This competition offers a unique platform for young debaters to voice their opinions on matters that shape our future. Experienced judges from various fields will evaluate the debates, providing valuable feedback to participants. Whether you're a seasoned debater or new to the art, Ciencias'25 promises an enriching experience.`,
-    date: "2024-11-24",
-    deadline: "2024-11-24",
+    date: "2025-12-14",
+    deadline: "2025-12-14",
     location: "Online",
     imageUrl: '/images/Events/Event2.jpeg',
     categories: ["Debate", "Inter-school"],
@@ -59,7 +62,10 @@ This competition offers a unique platform for young debaters to voice their opin
       "Certificates for all participants"
     ],
     contactEmail: "ciencias2025@example.com",
-    school: "All Schools",
+    time: "7 pm Onwards",
+    organizerId: "1",
+    organizerType: "Organization",
+
   },
   {
     id: 3,
@@ -88,7 +94,11 @@ This competition celebrates creativity, technical skill, and the ability to comm
       "Certificates and design software subscriptions"
     ],
     contactEmail: "synapse2025@example.com",
-    school: "All Schools",
+    time: "7 pm Onwards",
+
+    organizerId: "1",
+    organizerType: "Organization",
+
   },
   {
     id: 4,
@@ -100,7 +110,7 @@ This competition celebrates creativity, technical skill, and the ability to comm
 Participants will learn both frontend and backend development, including HTML, CSS, JavaScript, React, Node.js, databases, and API development. What makes this masterclass unique is the integration of AI tools like GitHub Copilot and ChatGPT to accelerate learning and development processes.
 
 Throughout the course, students will build multiple real-world projects including e-commerce platforms, social media applications, and portfolio websites. The curriculum is designed by industry professionals and includes live coding sessions, code reviews, and one-on-one mentorship. By the end, participants will have a strong portfolio and the skills needed to pursue careers in software development.`,
-    date: "2025-12-20 19:00",
+    date: "2025-12-20",
     location: "Online",
     imageUrl: '/images/Events/Event4.jpeg',
     categories: ["Workshop", "AI", "Full-Stack Development"],
@@ -118,7 +128,9 @@ Throughout the course, students will build multiple real-world projects includin
       "Lifetime access to course materials"
     ],
     contactEmail: "talentraa@example.com",
-    school: "All Schools",
+    time: "7 pm Onwards",
+    organizerId: "1",
+    organizerType: "School"
   },
   {
     id: 5,
@@ -165,7 +177,10 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
       "Cash prizes for top performers"
     ],
     contactEmail: "nalandasciencesociety@example.com",
-    school: "Nalanda College",
+    time: "10 am Onwards",
+    organizerId: "2",
+    organizerType: "School",
+
   },
   {
     id: 6,
@@ -181,7 +196,7 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
 **Presentation Competition**: Students deliver presentations on assigned topics, showcasing their research abilities, communication skills, and stage presence. Topics range from social issues to scientific innovations.
 
 This competition promotes holistic development by testing different skill setsâ€”knowledge, creativity, and communication. It's a platform for students to shine in their areas of strength while building confidence and gaining recognition. The event fosters healthy competition and camaraderie among schools in the region.`,
-    date: "2025-12-15 08:30",
+    date: "2025-12-15",
     deadline: "2025-12-15",
     location: "Online Platform",
     imageUrl: '/images/Events/Event6.jpeg',
@@ -200,6 +215,9 @@ This competition promotes holistic development by testing different skill setsâ€
       "Recognition on social media platforms"
     ],
     contactEmail: "vishwabhiyathra@example.com",
-    school: "Bandaranayake College Gampaha",
+    time: "08:30 Onwards",
+    organizerId: "9",
+    organizerType: "School",
+
   },
 ]
