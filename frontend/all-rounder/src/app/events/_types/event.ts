@@ -5,6 +5,7 @@ export interface Event {
   description: string;
   fullDescription?: string;
   date: string;
+  school:string;
   deadline?: string;
   location: string;
   imageUrl: string;
@@ -13,4 +14,6 @@ export interface Event {
   requirements?: string[];
   prizes?: string[];
   contactEmail?: string;
+  
+  
 }
