@@ -1,0 +1,5 @@
+{
+  "watch": ["mongoose"],
+  "ext": "ts",
+  "exec": "ts-node-esm mongoose/index.ts"
+}

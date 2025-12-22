@@ -1,5 +1,8 @@
 import express, { type Request, type Response } from 'express';
 import mongoose from 'mongoose';
+import dotenv from "dotenv";
+dotenv.config();
+import {achievementModel} from './models/achievementModel.js';
 
 const app = express();
 const PORT = 3000;
@@ -8,13 +11,13 @@ const PORT = 3000;
 app.use(express.json());
 
 // MongoDB Connection eka hdnna methant 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI as string)
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.error('MongoDB Connection Error:', err));
 
 
 //MEKAT oyage test eka hdnna obeject ekak widiyat
-const TestModel = mongoose.model('Test', TestSchema);
+
 
 // METHANIN THAMAI ROUTES TIKA ptn GANNE
 app.get('/', (req: Request, res: Response) => {
@@ -24,7 +27,7 @@ app.get('/', (req: Request, res: Response) => {
 // MEKA POST EKA PATHUMI
 app.post('/test', async (req: Request, res: Response) => {
   try {
-    const doc = await TestModel.create(req.body);
+    const doc = await achievementModel.create(req.body);
     res.status(201).json(doc);
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
@@ -34,7 +37,7 @@ app.post('/test', async (req: Request, res: Response) => {
 // GET ALL EKA 
 app.get('/test', async (req: Request, res: Response) => {
   try {
-    const docs = await TestModel.find();
+    const docs = await achievementModel.find();
     res.json(docs);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
@@ -44,7 +47,7 @@ app.get('/test', async (req: Request, res: Response) => {
 // GET EKA  EKKENEKTA
 app.get('/test/:id', async (req: Request, res: Response) => {
   try {
-    const doc = await TestModel.findById(req.params.id);
+    const doc = await achievementModel.findById(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Not found' });
     res.json(doc);
   } catch (err) {
@@ -55,7 +58,7 @@ app.get('/test/:id', async (req: Request, res: Response) => {
 // MEKA PUT 
 app.put('/test/:id', async (req: Request, res: Response) => {
   try {
-    const doc = await TestModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const doc = await achievementModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!doc) return res.status(404).json({ error: 'Not found' });
     res.json(doc);
   } catch (err) {
@@ -66,7 +69,7 @@ app.put('/test/:id', async (req: Request, res: Response) => {
 //PATHUMI MEKE DELETE HODE
 app.delete('/test/:id', async (req: Request, res: Response) => {
   try {
-    const doc = await TestModel.findByIdAndDelete(req.params.id);
+    const doc = await achievementModel.findByIdAndDelete(req.params.id);
     if (!doc) return res.status(404).json({ error: 'Not found' });
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
