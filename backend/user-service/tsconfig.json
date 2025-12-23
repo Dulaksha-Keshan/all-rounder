@@ -7,14 +7,8 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
-    "target": "esnext",
-    "types": [
-      "node"
-    ],
-    "lib": [
-      "esnext"
-    ], // Use modern JavaScript features
-    // Other Outputs
+    "target": "ES2022",
+    "moduleResolution": "nodenext",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -23,7 +17,7 @@
     "exactOptionalPropertyTypes": true,
     // Recommended Options
     "strict": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
@@ -31,9 +25,9 @@
   },
   "include": [
     "src/**/*",
-    "global.d.ts"
   ], // Include src and global declaration file
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }

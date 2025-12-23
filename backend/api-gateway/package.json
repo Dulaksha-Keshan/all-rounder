@@ -4,7 +4,7 @@
   "description": "Api gateway for the back end",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -23,8 +23,6 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
-    "nodemon": "^3.1.11",
-    "ts-node": "^10.9.2",
-    "typecript": "^0.0.1-security"
+    "tsx": "^4.21.0"
   }
 }
