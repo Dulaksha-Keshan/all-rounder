@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Calendar, Clock, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
 export function EventDetails() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -239,10 +240,12 @@ export function EventDetails() {
 
                 {/* Find Out More Button with glow effect */}
                 <div className="flex justify-center event-button">
-                  <button className="relative px-10 py-4 bg-[#8387CC] text-white text-lg font-semibold rounded-xl hover:bg-[#4169E1] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20 overflow-hidden group/btn">
-                    <span className="relative z-10">Find Out More</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                  </button>
+                <Link href="/events">
+                    <button className="relative px-10 py-4 bg-[#8387CC] text-white text-lg font-semibold rounded-xl hover:bg-[#4169E1] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20 overflow-hidden group/btn">
+                      <span className="relative z-10">Find Out More</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
