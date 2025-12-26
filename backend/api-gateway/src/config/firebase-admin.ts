@@ -13,9 +13,9 @@ export function initializeFirebaseAdmin(): admin.app.App {
 
   try {
     // Validate environment variables
-    if (!process.env.FIREBASE_PROJECT_ID || 
-        !process.env.FIREBASE_CLIENT_EMAIL || 
-        !process.env.FIREBASE_PRIVATE_KEY) {
+    if (!process.env.FIREBASE_PROJECT_ID ||
+      !process.env.FIREBASE_CLIENT_EMAIL ||
+      !process.env.FIREBASE_PRIVATE_KEY) {
       throw new Error('Missing Firebase configuration in environment variables');
     }
 
@@ -29,7 +29,7 @@ export function initializeFirebaseAdmin(): admin.app.App {
     });
 
     console.log('Firebase Admin  initialized successfully');
-    
+
     return fireBaseAdmin;
   } catch (error) {
     console.error('Failed to initialize Firebase Admin:', error);
@@ -39,8 +39,8 @@ export function initializeFirebaseAdmin(): admin.app.App {
 }
 
 //Exporting the admin app 
-export function getFirebaseAdmin (): admin.app.App{
-  if(!fireBaseAdmin){
+export function getFirebaseAdmin(): admin.app.App {
+  if (!fireBaseAdmin) {
     return initializeFirebaseAdmin();
   }
   return fireBaseAdmin;
@@ -48,39 +48,39 @@ export function getFirebaseAdmin (): admin.app.App{
 
 //main firebase fucntions for common usage 
 export const firebaseAuth = {
-  
-  async verifyToken (idToken : string) : Promise<admin.auth.DecodedIdToken> {
-    try{
+
+  async verifyToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
+    try {
       const decodedToken = await getFirebaseAdmin().auth().verifyIdToken(idToken);
 
       return decodedToken;
-    }catch(error){
+    } catch (error) {
       throw new Error("Invalid token or expired token ");
     }
 
   },
 
 
-  async getUserByUid(uid:string) : Promise<admin.auth.UserRecord> {
-    
+  async getUserByUid(uid: string): Promise<admin.auth.UserRecord> {
+
     try {
-      return  await  getFirebaseAdmin().auth().getUser(uid);
+      return await getFirebaseAdmin().auth().getUser(uid);
     } catch (error) {
       throw new Error(`User not found: ${uid}`)
     }
 
   },
 
-  async getUserByemail(email:string) : Promise<admin.auth.UserRecord> {
-    
+  async getUserByemail(email: string): Promise<admin.auth.UserRecord> {
+
     try {
-      return  await  getFirebaseAdmin().auth().getUserByEmail(email);
+      return await getFirebaseAdmin().auth().getUserByEmail(email);
     } catch (error) {
       throw new Error(`User not found: ${email}`)
     }
 
   },
-  
+
   async updateUser(uid: string, updates: admin.auth.UpdateRequest): Promise<admin.auth.UserRecord> {
     try {
       return await getFirebaseAdmin().auth().updateUser(uid, updates);
@@ -95,14 +95,14 @@ export const firebaseAuth = {
     } catch (error) {
       throw new Error('Failed to delete user');
     }
-  }, 
-  
-  async setCustomClaims(uid: string, claims: object) : Promise<void>{
+  },
+
+  async setCustomClaims(uid: string, claims: object): Promise<void> {
 
     try {
-      await getFirebaseAdmin().auth().setCustomUserClaims(uid,claims);
+      await getFirebaseAdmin().auth().setCustomUserClaims(uid, claims);
     } catch (error) {
-      throw new Error (`Custom Claims set for user: ${uid}, \n${claims}`)
+      throw new Error(`Custom Claims set for user: ${uid}, \n${claims}`)
     }
 
   },
