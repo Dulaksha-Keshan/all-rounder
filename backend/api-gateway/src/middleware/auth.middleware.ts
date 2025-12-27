@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { firebaseAuth } from "../config/firebase-admin.js";
 
-export async function verifyToekn(req: Request, res: Response, next: NextFunction) {
+//token verifier 
+export async function verifyToken(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -47,6 +48,7 @@ export async function verifyToekn(req: Request, res: Response, next: NextFunctio
   }
 }
 
+// Role checker 
 export async function requireRole(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -69,4 +71,69 @@ export async function requireRole(...allowedRoles: string[]) {
 
     next();
   }
+}
+
+
+// check for owenership if needed for us 
+export async function requireOwenership(userIdParam: string = "userId") {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "Authentication required."
+      })
+      return
+    }
+
+    const resourceUserId = req.params[userIdParam];
+    //TODO:THE role check is hard coded have to make it enum when enum situatiuon is done 
+    if (req.user.uid !== resourceUserId && req.user.role !== "SUPER_ADMIN") {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "You can only access your own resources."
+      })
+      return
+    }
+
+
+    next();
+
+  }
+}
+
+//School acess checker 
+export async function requireSchoolAccess(schoolIdParam: string = "schoolId") {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "Authentication required."
+      })
+      return
+    }
+
+    const resourceSchoolId = req.params[schoolIdParam];
+    //TODO:THE role check is hard coded have to make it enum when enum situatiuon is done 
+    if (req.user.schoolId !== resourceSchoolId && req.user.role !== "SUPER_ADMIN") {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "You can only access resources from your own resources."
+      })
+      return
+    }
+
+
+    next();
+
+
+  }
+}
+
+
+
+export const authMiddleware = {
+  verifyToken,
+  requireRole,
+  requireOwenership,
+  requireSchoolAccess,
 }
