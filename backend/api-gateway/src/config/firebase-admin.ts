@@ -1,15 +1,12 @@
 import * as admin from "firebase-admin";
 
-
 let fireBaseAdmin: admin.app.App | null = admin.apps.length > 0 ? admin.app() : null;
-
 
 export function initializeFirebaseAdmin(): admin.app.App {
   //If there is a instance of the app return it 
   if (fireBaseAdmin) {
     return fireBaseAdmin;
   }
-
 
   try {
     // Validate environment variables
@@ -128,7 +125,7 @@ export const firebaseAuth = {
   async revokeRefreshTokens(uid: string): Promise<void> {
     try {
       await admin.auth().revokeRefreshTokens(uid);
-      console.log(`✅ Refresh tokens revoked for user: ${uid}`);
+      console.log(`Refresh tokens revoked for user: ${uid}`);
     } catch (error) {
       throw new Error('Failed to revoke refresh tokens');
     }

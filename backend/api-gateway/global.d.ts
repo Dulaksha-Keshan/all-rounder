@@ -5,6 +5,10 @@ declare global {
       FIREBASE_PROJECT_ID?: string;
       FIREBASE_CLIENT_EMAIL?: string;
       FIREBASE_PRIVATE_KEY?: string;
+      CORS_ORIGIN?: string;
+      CONTENT_SERVICE_URL?: string;
+      USER_SERCVICE_URL?: string;
+
     }
   }
 
