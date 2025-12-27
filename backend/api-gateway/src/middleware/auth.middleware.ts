@@ -29,6 +29,8 @@ export async function verifyToken(req: Request, res: Response, next: NextFunctio
       userType: customClaims.userType || "",
     };
 
+    next()
+
 
   } catch (error: any) {
     console.error('Token verification error:', error.message);
