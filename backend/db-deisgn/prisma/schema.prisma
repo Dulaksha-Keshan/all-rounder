@@ -7,67 +7,79 @@ generator client {
 }
 
 // ==========================================
-// 1. USER & INHERITANCE (User -> Student/Teacher)
+// 1. INDEPENDENT USER TABLES
 // ==========================================
 
-model User {
-  user_id         Int      @id @default(autoincrement())
+model Student {
+  // Independent ID (Primary Key)
+  student_id Int @id @default(autoincrement())
+
+  // Profile Fields (Formerly in User)
   name            String
   email           String   @unique
   password        String
   date_of_birth   DateTime
   contact_number  String?
   profile_picture String?
-  user_type       UserType // Enum defined at the bottom
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
 
-  // 1-to-1 Relationships (The "Is A" relationship)
-  student Student?
-  teacher Teacher?
+  // Student Specifics
+  grade      String
+  about      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  // User as an Event Organizer
-  eventsCreated Event[] @relation("EventOrganizer")
-
-  // User Receiving Notifications
-  notifications Notification[]
-
-  // User Making Resource Requests
-  resourceRequests ResourceRequest[]
-
-  // User Responding to Resource Requests (The Contact)
-  contactResponses ResourceRequestContact[]
-
-  // User in Verification (Double Relation)
-  verificationsAsSubject  Verification[] @relation("UserVerifications")
-  verificationsAsVerifier Verification[] @relation("VerifierUser")
-}
-
-model Student {
-  // PK is also the FK to User (1:1 constraint)
-  user_id Int  @id
-  user    User @relation(fields: [user_id], references: [user_id])
-
+  // Relationships
   school_id Int
   school    School @relation(fields: [school_id], references: [school_id])
 
-  grade String
-  about String?
-
-  achievements Achievement[]
-  skills       Skill[] // Implicit Many-to-Many
+  skills Skill[]
 }
 
 model Teacher {
-  user_id Int  @id
-  user    User @relation(fields: [user_id], references: [user_id])
+  // Independent ID (Primary Key)
+  teacher_id Int @id @default(autoincrement())
 
-  school_id Int
-  school    School @relation(fields: [school_id], references: [school_id])
+  // Profile Fields
+  name            String
+  email           String   @unique
+  password        String
+  date_of_birth   DateTime
+  contact_number  String?
+  profile_picture String?
 
-  staff_id    String?
+  // Teacher Specifics
   subject     String
   designation String
+  // staff_id is often used as a visible ID, distinct from the database PK
+  staff_id    String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relationships
+  school_id Int
+  school    School @relation(fields: [school_id], references: [school_id])
+}
+
+model Admin {
+  // Independent ID (Primary Key)
+  admin_id Int @id @default(autoincrement())
+
+  // Profile Fields
+  name            String
+  email           String   @unique
+  password        String
+  date_of_birth   DateTime
+  contact_number  String?
+  profile_picture String?
+
+  // Admin Specifics
+  staff_id   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relationships
+  school_id Int
+  school    School @relation(fields: [school_id], references: [school_id])
 }
 
 // ==========================================
@@ -87,10 +99,10 @@ model School {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  students     Student[]
-  teachers     Teacher[]
-  eventsHosted Event[]   @relation("SchoolEvents")
-  clubs        Club[]
+  // School now relates to these 3 independent tables separately
+  students Student[]
+  teachers Teacher[]
+  admins   Admin[]
 }
 
 model Organization {
@@ -98,142 +110,23 @@ model Organization {
   organization_name String
   contact_person    String
   website           String?
-
-  // Organization as an External Host
-  eventsHosted Event[] @relation("OrgEvents")
-}
-
-model Club {
-  club_id Int    @id @default(autoincrement())
-  name    String
-  type    String
-
-  school_id Int
-  school    School @relation(fields: [school_id], references: [school_id])
 }
 
 // ==========================================
-// 3. EVENTS (Merged Entity)
-// ==========================================
-
-model Event {
-  event_id Int @id @default(autoincrement())
-
-  // Who created the event?
-  user_id   Int
-  organizer User @relation("EventOrganizer", fields: [user_id], references: [user_id])
-
-  // HOSTING: Can be a School OR an Organization (Both optional, usually one is set)
-  host_school_id Int?
-  hostSchool     School? @relation("SchoolEvents", fields: [host_school_id], references: [school_id])
-
-  host_organization_id Int?
-  hostOrganization     Organization? @relation("OrgEvents", fields: [host_organization_id], references: [organization_id])
-
-  title                 String
-  description           String?
-  category              String
-  date                  DateTime
-  time                  String
-  venue                 String? // Moved from EventHost
-  registration_deadline DateTime?
-  eligibility           String?
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-}
-
-// ==========================================
-// 4. STUDENT DETAILS (Skills & Achievements)
+// 3. SKILLS
 // ==========================================
 
 model Skill {
-  skill_id   Int    @id @default(autoincrement())
+  skill_id   Int       @id @default(autoincrement())
   skill_name String
   category   String
-
-  students Student[] // Prisma manages the join table automatically
-}
-
-model Achievement {
-  achievement_id Int     @id @default(autoincrement())
-  student_id     Int
-  student        Student @relation(fields: [student_id], references: [user_id])
-
-  title           String
-  description     String?
-  category        String
-  date_achieved   DateTime
-  certificate_url String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-}
-
-// ==========================================
-// 5. REQUESTS & NOTIFICATIONS
-// ==========================================
-
-model ResourceRequest {
-  request_id Int  @id @default(autoincrement())
-  user_id    Int
-  requester  User @relation(fields: [user_id], references: [user_id])
-
-  resource_type   String
-  quantity_needed Int
-  description     String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  contacts ResourceRequestContact[]
-}
-
-// The Middle Table for Responses
-model ResourceRequestContact {
-  request_id Int
-  request    ResourceRequest @relation(fields: [request_id], references: [request_id])
-
-  user_id   Int
-  responder User @relation(fields: [user_id], references: [user_id])
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([request_id, user_id]) // Composite PK prevents duplicate responses from same user
-}
-
-model Notification {
-  notification_id Int  @id @default(autoincrement())
-  user_id         Int
-  user            User @relation(fields: [user_id], references: [user_id])
-
-  title      String
-  message    String
-  type       String
-  status     String   @default("Unread")
-  created_at DateTime @default(now())
-}
-
-// ==========================================
-// 6. VERIFICATION (The Double Link)
-// ==========================================
-
-model Verification {
-  verification_id Int @id @default(autoincrement())
-
-  // Link 1: The Applicant
-  user_id Int
-  user    User @relation("UserVerifications", fields: [user_id], references: [user_id])
-
-  // Link 2: The Admin Verifier
-  verifier_id Int? // Optional because it might not be verified yet
-  verifier    User? @relation("VerifierUser", fields: [verifier_id], references: [user_id])
-
-  type_of_verification String
-  status               String    @default("Pending")
-  verified_at          DateTime?
+  students   Student[]
 }
 
 enum UserType {
   STUDENT
   TEACHER
-  ADMIN
+  SCHOOL_ADMIN
+  ORG_ADMIN
+  SUPER_ADMIN
 }
