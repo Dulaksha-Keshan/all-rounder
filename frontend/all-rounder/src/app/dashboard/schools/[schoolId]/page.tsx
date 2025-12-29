@@ -8,6 +8,7 @@ import Menu from "@/app/dashboard/_components/Menu";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+
 interface SchoolDashboardProps {
   params: Promise<{
     schoolId: string;
@@ -33,6 +34,7 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
   );
 
   return (
+
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}
       <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[var(--primary-dark-purple)] to-[var(--primary-blue)] p-4 shadow-xl">
@@ -100,6 +102,9 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
           </div>
         </div>
       </div>
+      
     </div>
+    
+    
   );
 }

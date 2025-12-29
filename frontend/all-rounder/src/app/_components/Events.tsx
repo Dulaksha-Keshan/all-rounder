@@ -142,12 +142,13 @@ export function EventDetails() {
   };
 
   return (
-    <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-10 sm:py-10 lg:py-20 overflow-hidden'>
+    // Change this line at the top of the EventDetails component:
+    <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-8 sm:py-10 lg:py-10 overflow-hidden'>
       <div ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Animated Title */}
         <h2 
           ref={titleRef}
-          className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--primary-dark-purple)] text-center mb-8 sm:mb-10 lg:mb-16 overflow-hidden"
+          className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[var(--primary-dark-purple)] text-center mb-8 sm:mb-10 lg:mb-12 overflow-hidden"
         >
           Explore Our Events
         </h2>

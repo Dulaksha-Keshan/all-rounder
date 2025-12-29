@@ -6,6 +6,8 @@ html, body {
   height: 100%;
 }
 
+
+
 /* Root Color Variables */
 :root {
   /* Primary Colors */
@@ -87,10 +89,5 @@ html, body {
 
 .gradient-lavender-pale {
   background: linear-gradient(to bottom right, var(--secondary-light-lavender), var(--secondary-pale-lavender));
-}
-
-/* Remove any default body margin that might cause gaps */
-body {
-  background-color: var(--gray-100);
 }
 
