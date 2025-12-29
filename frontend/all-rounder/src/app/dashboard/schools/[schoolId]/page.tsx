@@ -35,7 +35,7 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
   return (
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}
-      <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[#34365C] to-[#4169E1] p-4 shadow-xl">
+      <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[var(--primary-dark-purple)] to-[var(--primary-blue)] p-4 shadow-xl">
         <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
           <Image 
             src="/logo.png" 
@@ -44,18 +44,18 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
             height={32} 
             className="brightness-0 invert" 
           />
-          <span className="hidden lg:block font-bold text-white">All-Rounder</span>
+          <span className="hidden lg:block font-bold text-[var(--white)]">All-Rounder</span>
         </div>
         <Menu schoolId={schoolId} />
       </div>
 
       {/* RIGHT CONTENT */}
-      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-gradient-to-br from-[#F8F8FF] via-[#DCD0FF]/20 to-[#F8F8FF] overflow-scroll">
+      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-gradient-to-br from-[var(--secondary-pale-lavender)] via-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)] overflow-scroll">
         <div className="p-6">
           <div className="max-w-[1400px] mx-auto">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-[#34365C]">{school.name}</h1>
+              <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{school.name}</h1>
               <p className="text-gray-600">{school.location}</p>
             </div>
 
@@ -65,21 +65,21 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
               <UserCard type="teacher" schoolId={schoolId} />
               
               {/* Events Card */}
-              <div className="rounded-2xl bg-gradient-to-br from-[#8387CC] to-[#4169E1] p-4 flex-1 min-w-[130px] shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+              <div className="rounded-2xl bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] p-4 flex-1 min-w-[130px] shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] bg-white/90 px-2 py-1 rounded-full text-[#4169E1] font-semibold">
+                  <span className="text-[10px] bg-[var(--white)]/90 px-2 py-1 rounded-full text-[var(--primary-blue)] font-semibold">
                     2024/25
                   </span>
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[var(--white)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="5" r="1.5"/>
                     <circle cx="12" cy="12" r="1.5"/>
                     <circle cx="12" cy="19" r="1.5"/>
                   </svg>
                 </div>
-                <h1 className="text-2xl font-semibold my-4 text-white">
+                <h1 className="text-2xl font-semibold my-4 text-[var(--white)]">
                   {schoolEvents.length}
                 </h1>
-                <h2 className="capitalize text-sm font-medium text-white/90">
+                <h2 className="capitalize text-sm font-medium text-[var(--white)]/90">
                   Events
                 </h2>
               </div>

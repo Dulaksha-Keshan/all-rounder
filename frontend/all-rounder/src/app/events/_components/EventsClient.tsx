@@ -1,7 +1,6 @@
-
 'use client';
 import { useState } from 'react';
-import { Event } from '../_types/event';
+import { Event } from '@/app/_type/type';
 import { EventList } from './EventList';
 
 export default function EventsClient({ events }: { events: Event[] }) {
@@ -25,29 +24,29 @@ export default function EventsClient({ events }: { events: Event[] }) {
   });
 
   const allCategories = Array.from(new Set(events.flatMap(e => e.categories || [])));
-//   bg-gradient-to-br from-[#F8F8FF] via-[#DCD0FF] to-[#d5baed]
+
   return (
     <div className="min-h-screen bg-[#f4f0ff]">
       {/* Header Section */}
-      <div className="relative bg-[#34365C] text-white overflow-hidden">
+      <div className="relative bg-[var(--primary-dark-purple)] text-[var(--white)] overflow-hidden">
         {/* Decorative Elements */}
-        <div className="absolute top-10 left-10 text-6xl text-[#DCD0FF] opacity-30">✦</div>
-        <div className="absolute top-20 right-20 text-5xl text-[#8387CC] opacity-30">★</div>
-        <div className="absolute bottom-10 left-1/4 text-4xl text-[#DCD0FF] opacity-30">✦</div>
-        <div className="absolute bottom-20 right-1/4 text-5xl text-[#8387CC] opacity-30">★</div>
+        <div className="absolute top-10 left-10 text-6xl text-[var(--secondary-light-lavender)] opacity-30">✦</div>
+        <div className="absolute top-20 right-20 text-5xl text-[var(--primary-purple)] opacity-30">★</div>
+        <div className="absolute bottom-10 left-1/4 text-4xl text-[var(--secondary-light-lavender)] opacity-30">✦</div>
+        <div className="absolute bottom-20 right-1/4 text-5xl text-[var(--primary-purple)] opacity-30">★</div>
         
         <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-[#DCD0FF] mb-6 text-sm">
+          <div className="flex items-center gap-2 text-[var(--secondary-light-lavender)] mb-6 text-sm">
             <span>Home</span>
             <span>›</span>
-            <span className="text-white">Competitions & Events</span>
+            <span className="text-[var(--white)]">Competitions & Events</span>
           </div>
           
           <h1 className="text-6xl font-bold mb-4">
-            Competitions & <span className="text-[#4169E1]">Events Hub</span>
+            Competitions & <span className="text-[var(--primary-blue)]">Events Hub</span>
           </h1>
-          <p className="text-xl text-[#DCD0FF] max-w-2xl">
+          <p className="text-xl text-[var(--secondary-light-lavender)] max-w-2xl">
             Discover opportunities to showcase your talents, learn new skills, and compete with peers across various disciplines
           </p>
         </div>
@@ -61,8 +60,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
             onClick={() => setActiveTab('all')}
             className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all ${
               activeTab === 'all' 
-                ? 'bg-[#4169E1] text-white shadow-lg scale-105' 
-                : 'bg-white text-[#34365C] hover:bg-[#DCD0FF] shadow-md'
+                ? 'bg-[var(--primary-blue)] text-[var(--white)] shadow-lg scale-105' 
+                : 'bg-[var(--white)] text-[var(--primary-dark-purple)] hover:bg-[var(--secondary-light-lavender)] shadow-md'
             }`}
           >
             All Competitions
@@ -71,8 +70,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
             onClick={() => setActiveTab('registered')}
             className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all ${
               activeTab === 'registered' 
-                ? 'bg-[#4169E1] text-white shadow-lg scale-105' 
-                : 'bg-white text-[#34365C] hover:bg-[#DCD0FF] shadow-md'
+                ? 'bg-[var(--primary-blue)] text-[var(--white)] shadow-lg scale-105' 
+                : 'bg-[var(--white)] text-[var(--primary-dark-purple)] hover:bg-[var(--secondary-light-lavender)] shadow-md'
             }`}
           >
             My Registrations
@@ -81,8 +80,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
             onClick={() => setActiveTab('completed')}
             className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all ${
               activeTab === 'completed' 
-                ? 'bg-[#4169E1] text-white shadow-lg scale-105' 
-                : 'bg-white text-[#34365C] hover:bg-[#DCD0FF] shadow-md'
+                ? 'bg-[var(--primary-blue)] text-[var(--white)] shadow-lg scale-105' 
+                : 'bg-[var(--white)] text-[var(--primary-dark-purple)] hover:bg-[var(--secondary-light-lavender)] shadow-md'
             }`}
           >
             Completed
@@ -92,18 +91,18 @@ export default function EventsClient({ events }: { events: Event[] }) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <div className="lg:w-72 flex-shrink-0">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-[#8387CC] sticky top-6">
+            <div className="bg-[var(--white)] rounded-2xl p-6 shadow-lg border-2 border-[var(--primary-purple)] sticky top-6">
               <div className="flex items-center gap-2 mb-5">
                 <span className="text-2xl">🔍</span>
-                <h3 className="text-xl font-bold text-[#34365C]">Filters</h3>
+                <h3 className="text-xl font-bold text-[var(--primary-dark-purple)]">Filters</h3>
               </div>
               
               <div className="mb-5">
-                <label className="block text-sm font-bold text-[#34365C] mb-2">Category</label>
+                <label className="block text-sm font-bold text-[var(--primary-dark-purple)] mb-2">Category</label>
                 <select 
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-[#8387CC] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DCD0FF] bg-[#F8F8FF] text-sm font-medium text-[#34365C]"
+                  className="w-full px-3 py-2 border-2 border-[var(--primary-purple)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--secondary-light-lavender)] bg-[var(--secondary-pale-lavender)] text-sm font-medium text-[var(--primary-dark-purple)]"
                 >
                   <option>All Categories</option>
                   {allCategories.map(cat => (
@@ -116,26 +115,26 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 onClick={() => {
                   setSelectedCategory('All Categories');
                 }}
-                className="w-full px-4 py-2 bg-[#4169E1] text-white rounded-lg hover:bg-[#34365C] transition-colors font-semibold text-sm shadow-md"
+                className="w-full px-4 py-2 bg-[var(--primary-blue)] text-[var(--white)] rounded-lg hover:bg-[var(--primary-dark-purple)] transition-colors font-semibold text-sm shadow-md"
               >
                 Reset Filters
               </button>
 
               {/* Stats Box */}
-              <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                <h4 className="text-sm font-bold text-[#34365C] mb-4 uppercase tracking-wide">Quick Stats</h4>
+              <div className="mt-6 pt-6 border-t-2 border-[var(--gray-200)]">
+                <h4 className="text-sm font-bold text-[var(--primary-dark-purple)] mb-4 uppercase tracking-wide">Quick Stats</h4>
                 <div className="space-y-3">
-                  <div className="bg-gradient-to-r from-[#DCD0FF] to-[#CEB0E8] rounded-lg p-3">
-                    <div className="text-2xl font-bold text-[#34365C]">{events.length}</div>
-                    <div className="text-xs text-[#34365C] font-medium">Total Events</div>
+                  <div className="bg-gradient-to-r from-[var(--secondary-light-lavender)] to-[var(--secondary-purple-light)] rounded-lg p-3">
+                    <div className="text-2xl font-bold text-[var(--primary-dark-purple)]">{events.length}</div>
+                    <div className="text-xs text-[var(--primary-dark-purple)] font-medium">Total Events</div>
                   </div>
-                  <div className="bg-gradient-to-r from-[#8387CC] to-[#4169E1] rounded-lg p-3">
-                    <div className="text-2xl font-bold text-white">{events.filter(e => e.status === 'Registered').length}</div>
-                    <div className="text-xs text-white font-medium">Registered</div>
+                  <div className="bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-lg p-3">
+                    <div className="text-2xl font-bold text-[var(--white)]">{events.filter(e => e.status === 'Registered').length}</div>
+                    <div className="text-xs text-[var(--white)] font-medium">Registered</div>
                   </div>
-                  <div className="bg-gradient-to-r from-[#4169E1] to-[#34365C] rounded-lg p-3">
-                    <div className="text-2xl font-bold text-white">{events.filter(e => e.status === 'Open').length}</div>
-                    <div className="text-xs text-white font-medium">Open Now</div>
+                  <div className="bg-gradient-to-r from-[var(--primary-blue)] to-[var(--primary-dark-purple)] rounded-lg p-3">
+                    <div className="text-2xl font-bold text-[var(--white)]">{events.filter(e => e.status === 'Open').length}</div>
+                    <div className="text-xs text-[var(--white)] font-medium">Open Now</div>
                   </div>
                 </div>
               </div>
@@ -152,7 +151,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                   placeholder="🔍 Search competitions by name or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-6 py-4 border-2 border-[#8387CC] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#DCD0FF] text-base bg-white shadow-lg"
+                  className="w-full px-6 py-4 border-2 border-[var(--primary-purple)] rounded-xl focus:outline-none focus:ring-4 focus:ring-[var(--secondary-light-lavender)] text-base bg-[var(--white)] shadow-lg"
                 />
               </div>
             </div>

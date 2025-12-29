@@ -131,58 +131,58 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-[#F8F8FF] via-[#DCD0FF]/20 to-[#F8F8FF] min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-[var(--secondary-pale-lavender)] via-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)] min-h-screen">
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#34365C]">{getTitle()}</h1>
+          <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{getTitle()}</h1>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="rounded-2xl bg-gradient-to-br from-[#8387CC] to-[#4169E1] p-6 shadow-xl border border-[#DCD0FF]/50">
+          <div className="rounded-2xl bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] p-6 shadow-xl border border-[var(--secondary-light-lavender)]/50">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#8387CC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-full bg-[var(--white)] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--primary-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-white">Total Participations</span>
+              <span className="text-sm font-medium text-[var(--white)]">Total Participations</span>
             </div>
-            <h1 className="text-3xl font-bold text-white">{totalParticipations}</h1>
+            <h1 className="text-3xl font-bold text-[var(--white)]">{totalParticipations}</h1>
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-br from-[#DCD0FF] to-[#F8F8FF] p-6 shadow-xl border border-[#DCD0FF]/50">
+          <div className="rounded-2xl bg-gradient-to-br from-[var(--secondary-light-lavender)] to-[var(--secondary-pale-lavender)] p-6 shadow-xl border border-[var(--secondary-light-lavender)]/50">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#8387CC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-full bg-[var(--white)] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--primary-purple)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-[#34365C]/70">Student Participations</span>
+              <span className="text-sm font-medium text-[var(--primary-dark-purple)]/70">Student Participations</span>
             </div>
-            <h1 className="text-3xl font-bold text-[#34365C]">{totalStudentParticipations}</h1>
+            <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{totalStudentParticipations}</h1>
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-br from-[#8387CC] to-[#4169E1] p-6 shadow-xl border border-[#DCD0FF]/50">
+          <div className="rounded-2xl bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] p-6 shadow-xl border border-[var(--secondary-light-lavender)]/50">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#4169E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-full bg-[var(--white)] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--primary-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-white">Teacher Participations</span>
+              <span className="text-sm font-medium text-[var(--white)]">Teacher Participations</span>
             </div>
-            <h1 className="text-3xl font-bold text-white">{totalTeacherParticipations}</h1>
+            <h1 className="text-3xl font-bold text-[var(--white)]">{totalTeacherParticipations}</h1>
           </div>
         </div>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Bar Chart */}
-          <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all border border-[#DCD0FF]/50">
+          <div className="bg-[var(--white)] rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all border border-[var(--secondary-light-lavender)]/50">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-[#34365C]">Top 5 Events by Participation</h2>
+              <h2 className="text-xl font-bold text-[var(--primary-dark-purple)]">Top 5 Events by Participation</h2>
               <Image src="/moreDark.png" alt="" width={20} height={20} />
             </div>
             {topEvents.length > 0 ? (
@@ -212,9 +212,9 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
           </div>
 
           {/* Pie Chart */}
-          <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all border border-[#DCD0FF]/50">
+          <div className="bg-[var(--white)] rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all border border-[var(--secondary-light-lavender)]/50">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-[#34365C]">Participation by Type</h2>
+              <h2 className="text-xl font-bold text-[var(--primary-dark-purple)]">Participation by Type</h2>
               <Image src="/moreDark.png" alt="" width={20} height={20} />
             </div>
             {totalParticipations > 0 ? (
@@ -255,51 +255,51 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
         </div>
 
         {/* Events Table */}
-        <div className="bg-white rounded-2xl p-6 shadow-xl border border-[#DCD0FF]/50">
+        <div className="bg-[var(--white)] rounded-2xl p-6 shadow-xl border border-[var(--secondary-light-lavender)]/50">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#34365C]">All Events Overview</h2>
+            <h2 className="text-xl font-bold text-[var(--primary-dark-purple)]">All Events Overview</h2>
             <Image src="/moreDark.png" alt="" width={20} height={20} />
           </div>
           {eventStats.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b-2 border-[#DCD0FF]">
-                    <th className="text-left py-4 px-4 text-sm font-bold text-[#34365C]">Event</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-[#34365C]">Date</th>
-                    <th className="text-center py-4 px-4 text-sm font-bold text-[#34365C]">Students</th>
-                    <th className="text-center py-4 px-4 text-sm font-bold text-[#34365C]">Teachers</th>
+                  <tr className="border-b-2 border-[var(--secondary-light-lavender)]">
+                    <th className="text-left py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Event</th>
+                    <th className="text-left py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Date</th>
+                    <th className="text-center py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Students</th>
+                    <th className="text-center py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Teachers</th>
                     {type === "Organization" && (
-                      <th className="text-center py-4 px-4 text-sm font-bold text-[#34365C]">Schools</th>
+                      <th className="text-center py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Schools</th>
                     )}
-                    <th className="text-center py-4 px-4 text-sm font-bold text-[#34365C]">Total</th>
+                    <th className="text-center py-4 px-4 text-sm font-bold text-[var(--primary-dark-purple)]">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {eventStats.map((event) => (
-                    <tr key={event.id} className="border-b border-[#DCD0FF]/30 hover:bg-[#F8F8FF] transition-colors">
-                      <td className="py-4 px-4 text-sm font-medium text-[#34365C]">{event.title}</td>
-                      <td className="py-4 px-4 text-sm text-[#34365C]/70">
+                    <tr key={event.id} className="border-b border-[var(--secondary-light-lavender)]/30 hover:bg-[var(--secondary-pale-lavender)] transition-colors">
+                      <td className="py-4 px-4 text-sm font-medium text-[var(--primary-dark-purple)]">{event.title}</td>
+                      <td className="py-4 px-4 text-sm text-[var(--primary-dark-purple)]/70">
                         {new Date(event.date).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4 text-sm text-center">
-                        <span className="bg-[#DCD0FF] text-[#8387CC] px-3 py-1.5 rounded-full text-xs font-bold">
+                        <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-purple)] px-3 py-1.5 rounded-full text-xs font-bold">
                           {event.students}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-sm text-center">
-                        <span className="bg-[#DCD0FF] text-[#4169E1] px-3 py-1.5 rounded-full text-xs font-bold">
+                        <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-blue)] px-3 py-1.5 rounded-full text-xs font-bold">
                           {event.teachers}
                         </span>
                       </td>
                       {type === "Organization" && (
                         <td className="py-4 px-4 text-sm text-center">
-                          <span className="bg-[#DCD0FF] text-[#505485] px-3 py-1.5 rounded-full text-xs font-bold">
+                          <span className="bg-[var(--secondary-light-lavender)] text-[var(--accent-purple-text)] px-3 py-1.5 rounded-full text-xs font-bold">
                             {event.schools}
                           </span>
                         </td>
                       )}
-                      <td className="py-4 px-4 text-sm text-center font-bold text-[#34365C]">
+                      <td className="py-4 px-4 text-sm text-center font-bold text-[var(--primary-dark-purple)]">
                         {event.total}
                       </td>
                     </tr>
