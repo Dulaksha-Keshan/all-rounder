@@ -83,7 +83,7 @@ export default function Footer() {
               </div>
               <div className="flex-1">
                 <span className="block text-sm font-medium mb-1">Email us</span>
-                <span className="block text-base break-all">allrounder@gmail.com</span>
+                <span className="block text-base break-all">mail.allrounder.sdgp@gmail.com</span>
               </div>
             </a>
           </div>
@@ -95,7 +95,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-7 pb-6">
           <p className="text-sm text-gray-300">
-            © 2024 All-Rounder. All rights reserved.
+            © 2025 All-Rounder. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-gray-300">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
@@ -104,5 +104,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

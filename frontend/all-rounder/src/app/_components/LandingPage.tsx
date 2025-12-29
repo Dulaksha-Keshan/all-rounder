@@ -31,7 +31,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--primary-dark-purple)] mb-3 sm:mb-4">Create</h3>
               <p className="text-justify text-[var(--gray-700)] leading-relaxed mb-4 text-base sm:text-lg">
-                Build a comprehensive digital portfolio that captures every facet of your student journey. From achievements to creative projects and leadership all in one powerful profile.
+                Build a comprehensive digital portfolio that captures your student journey. From achievements to creative projects and leadership all in one powerful profile.
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[var(--secondary-light-lavender)] text-[var(--accent-purple-text)] rounded-full text-xs sm:text-sm font-medium">BUILD</span>
@@ -61,7 +61,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--primary-dark-purple)] mb-3 sm:mb-4">Celebrate</h3>
               <p className="text-justify text-[var(--gray-700)] leading-relaxed mb-4 text-base sm:text-lg">
-                Recognize and honor every milestone. Get verified recognition from educators, climb leaderboards, and receive the acknowledgment you deserve for your hard work and dedication.
+                Recognize and honor every milestone. Get verified recognition from educators, and receive the acknowledgment you deserve for your hard work and dedication.
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[var(--secondary-light-lavender)] text-[var(--accent-purple-text)] rounded-full text-xs sm:text-sm font-medium">ACHIEVE</span>

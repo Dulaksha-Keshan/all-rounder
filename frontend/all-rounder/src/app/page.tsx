@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <>
     <SplashScreen/>
-    <LandingPage />;
+    <LandingPage />
     </>
   )
 }
