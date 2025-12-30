@@ -16,7 +16,7 @@ export default function Footer() {
           {/* Logo & Tagline */}
           <div className="flex flex-col items-center lg:items-start">
             <img 
-              src="logo.png" 
+              src="./logo.png" 
               alt="All-Rounder Logo" 
               className="h-24 w-auto brightness-0 invert mb-4 object-contain"
             />
