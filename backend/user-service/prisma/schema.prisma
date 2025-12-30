@@ -1,0 +1,136 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. INDEPENDENT USER TABLES
+// ==========================================
+
+model Student {
+  // Independent ID (Primary Key)
+  student_id Int @id @default(autoincrement())
+
+  // Profile Fields (Formerly in User)
+  name            String
+  email           String   @unique
+  password        String
+  date_of_birth   DateTime
+  contact_number  String?
+  profile_picture String?
+
+  // Student Specifics
+  grade      String
+  about      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relationships
+  school_id Int
+  school    School @relation(fields: [school_id], references: [school_id])
+
+  skills Skill[]
+}
+
+model Teacher {
+  // Independent ID (Primary Key)
+  teacher_id Int @id @default(autoincrement())
+
+  // Profile Fields
+  name            String
+  email           String   @unique
+  password        String
+  date_of_birth   DateTime
+  contact_number  String?
+  profile_picture String?
+
+  // Teacher Specifics
+  subject     String
+  designation String
+  // staff_id is often used as a visible ID, distinct from the database PK
+  staff_id    String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relationships
+  school_id Int
+  school    School @relation(fields: [school_id], references: [school_id])
+}
+
+model Admin {
+  // Independent ID (Primary Key)
+  admin_id Int @id @default(autoincrement())
+
+  // Profile Fields
+  name            String
+  email           String   @unique
+  password        String
+  adminType       UserType
+  date_of_birth   DateTime
+  contact_number  String?
+  profile_picture String?
+
+  // Admin Specifics
+  staff_id   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relationships
+  school_id       Int?
+  school          School?       @relation(fields: [school_id], references: [school_id])
+  organization_id Int?
+  organization    Organization? @relation(fields: [organization_id], references: [organization_id])
+}
+
+// ==========================================
+// 2. SCHOOL & ORGANIZATIONS
+// ==========================================
+
+model School {
+  school_id      Int      @id @default(autoincrement())
+  name           String
+  address        String
+  district       String
+  student_count  Int?
+  email          String
+  contact_number String
+  principal_name String?
+  web_link       String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // School now relates to these 3 independent tables separately
+  students Student[]
+  teachers Teacher[]
+  admins   Admin[]
+}
+
+model Organization {
+  organization_id   Int     @id @default(autoincrement())
+  organization_name String
+  contact_person    String
+  website           String?
+  admins            Admin[]
+}
+
+// ==========================================
+// 3. SKILLS
+// ==========================================
+
+model Skill {
+  skill_id   Int       @id @default(autoincrement())
+  skill_name String
+  category   String
+  students   Student[]
+}
+
+enum UserType {
+  STUDENT
+  TEACHER
+  SCHOOL_ADMIN
+  ORG_ADMIN
+  SUPER_ADMIN
+}

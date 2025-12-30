@@ -256,6 +256,3 @@ volumes:
   mongo_data:
   redis_data:
   kafka_data:
-  zookeeper_data:
-  zookeeper_logs:
-  pgadmin_data:
