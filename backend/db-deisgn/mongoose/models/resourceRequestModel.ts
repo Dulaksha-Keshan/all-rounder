@@ -50,6 +50,12 @@ const resourceRequestSchema = new mongoose.Schema(
     remarks: {
       type: String,
     },
+    contactNumber: {
+      type: String,
+    },
+    email: {
+      type: String,
+    }
   },
   {
     timestamps: true,
