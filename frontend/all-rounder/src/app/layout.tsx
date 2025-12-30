@@ -12,6 +12,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
+// changed this accordingly :) -(the browsing icon and title)
 export const metadata: Metadata = {
   title: "All-Rounder",
   description: "All-Rounder - Celebrate.Connect.Contribute.",
