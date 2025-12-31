@@ -3,7 +3,7 @@ import FeatureCard from './FeatureCard';
 import { EventDetails } from './Events';
 import { HeroSection } from './Hero';
 import Footer from './Footer';
-import Header from './Header';
+import Header from './navibar';
 
 
 export default function LandingPage() {
@@ -17,7 +17,8 @@ export default function LandingPage() {
         <HeroSection/>
 
         {/* Our Vision & Mission */}
-        <div className="mx-4 sm:mx-8 lg:mx-16 mt-12 sm:mt-16 lg:mt-20 sm:mb-8">
+        <div className="mx-4 sm:mx-8 lg:mx-16 mt-12 sm:mt-16 lg:mt-20 sm:mb-8"
+        id= "AboutUs">
           <div className="mb-6 sm:mb-8 text-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--primary-dark-purple)] mb-2">Our Vision & Mission</h2>
             <p className="text-[var(--gray-600)] text-base sm:text-lg lg:text-xl px-4">Empowering students to showcase their unique journey through three core pillars that define our platform.</p>
@@ -78,7 +79,8 @@ export default function LandingPage() {
         </div>
 
       {/* Explore Our Features Section */}
-        <div className="mb-12 sm:mb-16 mt-0">
+        <div className="mb-12 sm:mb-16 mt-0"
+        id= "Features">
           <FeatureCard />
         </div>
 
@@ -170,8 +172,8 @@ export default function LandingPage() {
         </div>
 
       {/*  Events Section */}
-        
-      <EventDetails/>
+      <div id="Events"><EventDetails/></div> 
+      
         
       </main>
       {/* Footer Section */}
