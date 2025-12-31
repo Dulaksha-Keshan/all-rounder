@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { Organizations } from "@/app/_data/data";
 import { Organization } from "@/app/_type/type";
+import Footer from "@/app/_components/Footer";
 
 import OrganizationHeader from "./OrganizationHeader";
 import OrganizationTabs from "./OrganizationTabs";
@@ -15,7 +16,14 @@ export default function OrganizationProfilePage() {
   );
 
   if (!organization) {
-    return <p className="p-6 text-gray-500">Organization not found</p>;
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F6F5FF]">
+        <p className="p-6 text-gray-500 flex-grow">
+          Organization not found
+        </p>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -24,6 +32,8 @@ export default function OrganizationProfilePage() {
         <OrganizationHeader organization={organization} />
         <OrganizationTabs organization={organization} />
       </div>
+      {/* FOOTER */}
+      <Footer />
     </div>
   );
 }

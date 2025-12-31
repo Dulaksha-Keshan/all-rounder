@@ -3,7 +3,7 @@ import FeatureCard from './FeatureCard';
 import { EventDetails } from './Events';
 import { HeroSection } from './Hero';
 import Footer from './Footer';
-import Header from './navibar';
+import  Header from './navibar';
 
 
 export default function LandingPage() {

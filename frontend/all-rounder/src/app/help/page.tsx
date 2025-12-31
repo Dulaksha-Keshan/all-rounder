@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import HelpCardsGrid from "./_components/HelpCardsGrid";
+import Footer from "@/app/_components/Footer";
+import Navbar from '../_components/navibar';
 
 type HelpType = "student" | "teacher" | "admin" | "resource" | null;
 
@@ -26,6 +28,8 @@ export default function NeedHelpPage() {
 
   return (
     <div className="bg-gray-50">
+      {/* HEADER */}
+      <Navbar />
       {/* HERO */}
       <section className="relative w-full bg-[#34365C] text-white py-20 overflow-hidden">
         {/* Decorative stars */}
@@ -99,53 +103,7 @@ export default function NeedHelpPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gradient-to-br from-[#34365C] to-[#4169E1] text-white mt-24">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <img
-                src="/logo.png"
-                alt="All-Rounder Logo"
-                className="w-40 brightness-0 invert"
-              />
-            </div>
-
-            <div>
-              <h3 className="font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li>Overview</li>
-                <li>How it Works</li>
-                <li>For Students</li>
-                <li>For Educators</li>
-                <li>For Schools</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold mb-4">Resources</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li>Help Center</li>
-                <li>Getting Started</li>
-                <li>Blog</li>
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-bold mb-4">Contact</h3>
-              <p className="text-gray-300">📧 allrounder@gmail.com</p>
-              <p className="text-gray-300 mt-2">
-                📍 123 Education Lane, San Francisco
-              </p>
-            </div>
-          </div>
-
-          <p className="text-center text-sm text-gray-200">
-            © 2024 All-Rounder. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -5,11 +5,14 @@ import VisionHero from './_components/VisionHero';
 import VisionCards from './_components/VisionCards';
 import AboutAllRounder from './_components/AboutAllRounder';
 import Footer from '@/app/_components/Footer';
+import Navbar from '../_components/navibar';
 
 
 export default function VisionPage() {
   return (
     <>
+      {/* HEADER */}
+      <Navbar />
       {/* HERO */}
       <VisionHero />
 
