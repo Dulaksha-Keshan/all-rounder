@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import Link from 'next/link';
 
 export function HeroSection() {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -121,9 +122,12 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div ref={buttonsRef} className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center">
-            <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-0.5 bg-[var(--primary-blue)] text-[var(--secondary-pale-lavender)] hover:bg-purple-200">
-              <span className="flex items-center justify-center gap-3">Join Us Today</span>
-            </button>
+            <Link href="/login">
+              <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-0.5 bg-[var(--primary-blue)] text-[var(--secondary-pale-lavender)] hover:bg-purple-200">
+                <span className="flex items-center justify-center gap-3">Join Us Today</span>
+              </button>
+            </Link>
+
             <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--secondary-light-lavender)] bg-transparent text-[var(--secondary-light-lavender)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-purple-200 hover:text-[var(--black)]">
               <span className="flex items-center justify-center gap-3">Learn More</span>
             </button>
