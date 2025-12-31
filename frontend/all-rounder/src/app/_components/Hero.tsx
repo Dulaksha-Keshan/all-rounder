@@ -128,9 +128,13 @@ export function HeroSection() {
               </button>
             </Link>
 
-            <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--secondary-light-lavender)] bg-transparent text-[var(--secondary-light-lavender)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-purple-200 hover:text-[var(--black)]">
-              <span className="flex items-center justify-center gap-3">Learn More</span>
-            </button>
+
+            <Link href="/help">
+              <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--secondary-light-lavender)] bg-transparent text-[var(--secondary-light-lavender)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-purple-200 hover:text-[var(--black)]">
+                <span className="flex items-center justify-center gap-3">Learn More</span>
+              </button>
+            </Link>
+
           </div>
         </div>
 

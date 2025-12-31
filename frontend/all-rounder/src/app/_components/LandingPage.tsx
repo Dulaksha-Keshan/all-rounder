@@ -4,6 +4,7 @@ import { EventDetails } from './Events';
 import { HeroSection } from './Hero';
 import Footer from './Footer';
 import  Header from './navibar';
+import Link from 'next/link';
 
 
 export default function LandingPage() {
@@ -72,9 +73,11 @@ export default function LandingPage() {
           </div>
         
           <div className='flex justify-center mt-4 sm:mt-5'>
-            <button className="px-6 sm:px-9 py-2.5 sm:py-3 bg-[var(--primary-purple)] text-[var(--white)] rounded-lg text-base sm:text-lg font-medium hover:bg-[var(--primary-blue)] mt-5">
+            <Link href="/vision">
+              <button className="px-6 sm:px-9 py-2.5 sm:py-3 bg-[var(--primary-purple)] text-[var(--white)] rounded-lg text-base sm:text-lg font-medium hover:bg-[var(--primary-blue)] mt-5">
               → Learn More
-            </button>
+              </button>
+            </Link>
           </div>
         </div>
 
