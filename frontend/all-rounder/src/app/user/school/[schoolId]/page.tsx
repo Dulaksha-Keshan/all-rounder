@@ -5,6 +5,7 @@ import { Schools, Students, Teachers } from "@/app/_data/data";
 import { School, Student, Teacher } from "@/app/_type/type";
 import SchoolHeader from "./SchoolHeader";
 import SchoolTabs from "./SchoolTabs";
+import Footer from "@/app/_components/Footer";
 
 
 export default function SchoolProfilePage() {

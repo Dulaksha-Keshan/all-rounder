@@ -1,4 +1,4 @@
-// app/dashboard/orgs/[orgId]/analytics/page.tsx
+
 import { Organizations } from "@/app/_data/data";
 import EventsAnalytics from "@/app/dashboard/_components/EventsAnalytics";
 import Menu from "@/app/dashboard/_components/Menu";

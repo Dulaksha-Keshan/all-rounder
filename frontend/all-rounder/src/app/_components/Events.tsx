@@ -1,10 +1,10 @@
 'use client';
-// import { Events } from './Features';
 import { Events } from '../events/_data/events';
 import { useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Calendar, Clock, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
 export function EventDetails() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -135,19 +135,20 @@ export function EventDetails() {
 
   // Category color mapping
   const categoryColors: { [key: string]: string } = {
-    Workshop: 'bg-blue-500',
-    Competition: 'bg-red-500',
-    Social: 'bg-green-500',
-    Career: 'bg-purple-500',
+    Workshop: 'bg-[var(--blue-500)]',
+    Competition: 'bg-[var(--red-500)]',
+    Social: 'bg-[var(--green-500)]',
+    Career: 'bg-[var(--purple-500)]',
   };
 
   return (
-    <section className='bg-gradient-to-br from-purple-100 via-pink-50 to-purple-100 py-20 overflow-hidden'>
-      <div ref={containerRef} className="max-w-7xl mx-auto px-4">
+    // Change this line at the top of the EventDetails component:
+    <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-8 sm:py-10 lg:py-10 overflow-hidden'>
+      <div ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Animated Title */}
         <h2 
           ref={titleRef}
-          className="text-5xl font-bold text-[#34365C] text-center mb-16 overflow-hidden"
+          className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[var(--primary-dark-purple)] text-center mb-8 sm:mb-10 lg:mb-12 overflow-hidden"
         >
           Explore Our Events
         </h2>
@@ -161,7 +162,7 @@ export function EventDetails() {
         >
           {/* Left Arrow with hover effect */}
           <button 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-14 h-14 flex items-center justify-center text-5xl text-[#8387CC] hover:text-[#4169E1] z-20 transition-all duration-300 hover:scale-125 hover:-translate-x-20"
+            className="absolute left-0 sm:left-2 lg:-left-16 top-1/2 -translate-y-1/2 -translate-x-0 sm:-translate-x-2 lg:-translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:-translate-x-20"
             onClick={() => goToSlide(currentIndex - 1)}
             aria-label="Previous event"
           >
@@ -169,26 +170,26 @@ export function EventDetails() {
           </button>
 
           {/* Event Card with 3D effect */}
-          <div className="event-card-container relative" style={{ transformStyle: 'preserve-3d' }}>
-            <div className="bg-white rounded-3xl shadow-2xl border-4 border-[#8387CC] overflow-hidden relative group transform transition-transform duration-300 hover:scale-[1.02]">
+          <div className="event-card-container relative px-12 sm:px-14 lg:px-0" style={{ transformStyle: 'preserve-3d' }}>
+            <div className="bg-[var(--white)] rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border-2 sm:border-4 border-[var(--primary-purple)] overflow-hidden relative group transform transition-transform duration-300 hover:scale-[1.02]">
               {/* Image with parallax effect on hover */}
               <div className="overflow-hidden relative">
                 <img 
                   src={currentEvent.imageUrl} 
                   alt={currentEvent.title}
-                  className="event-image w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="event-image w-full h-[250px] sm:h-[350px] lg:h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 
                 {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/80 via-[var(--black)]/30 to-transparent"></div>
               
 
                 {/* Event Title Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <h3 className="text-4xl font-bold mb-2 event-info-item drop-shadow-lg">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 text-[var(--white)]">
+                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 event-info-item drop-shadow-lg">
                     {currentEvent.title}
                   </h3>
-                  <p className="text-lg text-gray-200 event-info-item drop-shadow-md">
+                  <p className="text-sm sm:text-base lg:text-lg text-[var(--gray-200)] event-info-item drop-shadow-md">
                     {currentEvent.description}
                   </p>
                 </div>
@@ -199,7 +200,7 @@ export function EventDetails() {
                     {[...Array(6)].map((_, i) => (
                       <div
                         key={i}
-                        className="absolute w-2 h-2 bg-white/40 rounded-full animate-pulse"
+                        className="absolute w-2 h-2 bg-[var(--white)]/40 rounded-full animate-pulse"
                         style={{
                           left: `${Math.random() * 100}%`,
                           top: `${Math.random() * 100}%`,
@@ -213,36 +214,38 @@ export function EventDetails() {
               </div>
 
               {/* Event Details Section */}
-              <div className="p-8 bg-gradient-to-br from-white to-purple-50">
-                <div className="grid grid-cols-3 gap-6 mb-6">
+              <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[var(--white)] to-purple-50">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
                   {/* Date */}
                   <div className="event-info-item text-center">
-                    <Calendar className="w-8 h-8 mx-auto mb-2 text-[#8387CC]" />
-                    <div className="text-m text-gray-600 font-medium">Date</div>
-                    <div className="text-[#34365C] font-bold">{currentEvent.date}</div>
+                    <Calendar className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
+                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Date</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.date}</div>
                   </div>
 
                   {/* Time */}
                   <div className="event-info-item text-center">
-                    <Clock className="w-8 h-8 mx-auto mb-2 text-[#8387CC]" />
-                    <div className="text-m text-gray-600 font-medium">Time</div>
-                    <div className="text-[#34365C] font-bold">{currentEvent.time}</div>
+                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
+                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Time</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.time}</div>
                   </div>
 
                   {/* Location */}
                   <div className="event-info-item text-center">
-                    <MapPin className="w-8 h-8 mx-auto mb-2 text-[#8387CC]" />
-                    <div className="text-m text-gray-600 font-medium">Location</div>
-                    <div className="text-[#34365C] font-bold">{currentEvent.location}</div>
+                    <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
+                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Location</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.location}</div>
                   </div>
                 </div>
 
                 {/* Find Out More Button with glow effect */}
                 <div className="flex justify-center event-button">
-                  <button className="relative px-10 py-4 bg-[#8387CC] text-white text-lg font-semibold rounded-xl hover:bg-[#4169E1] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20 overflow-hidden group/btn">
-                    <span className="relative z-10">Find Out More</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                  </button>
+                  {/* <Link href="/events"> */}
+                    <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
+                      <span className="relative z-10">Find Out More</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                    </button>
+                  {/* </Link> */}
                 </div>
               </div>
             </div>
@@ -250,7 +253,7 @@ export function EventDetails() {
 
           {/* Right Arrow */}
           <button 
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-14 h-14 flex items-center justify-center text-5xl text-[#8387CC] hover:text-[#4169E1] z-20 transition-all duration-300 hover:scale-125 hover:translate-x-20"
+            className="absolute right-0 sm:right-2 lg:-right-16 top-1/2 -translate-y-1/2 translate-x-0 sm:translate-x-2 lg:translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:translate-x-20"
             onClick={() => goToSlide(currentIndex + 1)}
             aria-label="Next event"
           >
@@ -259,15 +262,15 @@ export function EventDetails() {
         </div>
 
         {/* Animated Carousel Dots */}
-        <div className="flex justify-center gap-3 mt-12">
+        <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10 lg:mt-12">
           {Events.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`h-3 rounded-full transition-all duration-500 ${
+              className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${
                 index === currentIndex 
-                  ? 'bg-[#8387CC] w-12 shadow-lg shadow-[#8387CC]/50' 
-                  : 'bg-[#DCD0FF] hover:bg-[#8387CC] w-3 hover:w-6'
+                  ? 'bg-[var(--primary-purple)] w-8 sm:w-10 lg:w-12 shadow-lg shadow-[var(--primary-purple)]/50' 
+                  : 'bg-[var(--secondary-light-lavender)] hover:bg-[var(--primary-purple)] w-2 sm:w-3 hover:w-4 sm:hover:w-6'
               }`}
               aria-label={`Go to event ${index + 1}`}
             />
@@ -275,7 +278,7 @@ export function EventDetails() {
         </div>
 
         {/* Navigation Info with animation */}
-        <div className="text-center mt-6 text-[#34365C] font-bold text-lg">
+        <div className="text-center mt-4 sm:mt-6 text-[var(--primary-dark-purple)] font-bold text-base sm:text-lg">
           <span className="inline-block transition-transform duration-300 hover:scale-110">
             {currentIndex + 1} / {totalEvents}
           </span>

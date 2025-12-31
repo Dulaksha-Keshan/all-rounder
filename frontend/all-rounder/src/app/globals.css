@@ -1,26 +1,93 @@
 @import "tailwindcss";
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+
+
+/* Root Color Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors */
+  --primary-dark-purple: #34365C;
+  --primary-purple: #8387CC;
+  --primary-blue: #4169E1;
+  
+  /* Secondary Colors */
+  --secondary-light-lavender: #DCD0FF;
+  --secondary-pale-lavender: #F8F8FF;
+  --secondary-purple-100: #e9d5ff;
+  --secondary-purple-light: #CEB0E8;
+  
+  /* Accent Colors */
+  --accent-purple-text: #505485;
+  --accent-purple-darker: #6a6dad;
+  
+  /* Neutral Colors */
+  --white: #FFFFFF;
+  --black: #000000;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --dark-bg: #1a1a2e;
+  
+  /* Indigo Colors (for buttons/nav) */
+  --indigo-100: #E0E7FF;
+  --indigo-600: #4F46E5;
+  --indigo-700: #4338CA;
+  
+  /* Additional Colors from Hero/Events */
+  --blue-500: #3B82F6;
+  --red-500: #EF4444;
+  --green-500: #10B981;
+  --purple-500: #A855F7;
+  --pink-50: #FDF2F8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Utility Classes for Quick Use */
+.bg-primary-dark {
+  background-color: var(--primary-dark-purple);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.bg-primary-purple {
+  background-color: var(--primary-purple);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.bg-primary-blue {
+  background-color: var(--primary-blue);
 }
+
+.bg-secondary-lavender {
+  background-color: var(--secondary-light-lavender);
+}
+
+.text-primary-dark {
+  color: var(--primary-dark-purple);
+}
+
+.text-primary-purple {
+  color: var(--primary-purple);
+}
+
+.text-accent-purple {
+  color: var(--accent-purple-text);
+}
+
+.border-secondary-lavender {
+  border-color: var(--secondary-light-lavender);
+}
+
+/* Gradient Utilities */
+.gradient-purple-blue {
+  background: linear-gradient(to bottom right, var(--primary-purple), var(--primary-blue));
+}
+
+.gradient-lavender-pale {
+  background: linear-gradient(to bottom right, var(--secondary-light-lavender), var(--secondary-pale-lavender));
+}
+

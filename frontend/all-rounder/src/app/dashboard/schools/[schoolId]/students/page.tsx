@@ -66,7 +66,7 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
   const renderRow = (student: any) => (
     <tr
       key={student.id}
-      className="border-b border-[#DCD0FF]/30 text-sm hover:bg-gradient-to-r hover:from-[#F8F8FF] hover:to-[#DCD0FF]/30 transition-all"
+      className="border-b border-[var(--secondary-light-lavender)]/30 text-sm hover:bg-gradient-to-r hover:from-[var(--secondary-pale-lavender)] hover:to-[var(--secondary-light-lavender)]/30 transition-all"
     >
       <td className="py-4 px-6">
         <div className="flex items-center gap-3">
@@ -75,18 +75,18 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
             alt={student.name}
             width={40}
             height={40}
-            className="rounded-full ring-2 ring-[#8387CC]/30"
+            className="rounded-full ring-2 ring-[var(--primary-purple)]/30"
           />
-          <span className="font-medium text-[#34365C]">{student.name}</span>
+          <span className="font-medium text-[var(--primary-dark-purple)]">{student.name}</span>
         </div>
       </td>
-      <td className="hidden md:table-cell text-[#505485] py-4 px-6">
+      <td className="hidden md:table-cell text-[var(--accent-purple-text)] py-4 px-6">
         {student.email}
       </td>
-      <td className="hidden lg:table-cell text-[#505485] py-0 px-6 text-left">
+      <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-0 px-6 text-left">
         <span className="inline-block">{student.age}</span>
       </td>
-      <td className="hidden lg:table-cell text-[#505485] py-4 px-6">
+      <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-4 px-6">
         <span
           className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
             student.sex === "MALE"
@@ -100,7 +100,7 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
       <td className="py-4 px-6">
         <Link
           href={`/dashboard/schools/${schoolId}/students/${student.id}`}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white rounded-lg text-xs font-medium hover:shadow-md transition-all"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-[var(--white)] rounded-lg text-xs font-medium hover:shadow-md transition-all"
         >
           View Profile
         </Link>
@@ -109,11 +109,11 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
   );
 
   return (
-    <div className="bg-gradient-to-br from-white to-[#F8F8FF] p-6 rounded-2xl shadow-lg border-2 border-[#DCD0FF]/50">
+    <div className="bg-gradient-to-br from-[var(--white)] to-[var(--secondary-pale-lavender)] p-6 rounded-2xl shadow-lg border-2 border-[var(--secondary-light-lavender)]/50">
       {/* TOP BAR */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#34365C]">
+          <h1 className="text-2xl font-bold text-[var(--primary-dark-purple)]">
             Students – {school.name}
           </h1>
           <p className="text-sm text-gray-500 mt-1">{school.location}</p>
@@ -122,14 +122,14 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
       </div>
 
       {/* STATS */}
-      <div className="mb-4 p-4 bg-gradient-to-r from-[#8387CC]/10 to-[#4169E1]/10 rounded-lg border border-[#DCD0FF]">
-        <p className="text-sm text-[#34365C]">
+      <div className="mb-4 p-4 bg-gradient-to-r from-[var(--primary-purple)]/10 to-[var(--primary-blue)]/10 rounded-lg border border-[var(--secondary-light-lavender)]">
+        <p className="text-sm text-[var(--primary-dark-purple)]">
           <span className="font-bold text-lg">{count}</span> students enrolled
         </p>
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl overflow-hidden border-2 border-[#DCD0FF]/50 shadow-sm">
+      <div className="bg-[var(--white)] rounded-xl overflow-hidden border-2 border-[var(--secondary-light-lavender)]/50 shadow-sm">
         {data.length > 0 ? (
           <Table columns={columns} data={data} renderRow={renderRow} />
         ) : (
