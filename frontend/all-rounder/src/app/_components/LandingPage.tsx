@@ -6,7 +6,6 @@ import Footer from './Footer';
 import  Header from './navibar';
 import Link from 'next/link';
 
-
 export default function LandingPage() {
   return (
     
