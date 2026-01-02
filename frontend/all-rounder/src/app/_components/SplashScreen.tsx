@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-export default function SplashScreenV2() {
+export default function SplashScreen() {
   const [animationState, setAnimationState] = useState('initial');
-  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
     const timeline = [
@@ -16,30 +15,18 @@ export default function SplashScreenV2() {
     timeline.forEach(({ state, delay }) => {
       setTimeout(() => setAnimationState(state), delay);
     });
-
-    // Start fade out and redirect after 2.3 seconds
-    setTimeout(() => setFadeOut(true), 2300);
   }, []);
 
-  if (fadeOut) {
-    return null;
-  }
-
   return (
-    <div className={`fixed inset-0 bg-[var(--primary-dark-purple)] flex items-center justify-center overflow-hidden z-50 transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
-      {/* Animated background particles */}
+    <div className="fixed inset-0 bg-[var(--primary-dark-purple)] flex items-center justify-center overflow-hidden z-50">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 sm:top-20 left-10 sm:left-20 w-20 sm:w-28 lg:w-32 h-20 sm:h-28 lg:h-32 bg-[var(--primary-purple)] rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
         <div className="absolute bottom-10 sm:bottom-20 right-10 sm:right-20 w-24 sm:w-32 lg:w-40 h-24 sm:h-32 lg:h-40 bg-[var(--secondary-light-lavender)] rounded-full blur-2xl sm:blur-3xl animate-pulse delay-75"></div>
         <div className="absolute top-20 sm:top-40 right-20 sm:right-40 w-16 sm:w-20 lg:w-24 h-16 sm:h-20 lg:h-24 bg-[var(--white)] rounded-full blur-xl sm:blur-2xl animate-pulse delay-150"></div>
       </div>
 
-      {/* Main content container */}
       <div className="relative flex items-center justify-center w-full h-full px-4">
-        
-        {/* Text and Avatar side by side */}
         <div className="absolute flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
-          {/* "ALL-ROUNDER" text with smooth gradient animation */}
           <div 
             className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black transition-all duration-700 ${
               animationState === 'glow' || animationState === 'complete'
@@ -59,7 +46,6 @@ export default function SplashScreenV2() {
             ALL-ROUNDER
           </div>
 
-          {/* Cute star avatar with smooth entrance */}
           <div 
             className={`transition-all duration-700 ${
               animationState === 'initial' 
@@ -83,7 +69,6 @@ export default function SplashScreenV2() {
         </div>
       </div>
 
-      {/* Loading indicator */}
       <div className="absolute bottom-6 sm:bottom-10 left-1/2 transform -translate-x-1/2">
         <div className="flex gap-1.5 sm:gap-2">
           <div className="w-2 h-2 sm:w-3 sm:h-3 bg-[var(--secondary-light-lavender)] rounded-full animate-bounce"></div>

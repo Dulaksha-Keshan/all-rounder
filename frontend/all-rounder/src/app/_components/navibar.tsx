@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,8 +17,56 @@ export default function Navbar({
 }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
-  const isActive = (path: string) => pathname === path;
+  // Track active section based on scroll position
+  useEffect(() => {
+    if (!isAuthenticated && pathname === "/") {
+      const handleScroll = () => {
+        const sections = ["Home", "AboutUs", "Features", "Events"];
+        const scrollPosition = window.scrollY + 100;
+
+        for (const section of sections) {
+          const element = document.getElementById(section);
+          if (element) {
+            const { offsetTop, offsetHeight } = element;
+            if (
+              scrollPosition >= offsetTop &&
+              scrollPosition < offsetTop + offsetHeight
+            ) {
+              setActiveSection(section);
+              break;
+            }
+          }
+        }
+      };
+
+      handleScroll(); // Check on mount
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, [isAuthenticated, pathname]);
+
+  const isActive = (path: string) => {
+    // For authenticated users, check pathname
+    if (isAuthenticated) {
+      return pathname === path;
+    }
+    
+    // For public links on landing page
+    if (path === "/") {
+      return pathname === "/" && activeSection === "Home";
+    }
+    
+    // Check if it's a hash link
+    if (path.startsWith("/#")) {
+      const section = path.split("#")[1];
+      return pathname === "/" && activeSection === section;
+    }
+    
+    // For other paths like /login
+    return pathname === path;
+  };
 
   const publicLinks = [
     { path: "/", label: "Home" },
@@ -42,29 +90,43 @@ export default function Navbar({
   };
 
   const authenticatedLinks = [
+    { path: "/home", label: "Home" },
     { path: "/dashboard", label: "Dashboard" },
     { path: getProfilePath(), label: "My Profile" },
     { path: "/resources", label: "Resources" },
     { path: "/donations", label: "Donations" },
     { path: "/competitions", label: "Competitions" },
-    { path: "/onboarding", label: "Learn More" },
   ];
 
   const links = isAuthenticated ? authenticatedLinks : publicLinks;
+
+  const handleLinkClick = (path: string, e?: React.MouseEvent) => {
+    setMobileMenuOpen(false);
+    
+    // Handle hash navigation for same page
+    if (path.startsWith("/#")) {
+      e?.preventDefault();
+      const section = path.split("#")[1];
+      setActiveSection(section); // Immediately set active section
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <nav className="bg-white sticky top-0 z-50 shadow-lg border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Logo (Replace src with your custom logo image) */}
-          <Link href="/" className="flex items-center gap-2">
+          {/* Logo */}
+          <Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
             <img
               src="/logo.png"
               alt="All-Rounder Logo"
               className="h-10 sm:h-12 lg:h-15 w-auto"
             />
-        
           </Link>
 
           {/* Desktop Navigation */}
@@ -73,6 +135,13 @@ export default function Navbar({
               <Link
                 key={link.path}
                 href={link.path}
+                onClick={(e) => {
+                  // Set navigation flag BEFORE Next.js navigation happens
+                  if (!link.path.startsWith("/#")) {
+                    sessionStorage.setItem('isNavigating', 'true');
+                  }
+                  handleLinkClick(link.path, e);
+                }}
                 className={`px-3 py-2 rounded-md transition ${
                   isActive(link.path)
                     ? "bg-[#8387CC] text-white"
@@ -85,8 +154,6 @@ export default function Navbar({
 
             {isAuthenticated && (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-300">
-                
-                {/* User avatar placeholder */}
                 <div className="flex items-center gap-2">
                   <img
                     src="/user.png"
@@ -108,7 +175,7 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile Menu Button (custom image optional) */}
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-md hover:bg-[#DCD0FF]"
@@ -130,7 +197,13 @@ export default function Navbar({
               <Link
                 key={link.path}
                 href={link.path}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  // Set navigation flag BEFORE Next.js navigation happens
+                  if (!link.path.startsWith("/#")) {
+                    sessionStorage.setItem('isNavigating', 'true');
+                  }
+                  handleLinkClick(link.path, e);
+                }}
                 className={`block px-3 py-2 rounded-md transition ${
                   isActive(link.path)
                     ? "bg-[#8387CC] text-white"

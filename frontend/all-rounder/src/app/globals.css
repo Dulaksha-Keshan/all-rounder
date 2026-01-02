@@ -1,12 +1,18 @@
 @import "tailwindcss";
 
-html, body {
+/* Prevent white flash during page transitions */
+html {
   margin: 0;
   padding: 0;
   height: 100%;
 }
 
-
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #34365C; /* Add this */
+}
 
 /* Root Color Variables */
 :root {
@@ -90,4 +96,3 @@ html, body {
 .gradient-lavender-pale {
   background: linear-gradient(to bottom right, var(--secondary-light-lavender), var(--secondary-pale-lavender));
 }
-

@@ -1,11 +1,5 @@
-import LandingPage from "./_components/LandingPage";
-import SplashScreen from "./_components/SpashScreen";
+import SplashToLanding from "./(landing)/page";
 
 export default function Home() {
-  return (
-    <>
-    <SplashScreen/>
-    <LandingPage />
-    </>
-  )
+  return <SplashToLanding />;
 }

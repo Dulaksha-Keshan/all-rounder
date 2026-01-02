@@ -1,38 +1,35 @@
 'use client';
 import { Feature } from './Features';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import Image from 'next/image';
 
 const FeatureCard = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Preload all feature images on component mount
-  useEffect(() => {
-    Feature.forEach((feature) => {
-      const img = new Image();
-      img.src = feature.image;
-    });
-  }, []);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useGSAP(() => {
-    gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1 });
-    gsap.fromTo('.feature-visual img', { opacity: 0, xPercent: -100 }, {
-      xPercent: 0, opacity: 1, duration: 1, ease: 'power1.inOut'
-    });
-    gsap.fromTo('.details h2', { yPercent: 100, opacity: 0 }, {
-      yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8
-    });
-    gsap.fromTo('.details p', { yPercent: 100, opacity: 0 }, {
-      yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8, delay: 0.1
-    });
-  }, [currentIndex]);
+    if (imageLoaded) {
+      gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1 });
+      gsap.fromTo('.feature-visual img', { opacity: 0, xPercent: -100 }, {
+        xPercent: 0, opacity: 1, duration: 1, ease: 'power1.inOut'
+      });
+      gsap.fromTo('.details h2', { yPercent: 100, opacity: 0 }, {
+        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8
+      });
+      gsap.fromTo('.details p', { yPercent: 100, opacity: 0 }, {
+        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8, delay: 0.1
+      });
+    }
+  }, [currentIndex, imageLoaded]);
 
   const totalFeatures = Feature.length;
 
   const goToSlide = (index: number) => {
+    setImageLoaded(false);
     const newIndex = (index + totalFeatures) % totalFeatures;
     setCurrentIndex(newIndex);
   };
@@ -99,12 +96,28 @@ const FeatureCard = () => {
         {/* Feature Display Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
           {/* Feature Visual */}
-          <div className="feature-visual flex justify-center order-2 md:order-1">
-            <img 
+          <div className="feature-visual flex justify-center order-2 md:order-1 relative min-h-[250px] sm:min-h-[350px] lg:min-h-[400px]">
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-[var(--primary-purple)] border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            <Image 
               src={currentFeature.image} 
               alt={currentFeature.name}
-              className="object-contain max-h-[250px] sm:max-h-[350px] lg:max-h-[400px] w-full"
+              width={600}
+              height={400}
+              priority={currentIndex === 0}
+              loading={currentIndex === 0 ? "eager" : "lazy"}
+              onLoad={() => setImageLoaded(true)}
+              className={`object-contain max-h-[250px] sm:max-h-[350px] lg:max-h-[400px] w-full transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
             />
+            
+            {/* Preload next images */}
+            <link rel="preload" as="image" href={nextFeature.image} />
+            <link rel="preload" as="image" href={prevFeature.image} />
           </div>
 
           {/* Feature Information */}
