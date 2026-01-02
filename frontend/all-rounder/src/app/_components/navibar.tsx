@@ -73,7 +73,7 @@ export default function Navbar({
     { path: "/#AboutUs", label: "About Us" },
     { path: "/#Features", label: "Features" },
     { path: "/#Events", label: "Events" },
-    { path: "/login", label: "Login" },
+    { path: "", label: "Login" },
   ];
 
   const getProfilePath = () => {
@@ -181,7 +181,7 @@ export default function Navbar({
             className="md:hidden p-2 rounded-md hover:bg-[#DCD0FF]"
           >
             <img
-              src={mobileMenuOpen ? "/close.png" : "/menu.png"}
+              src={mobileMenuOpen ? "/images/close.jpeg" : "/images/menu.png"}
               alt="Menu"
               className="w-6 h-6"
             />
