@@ -72,20 +72,21 @@ export default function Footer() {
           <div className="flex flex-col items-center lg:items-start">
             <h3 className="text-xl font-bold mb-5 relative inline-block">
               Get in Touch
-              <span className="absolute bottom-0 left-0 w-16 h-0.5 bg-[#DCD0FF] rounded-full"></span>
+              <span className="absolute bottom-0 left-0 w-16 h-0.5 bg-[#8387CC] rounded-full"></span>
             </h3>
-            <a
-              href="mailto:allrounder@gmail.com"
-              className="flex items-start gap-3 text-gray-200 hover:text-white transition-all duration-300 group"
-            >
-              <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <span className="block text-sm font-medium mb-1">Email us</span>
-                <span className="block text-base break-all">mail.allrounder.sdgp@gmail.com</span>
-              </div>
-            </a>
+            <div className="space-y-3.5">
+              <a
+                href="mailto:mail.allrounder.sdgp@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-gray-200 hover:text-white hover:translate-x-1 transition-all duration-300 group"
+              >
+                <div className="p-2 bg-white/10 rounded-lg group-hover:bg-white/20 transition-colors">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <span className="text-base">Email Us</span>
+              </a>
+            </div>
           </div>
         </div>
 
