@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-// import { Student, Teacher } from "@/app/dashboard/_type/type";
+
+
 import { Student, Teacher } from "@/app/_type/type";
 
-=======
-import { Student, Teacher } from "@/app/_type/type";
->>>>>>> 2b619e0fc9c94dae706e659595df394fa9143fc5
 
 interface MyAccountProps {
   student?: Student;
