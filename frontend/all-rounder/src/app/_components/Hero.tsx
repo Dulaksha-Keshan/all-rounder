@@ -54,7 +54,7 @@ export function HeroSection() {
       ];
 
       const starTimeline = gsap.timeline({ repeat: -1 });
-      
+
       starPath.forEach((point, index) => {
         starTimeline.to(avatarRef.current, {
           x: point.x,
@@ -123,9 +123,9 @@ export function HeroSection() {
           {/* CTA Buttons */}
           <div ref={buttonsRef} className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center items-center">
             {/* <Link href="/login"> */}
-              <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-0.5 bg-[var(--primary-blue)] text-[var(--secondary-pale-lavender)] hover:bg-purple-200">
-                <span className="flex items-center justify-center gap-3">Join Us Today</span>
-              </button>
+            <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 hover:-translate-y-0.5 bg-[var(--primary-blue)] text-[var(--secondary-pale-lavender)] hover:bg-purple-200">
+              <span className="flex items-center justify-center gap-3">Join Us Today</span>
+            </button>
             {/* </Link> */}
 
 
@@ -156,7 +156,7 @@ export function HeroSection() {
                   {/* Right side - Avatar moving around */}
                   <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
                     <div ref={avatarRef} className="relative">
-                      <img src="avatar.png" alt="Student Avatar" className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 object-contain drop-shadow-2xl" />
+                      <img src="/avatar.png" alt="Student Avatar" className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 object-contain drop-shadow-2xl" />
                       {/* Glow effect around avatar */}
                       <div className="absolute inset-0 rounded-full blur-xl sm:blur-2xl opacity-30 -z-10 bg-[var(--primary-purple)]"></div>
                     </div>

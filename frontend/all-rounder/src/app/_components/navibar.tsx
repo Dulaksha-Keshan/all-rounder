@@ -52,18 +52,18 @@ export default function Navbar({
     if (isAuthenticated) {
       return pathname === path;
     }
-    
+
     // For public links on landing page
     if (path === "/") {
       return pathname === "/" && activeSection === "Home";
     }
-    
+
     // Check if it's a hash link
     if (path.startsWith("/#")) {
       const section = path.split("#")[1];
       return pathname === "/" && activeSection === section;
     }
-    
+
     // For other paths like /login
     return pathname === path;
   };
@@ -102,7 +102,7 @@ export default function Navbar({
 
   const handleLinkClick = (path: string, e?: React.MouseEvent) => {
     setMobileMenuOpen(false);
-    
+
     // Handle hash navigation for same page
     if (path.startsWith("/#")) {
       e?.preventDefault();
@@ -119,7 +119,7 @@ export default function Navbar({
     <nav className="bg-white sticky top-0 z-50 shadow-lg border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          
+
           {/* Logo */}
           <Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
             <img
@@ -142,11 +142,10 @@ export default function Navbar({
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`px-3 py-2 rounded-md transition ${
-                  isActive(link.path)
+                className={`px-3 py-2 rounded-md transition ${isActive(link.path)
                     ? "bg-[#8387CC] text-white"
                     : "text-[#34365C] hover:bg-[#DCD0FF]"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -204,11 +203,10 @@ export default function Navbar({
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`block px-3 py-2 rounded-md transition ${
-                  isActive(link.path)
+                className={`block px-3 py-2 rounded-md transition ${isActive(link.path)
                     ? "bg-[#8387CC] text-white"
                     : "text-[#34365C] hover:bg-[#DCD0FF]"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>

@@ -15,9 +15,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-10">
           {/* Logo & Tagline */}
           <div className="flex flex-col items-center lg:items-start">
-            <img 
-              src="./logo.png" 
-              alt="All-Rounder Logo" 
+            <img
+              src="/logo.png"
+              alt="All-Rounder Logo"
               className="h-24 w-auto brightness-0 invert mb-4 object-contain"
             />
             <p className="text-gray-200 text-base leading-relaxed max-w-sm text-center lg:text-left">
