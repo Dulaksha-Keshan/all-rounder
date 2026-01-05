@@ -1,4 +1,4 @@
-import { Student, Teacher } from "@/app/dashboard/_types/type";
+import { Student, Teacher } from "@/app/_type/type";
 
 interface MyAccountProps {
   student?: Student;
@@ -149,7 +149,7 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
           <h3 className="text-xl font-bold text-[#34365C] mb-6">Registered Events</h3>
           <div className="space-y-3">
             {user.registeredEvents.map((event, index) => (
-              <div 
+              <div
                 key={index}
                 className="flex items-center justify-between p-4 bg-purple-50 rounded-lg"
               >
