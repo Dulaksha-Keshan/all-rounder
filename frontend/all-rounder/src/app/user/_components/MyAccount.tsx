@@ -46,7 +46,10 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
           <div className="flex items-center justify-between py-4 border-b border-gray-200">
             <div>
               <h4 className="font-semibold text-[#34365C]">School</h4>
+
               {/* <p className="text-sm text-gray-600">{user.school}</p> */}
+
+
             </div>
           </div>
 
