@@ -12,7 +12,8 @@ generator client {
 
 model Student {
   // Independent ID (Primary Key)
-  student_id Int @id @default(autoincrement())
+  student_id  Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields (Formerly in User)
   name            String
@@ -37,7 +38,8 @@ model Student {
 
 model Teacher {
   // Independent ID (Primary Key)
-  teacher_id Int @id @default(autoincrement())
+  teacher_id  Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields
   name            String
@@ -62,7 +64,8 @@ model Teacher {
 
 model Admin {
   // Independent ID (Primary Key)
-  admin_id Int @id @default(autoincrement())
+  admin_id    Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields
   name            String
