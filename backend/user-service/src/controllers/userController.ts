@@ -149,13 +149,22 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    let user = null;
+    let user: any;
+    let userType: string;
 
-    user = await prisma.student.findUnique({where:{ student_id: parseInt(id)}});
+    user = await prisma.student.findUnique({ where: { student_id: parseInt(id) } });
     if (user) {
-      res.json({ userType: "STUDENT", user });
+      userType = "STUDENT";
+      const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
+      if (age >= 19 && !user.is_frozen) {
+        await prisma.student.update({ where: { student_id: user.student_id }, data: { is_frozen: true } });
+        user.is_frozen = true;
+      }
+      user.canInteract = user.is_active && !user.is_frozen;
+      res.json({ userType, user });
       return;
     }
+
 
     user = await prisma.teacher.findUnique({where:{teacher_id: parseInt(id)}});
     if (user) {
@@ -188,11 +197,19 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
       return;
     }
 
-    let user = null;
+    let user: any;
+    let userType: string;
 
-    user = await prisma.student.findUnique({where:{ firebaseUID: uid }});
+     user = await prisma.student.findUnique({ where: { firebaseUID: uid } });
     if (user) {
-      res.json({userType: "STUDENT", user});
+      userType = "STUDENT";
+      const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
+      if (age >= 19 && !user.is_frozen) {
+        await prisma.student.update({ where: { student_id: user.student_id }, data: { is_frozen: true } });
+        user.is_frozen = true;
+      }
+      user.canInteract = user.is_active && !user.is_frozen;
+      res.json({ userType, user });
       return;
     }
 
@@ -236,6 +253,25 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     delete updateData.admin_id;
     delete updateData.name; 
 
+
+    if (userType === "STUDENT") {
+      const student = await prisma.student.findUnique({ where: { student_id: Number(id) } });
+      if (!student) {
+        res.status(404).json({ message: "Student not found" });
+        return;
+      }  
+
+      const age = new Date().getFullYear() - new Date(student.date_of_birth).getFullYear();
+      if (age >= 19) {
+        //freeze student account if not already
+        if (!student.is_frozen) {
+          await prisma.student.update({ where: { student_id: student.student_id }, data: { is_frozen: true } });
+        }
+        res.status(403).json({ message: "Student account is frozen. Cannot update profile after 19 years old." });
+        return;
+      }
+    }
+    
     let updatedUser: any;
 
     switch (userType) {
