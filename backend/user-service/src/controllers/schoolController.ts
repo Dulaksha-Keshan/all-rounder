@@ -122,6 +122,91 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export const getSchoolTeachers = (req: Request, res: Response): void => {};
+export const getSchoolTeachers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { schoolId } = req.params;
 
-export const getSchoolStatistics = (req: Request, res: Response): void => {};
+    if (!schoolId) {
+      res.status(400).json({ message: "schoolId is required" });
+      return;
+    }
+
+    const teachers = await prisma.teacher.findMany({
+      where: {
+        school_id: Number(schoolId),
+      },
+      select: {
+        teacher_id: true,
+        name: true,
+        subject: true,
+        designation: true,
+        profile_picture: true,
+        created_at: true,
+      },
+    });
+
+    res.status(200).json({
+      count: teachers.length,
+      teachers,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const getSchoolStatistics = async (req: Request,res: Response): Promise<void> => {
+  try {
+    const { schoolId } = req.params;
+
+    if (!schoolId) {
+      res.status(400).json({ message: "schoolId is required" });
+      return;
+    }
+
+    const id = Number(schoolId);
+
+    const [
+      studentCount,
+      teacherCount,
+      adminCount,
+      skillsCount,
+    ] = await Promise.all([
+      prisma.student.count({
+        where: { school_id: id },
+      }),
+
+      prisma.teacher.count({
+        where: { school_id: id },
+      }),
+
+      prisma.admin.count({
+        where: { school_id: id },
+      }),
+
+      prisma.skill.count({
+        where: {
+          students: {
+            some: {
+              school_id: id,
+            },
+          },
+        },
+      }),
+    ]);
+
+    res.status(200).json({
+      schoolId: id,
+      statistics: {
+        students: studentCount,
+        teachers: teacherCount,
+        admins: adminCount,
+        skills: skillsCount,
+      },
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
