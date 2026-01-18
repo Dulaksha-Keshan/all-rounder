@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { getFirebaseAdmin } from './config/firebase-admin.js';
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { verifyToken } from "./middleware/auth.middleware.js";
 
 const app = express();
 
@@ -118,6 +119,7 @@ app.use('api/users/public',
 
 //Authentic user routes
 app.use('/api/users',
+  verifyToken,
   createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,

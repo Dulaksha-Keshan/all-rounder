@@ -78,6 +78,23 @@ export const firebaseAuth = {
 
   },
 
+  async createUser(email: string, password: string, displayName?: string): Promise<admin.auth.UserRecord> {
+
+    try {
+      return await getFirebaseAdmin().auth().createUser({
+        email,
+        password,
+        displayName: displayName ? displayName : "",
+        emailVerified: false
+      })
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-exists') {
+        throw new Error('Email already exists');
+      }
+      throw new Error('Failed to create user');
+    }
+  },
+
   async updateUser(uid: string, updates: admin.auth.UpdateRequest): Promise<admin.auth.UserRecord> {
     try {
       return await getFirebaseAdmin().auth().updateUser(uid, updates);
