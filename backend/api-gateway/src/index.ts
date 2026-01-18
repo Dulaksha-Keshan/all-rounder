@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { getFirebaseAdmin } from './config/firebase-admin.js';
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 const app = express();
 
@@ -55,7 +56,7 @@ app.get("/health", (req: Request, res: Response) => {
     upTime: process.uptime(),
     services: {
       gateway: `healthy`,
-      userService: process.env.USER_SERCVICE_URL,
+      userService: process.env.USER_SERVICE_URL,
       contentService: process.env.CONTENT_SERVICE_URL
     }
   })
@@ -63,12 +64,12 @@ app.get("/health", (req: Request, res: Response) => {
 
 app.get("/health/sertvices", async (req: Request, res: Response) => {
   const services = {
-    userService: { url: process.env.USER_SERCVICE_URL, status: "unknown" },
+    userService: { url: process.env.USER_SERVICE_URL, status: "unknown" },
     contentService: { url: process.env.CONTENT_SERVICE_URL, status: "unknown" }
   }
 
   try {
-    const userServiceResponse = await fetch(`${process.env.USER_SERCVICE_URL}/health`);
+    const userServiceResponse = await fetch(`${process.env.USER_SERVICE_URL}/health`);
     services.userService.status = userServiceResponse.ok ? "healhty" : "unhealthy";
   } catch (error) {
     services.userService.status = "unreachable"
@@ -86,6 +87,84 @@ app.get("/health/sertvices", async (req: Request, res: Response) => {
   res.status(allHealthy ? 200 : 503).json({ services })
 
 })
+
+
+//AUTH ROUTES
+
+
+app.use('/api/auth', authRoutes);
+
+
+//Public routes such as login, register and probably our public viewing such as donations page as well will have a puclic route for content service 
+app.use('api/users/public',
+  createProxyMiddleware({
+    target: process.env.USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/users/public': '/api/users/public'
+    },
+    on: {
+      error: (err, req, res) => {
+        console.error("User service Proxy error: ", err);
+        (res as Response).status(503).json({
+          error: 'User service unavailable',
+          message: 'Please try again later'
+        })
+      }
+    }
+  })
+)
+
+
+//Authentic user routes
+app.use('/api/users',
+  createProxyMiddleware({
+    target: process.env.USER_SERVICE_URL,
+    changeOrigin: true,
+    on: {
+      proxyReq: (proxyReq, req: Request) => {
+        if (req.user) {
+          proxyReq.setHeader('X-User-Id', req.user.uid);
+          proxyReq.setHeader('X-User-Role', req.user.role);
+          proxyReq.setHeader('X-User-Email', req.user.email);
+          if (req.user.schoolId) {
+            proxyReq.setHeader('X-School-Id', req.user.schoolId)
+          }
+
+        }
+      },
+      error: (err, req, res) => {
+        console.error("User service Proxy error: ", err);
+        (res as Response).status(503).json({
+          error: 'User service unavailable',
+        })
+      }
+    }
+  })
+);
+
+// Schools routes
+app.use('/api/schools',
+  createProxyMiddleware({
+    target: process.env.USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/schools': '/api/schools'
+    }
+  })
+);
+
+// Organizations routes
+app.use('/api/organizations',
+  createProxyMiddleware({
+    target: process.env.USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/organizations': '/api/organizations'
+    }
+  })
+);
+
 
 
 

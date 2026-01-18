@@ -7,7 +7,7 @@ declare global {
       FIREBASE_PRIVATE_KEY?: string;
       CORS_ORIGIN?: string;
       CONTENT_SERVICE_URL?: string;
-      USER_SERCVICE_URL?: string;
+      USER_SERVICE_URL?: string;
 
     }
   }
