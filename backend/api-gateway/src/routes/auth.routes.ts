@@ -195,7 +195,6 @@ router.post('/refresh', verifyToken, async (req: Request, res: Response) => {
 
     res.json({
       message: 'Token refresh required',
-      action: 'Frontend should call user.getIdToken(true) to get new token'
     });
   } catch (error: any) {
     console.error('Token refresh error:', error);
@@ -206,6 +205,49 @@ router.post('/refresh', verifyToken, async (req: Request, res: Response) => {
   }
 });
 
+//get the current user
+router.get('/me', async (req: Request, res: Response) => {
+  try {
+    const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/${req.user!.uid}`, {
+      headers: {
+        "X-User-Id": req.user!.uid,
+        "X-User-Role": req.user!.role
+      }
+    });
+
+    res.json({
+      user: userServiceResponse.data
+    })
+  } catch (error: any) {
+    console.error("Get Current user error: ", error);
+    res.status(500).json({
+      error: "Failed to get user Data",
+      message: error.message
+    })
+  }
+})
+
+
+//Logout
+router.post('/logout', verifyToken, async (req: Request, res: Response) => {
+  try {
+    // revoke all refresh tokens for this user
+    await firebaseAuth.revokeRefreshTokens(req.user!.uid);
+
+    res.json({
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      error: 'Logout failed',
+      message: error.message
+    });
+  }
+});
+
+
+//TODO:password reset link and email verifiction
 
 
 

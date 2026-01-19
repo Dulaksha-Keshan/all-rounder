@@ -91,12 +91,10 @@ app.get("/health/sertvices", async (req: Request, res: Response) => {
 
 
 //AUTH ROUTES
-
-
 app.use('/api/auth', authRoutes);
 
 
-//Public routes such as login, register and probably our public viewing such as donations page as well will have a puclic route for content service 
+//Public routes such  public viewing such as donations page as well will have a puclic route for content service 
 app.use('api/users/public',
   createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
@@ -166,9 +164,6 @@ app.use('/api/organizations',
     }
   })
 );
-
-
-
 
 
 
