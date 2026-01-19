@@ -29,7 +29,53 @@ export const listOrganizations = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export const getOrganizationById = (req: Request, res: Response): void => {};
+export const getOrganizationById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "Organization ID is required" });
+      return;
+    }
+
+    const organization = await prisma.organization.findUnique({
+      where: { organization_id: Number(id) },
+      include: {
+        admins: {
+          select: {
+            admin_id: true,
+            name: true,
+            email: true,
+            adminType: true,
+            created_at: true,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      res.status(404).json({ message: "Organization not found" });
+      return;
+    }
+
+    res.status(200).json({
+      organization: {
+        organization_id: organization.organization_id,
+        organization_name: organization.organization_name,
+        contact_person: organization.contact_person,
+        website: organization.website,
+        created_at: organization.created_at,
+        admins: organization.admins,
+      },
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 //in the resgistration form coming from frontend will contain organization registration info and admin registration info
 
