@@ -3,7 +3,31 @@ import { PrismaClient } from "@prisma/client/extension";
 import Verification from "../mongoose/verificationModel.js";
 const prisma = new PrismaClient();
 
-export const listOrganizations = (req: Request, res: Response): void => {};
+export const listOrganizations = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const organizations = await prisma.organization.findMany({
+      select: {
+        organization_id: true,
+        organization_name: true,
+        contact_person: true,
+        website: true,
+        created_at: true,
+        updated_at: true,
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    res.status(200).json({
+      count: organizations.length,
+      organizations,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 export const getOrganizationById = (req: Request, res: Response): void => {};
 
