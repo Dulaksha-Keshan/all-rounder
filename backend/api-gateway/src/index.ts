@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import { getFirebaseAdmin } from './config/firebase-admin.js';
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { verifyToken } from "./middleware/auth.middleware.js";
-
+import authRoutes from "./routes/auth.routes.js"
 const app = express();
 
 dotenv.config();

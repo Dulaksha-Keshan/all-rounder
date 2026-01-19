@@ -52,8 +52,8 @@ router.post('/register', async (req: Request, res: Response) => {
           email,
           name,
           role,
-          schoolId,
-          organizationId
+          ...(schoolId && { schoolId }),
+          ...(organizationId && { organizationId })
         }
       );
 
@@ -89,7 +89,6 @@ router.post('/register', async (req: Request, res: Response) => {
       throw new Error(`Failed to create user in database: ${dbError.message}`);
     }
   } catch (error: any) {
-
     console.error("Registration Error : ", error);
 
     if (error.message.includes('email-already-exists')) {
@@ -106,3 +105,108 @@ router.post('/register', async (req: Request, res: Response) => {
     });
   }
 })
+
+
+
+//TODO:GOOGLE SIGN IN
+//infornt end it should be google sign in first and then after that relavant register details according to the selected the use type school..etc(if there are new users)
+
+router.post('/google-signin', async (req: Request, res: Response,) => {
+  try {
+    const { idtoken, role, schoolId, organizationId } = req.body;
+
+    if (!idtoken || !role) {
+      res.status(400).json({
+        error: 'Missing required fields',
+        message: "Required Idtoken, Role"
+
+      })
+      return
+    }
+
+    const decodeToken = await firebaseAuth.verifyToken(idtoken);
+    const { name, email, uid } = decodeToken;
+
+    let dbUser;
+
+    try {
+      const dbCheck = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/firebase/${uid}`);
+
+      dbUser = dbCheck.data;
+
+
+    } catch {
+      dbUser = null;
+
+    }
+
+    const newUser = !dbUser;
+
+    if (newUser) {
+      const userServiceResponse = await axios.post(
+        `${process.env.USER_SERVICE_URL}/api/users`,
+        {
+          email,
+          name,
+          role,
+          ...(schoolId && { schoolId }),
+          ...(organizationId && { organizationId })
+        }
+      );
+      dbUser = userServiceResponse.data;
+
+
+      // Set custom claims in Firebase
+      const customClaims: any = {
+        role,
+        userType: role.replace("_ADMIN", "")
+      };
+
+      if (schoolId) customClaims.schoolId = schoolId;
+      if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
+
+      await firebaseAuth.setCustomClaims(uid, customClaims);
+
+      // Return success (user needs to login to get token)
+      res.json({
+        message: newUser ? "User created Sucessfully " : "Login Sucessful",
+        user: dbUser,
+      });
+
+    }
+  } catch (error: any) {
+    console.error("Google-Sign In Error: ", error)
+    res.status(500).json({
+      error: "Google-Sign In Failed",
+      message: error.message
+
+    })
+  }
+})
+
+
+
+//refresh token
+
+router.post('/refresh', verifyToken, async (req: Request, res: Response) => {
+  try {
+    // Force token refresh to get updated custom claims
+    await firebaseAuth.revokeRefreshTokens(req.user!.uid);
+
+    res.json({
+      message: 'Token refresh required',
+      action: 'Frontend should call user.getIdToken(true) to get new token'
+    });
+  } catch (error: any) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      error: 'Token refresh failed',
+      message: error.message
+    });
+  }
+});
+
+
+
+
+export default router;
