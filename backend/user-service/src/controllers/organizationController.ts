@@ -134,4 +134,54 @@ export const createOrganization = async (req: Request, res: Response): Promise<v
   }
 };
 
-export const updateOrganization = (req: Request, res: Response): void => {};
+export const updateOrganization = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { adminId, ...updateData } = req.body;
+
+    if (!id) {
+      res.status(400).json({ message: "Organization ID is required" });
+      return;
+    }
+
+    if (!adminId) {
+      res.status(403).json({ message: "Admin authorization is required" });
+      return;
+    }
+
+    //check whether admin exists and belongs to this organization
+    const admin = await prisma.admin.findUnique({
+      where: { admin_id: Number(adminId) },
+    });
+
+    if (
+      !admin ||
+      admin.adminType !== "ORG_ADMIN" ||
+      admin.organization_id !== Number(id)
+    ) {
+      res.status(403).json({ message: "Unauthorized to update this organization" });
+      return;
+    }
+
+    //protect sensitive fields
+    delete updateData.organization_id;
+    delete updateData.created_at;
+    delete updateData.updated_at;
+
+    const updatedOrganization = await prisma.organization.update({
+      where: { organization_id: Number(id) },
+      data: updateData,
+    });
+
+    res.status(200).json({
+      message: "Organization updated successfully",
+      organization: updatedOrganization,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
