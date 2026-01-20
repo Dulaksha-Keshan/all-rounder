@@ -1,6 +1,6 @@
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 
-let fireBaseAdmin: admin.app.App | null = admin.apps.length > 0 ? admin.app() : null;
+let fireBaseAdmin: admin.app.App | null = (admin.apps?.length ?? 0) > 0 ? admin.app() : null;
 
 export function initializeFirebaseAdmin(): admin.app.App {
   //If there is a instance of the app return it 
@@ -123,7 +123,7 @@ export const firebaseAuth = {
 
   async generateEmailVerificationLink(email: string): Promise<string> {
     try {
-      const link = await admin.auth().generateEmailVerificationLink(email);
+      const link = await getFirebaseAdmin().auth().generateEmailVerificationLink(email);
       return link;
     } catch (error) {
       throw new Error('Failed to generate email verification link');
@@ -132,7 +132,7 @@ export const firebaseAuth = {
 
   async generatePasswordResetLink(email: string): Promise<string> {
     try {
-      const link = await admin.auth().generatePasswordResetLink(email);
+      const link = await getFirebaseAdmin().auth().generatePasswordResetLink(email);
       return link;
     } catch (error) {
       throw new Error('Failed to generate password reset link');
@@ -141,7 +141,7 @@ export const firebaseAuth = {
 
   async revokeRefreshTokens(uid: string): Promise<void> {
     try {
-      await admin.auth().revokeRefreshTokens(uid);
+      await getFirebaseAdmin().auth().revokeRefreshTokens(uid);
       console.log(`Refresh tokens revoked for user: ${uid}`);
     } catch (error) {
       throw new Error('Failed to revoke refresh tokens');

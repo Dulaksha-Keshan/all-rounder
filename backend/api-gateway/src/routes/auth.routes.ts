@@ -133,8 +133,6 @@ router.post('/google-signin', async (req: Request, res: Response,) => {
       const dbCheck = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/firebase/${uid}`);
 
       dbUser = dbCheck.data;
-
-
     } catch {
       dbUser = null;
 
