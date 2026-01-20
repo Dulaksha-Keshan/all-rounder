@@ -13,6 +13,8 @@ dotenv.config();
 
 const PORT = process.env.PORT;
 
+console.log(`${process.env.PORT} and ${process.env.USER_SERVICE_URL}`)
+
 app.use(cors());
 //getting the firebase app
 try {
@@ -63,7 +65,7 @@ app.get("/health", (req: Request, res: Response) => {
   })
 });
 
-app.get("/health/sertvices", async (req: Request, res: Response) => {
+app.get("/health/services", async (req: Request, res: Response) => {
   const services = {
     userService: { url: process.env.USER_SERVICE_URL, status: "unknown" },
     contentService: { url: process.env.CONTENT_SERVICE_URL, status: "unknown" }
