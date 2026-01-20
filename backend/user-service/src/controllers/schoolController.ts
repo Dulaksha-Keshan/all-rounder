@@ -60,12 +60,10 @@ export const listSchools = async (req: Request, res: Response): Promise<void> =>
   try {
     const schools = await prisma.school.findMany({
       select: {
-        school_id: true,
         name: true,
         district: true,
         principal_name: true,
         web_link: true,
-        email: true, // optional: include if safe
         created_at: true,
       },
       orderBy: {
