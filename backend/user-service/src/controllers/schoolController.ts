@@ -2,9 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client/extension";
 import {createUser} from "./userController.js";
 
-export const listSchools = (req: Request, res: Response): void => {};
 
-export const getSchoolById = (req: Request, res: Response): void => {};
 
 //in the resgistration form coming from frontend will contain school registration info and admin registration info (id of school will come to admin)
 //create the school profile first
@@ -57,6 +55,63 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ message: error.message });
   }
 };
+
+export const listSchools = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const schools = await prisma.school.findMany({
+      select: {
+        name: true,
+        district: true,
+        principal_name: true,
+        web_link: true,
+        created_at: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    res.status(200).json({
+      totalSchools: schools.length,
+      schools,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getSchoolById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "School ID is required" });
+      return;
+    }
+
+    const school = await prisma.school.findUnique({
+      where: { school_id: Number(id) },
+      select: {
+        school_id: true,
+        name: true,
+        district: true,
+        web_link: true,
+      },
+    });
+
+    if (!school) {
+      res.status(404).json({ message: "School not found" });
+      return;
+    }
+
+    res.status(200).json({ school });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 export const updateSchool = async (req: Request, res: Response): Promise<void> => {
   try {
