@@ -40,9 +40,7 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
     await createUser(
       adminReq,
       {
-        status: () => ({
-          json: () => {},
-        }),
+        status: () => ({ json: () => {} }),
       } as unknown as Response
     );
 

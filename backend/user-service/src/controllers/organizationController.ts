@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client/extension";
 import Verification from "../mongoose/verificationModel.js";
+import {createUser} from "./userController.js";
+
 const prisma = new PrismaClient();
 
 export const listOrganizations = async (req: Request, res: Response): Promise<void> => {
@@ -96,37 +98,25 @@ export const createOrganization = async (req: Request, res: Response): Promise<v
       },
     });
 
-    //create admin (all org admins use document verification)
-    const { firebaseUID, userType, name, email, password, date_of_birth } = admin;
-
-    if (!firebaseUID || !userType || !name || !email || !password || !date_of_birth) {
-      res.status(400).json({ message: "All admin fields are required" });
-      return;
-    }
-
-    const newAdmin = await prisma.admin.create({
-      data: {
-        firebaseUID,
-        name,
-        email,
-        password,
-        adminType: userType, //should be ORG_ADMIN
-        date_of_birth: new Date(date_of_birth),
+    const adminReq = {
+      body: {
+        ...admin,
+        userType: "ORG_ADMIN",
         organization_id: newOrg.organization_id,
+        verificationOption: "DOCUMENT", 
       },
-    });
+    } as Request;
 
-    // Create verification record
-    await Verification.create({
-      userId: newAdmin.admin_id,
-      userType: "ADMIN",
-      verificationMethod: "DOCUMENT_AI",
-    });
+    await createUser(
+      adminReq,
+      {
+        status: () => ({ json: () => {} }),
+      } as unknown as Response
+    );
 
     res.status(201).json({
       message: "Organization and admin created successfully",
       organization: newOrg,
-      admin: newAdmin,
     });
   } catch (error: any) {
     console.error(error);
