@@ -16,10 +16,10 @@ import {
 
 export default function LeaderboardPage() {
   const router = useRouter();
-//   const [timeFilter, setTimeFilter] = useState<
-//     "week" | "month" | "allTime"
-//   >("week");
+  
 
+
+  // Sample leaderboard data
   const leaderboardData = [
     {
       rank: 1,
