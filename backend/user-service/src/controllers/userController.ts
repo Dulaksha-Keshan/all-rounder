@@ -142,49 +142,93 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const {id} = req.params; //user type will also be there in headers so no need to go through everything. just use the type to filter
+    const userId = Number(req.headers["x-User-id"]);
+    const userType = req.headers["x-User-type"] as string;
 
-    if (!id) {
-      res.status(400).json({ message: "User ID is required" });
+    if (!userId || !userType) {
+      res.status(400).json({
+        message: "x-user-id and x-user-type headers are required",
+      });
       return;
     }
 
     let user: any;
-    let userType: string;
 
-    user = await prisma.student.findUnique({ where: { student_id: parseInt(id as string) } });
-    if (user) {
-      userType = "STUDENT";
-      const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
+    if (userType === "STUDENT") {
+      user = await prisma.student.findUnique({
+        where: { student_id: userId },
+      });
+
+      if (!user) {
+        res.status(404).json({ message: "Student not found" });
+        return;
+      }
+
+      const age =
+        new Date().getFullYear() -
+        new Date(user.date_of_birth).getFullYear();
+
+      // Auto-freeze if 19+
       if (age >= 19 && !user.is_frozen) {
-        await prisma.student.update({ where: { student_id: user.student_id }, data: { is_frozen: true } });
+        await prisma.student.update({
+          where: { student_id: userId },
+          data: { is_frozen: true },
+        });
         user.is_frozen = true;
       }
+
       user.canInteract = user.is_active && !user.is_frozen;
-      res.json({ userType, user });
+
+      res.status(200).json({
+        message: "Student fetched successfully",
+        userType: "STUDENT",
+        user,
+      });
       return;
     }
 
+    if (userType === "TEACHER") {
+      user = await prisma.teacher.findUnique({
+        where: { teacher_id: userId },
+      });
 
-    user = await prisma.teacher.findUnique({where:{teacher_id: parseInt(id as string)}});
-    if (user) {
-      res.json({ userType: "TEACHER", user });
+      if (!user) {
+        res.status(404).json({ message: "Teacher not found" });
+        return;
+      }
+
+      res.status(200).json({
+        message: "Teacher fetched successfully",
+        userType: "TEACHER",
+        user,
+      });
+      return;
+    }
+    if (userType === "ADMIN") {
+      user = await prisma.admin.findUnique({
+        where: { admin_id: userId },
+      });
+
+      if (!user) {
+        res.status(404).json({ message: "Admin not found" });
+        return;
+      }
+
+      res.status(200).json({
+        message: "Admin fetched successfully",
+        userType: user.adminType,
+        user,
+      });
       return;
     }
 
-
-    user = await prisma.admin.findUnique({where:{admin_id: parseInt(id as string)}});
-    if (user) {
-      res.json({userType: user.adminType, user}); // in the response always show message and then the response
-      return;
-    }
-
-    res.status(404).json({message: "User not found"});
+    res.status(400).json({ message: "Invalid user type" });
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({message: error.message});
+    res.status(500).json({ message: error.message });
   }
 };
+
 
 
 /*export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
