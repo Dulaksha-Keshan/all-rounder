@@ -17,6 +17,8 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    //we have a separate db for schools and first we have to find whether that school is in our db (postgresql)
+
     const createdSchool = await prisma.school.create({
       data: {
         name: school.name,
@@ -123,7 +125,7 @@ export const updateSchool = async (req: Request, res: Response): Promise<void> =
 
     const updateData: any = {};
     if (name) updateData.name = name;
-    if (address) updateData.address = address;
+    if (address) updateData.address = address; //remove the first three
     if (district) updateData.district = district;
     if (email) updateData.email = email;
     if (contact_number) updateData.contact_number = contact_number;

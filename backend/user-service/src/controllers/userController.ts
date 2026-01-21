@@ -142,7 +142,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const {id} = req.params;
+    const {id} = req.params; //user type will also be there in headers so no need to go through everything. just use the type to filter
 
     if (!id) {
       res.status(400).json({ message: "User ID is required" });
@@ -152,7 +152,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     let user: any;
     let userType: string;
 
-    user = await prisma.student.findUnique({ where: { student_id: parseInt(id) } });
+    user = await prisma.student.findUnique({ where: { student_id: parseInt(id as string) } });
     if (user) {
       userType = "STUDENT";
       const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
@@ -166,16 +166,16 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     }
 
 
-    user = await prisma.teacher.findUnique({where:{teacher_id: parseInt(id)}});
+    user = await prisma.teacher.findUnique({where:{teacher_id: parseInt(id as string)}});
     if (user) {
       res.json({ userType: "TEACHER", user });
       return;
     }
 
 
-    user = await prisma.admin.findUnique({where:{admin_id: parseInt(id)}});
+    user = await prisma.admin.findUnique({where:{admin_id: parseInt(id as string)}});
     if (user) {
-      res.json({userType: user.adminType, user});
+      res.json({userType: user.adminType, user}); // in the response always show message and then the response
       return;
     }
 
@@ -187,7 +187,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 };
 
 
-export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
+/*export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
   try {
     //uid should come from frontend using firebase frontend client
     const {uid} = req.params;
@@ -200,7 +200,7 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
     let user: any;
     let userType: string;
 
-     user = await prisma.student.findUnique({ where: { firebaseUID: uid } });
+     user = await prisma.student.findUnique({ where: { firebaseUID: uid } }); // this should be student id cus we are removing the firebase uid
     if (user) {
       userType = "STUDENT";
       const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
@@ -230,11 +230,11 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
     console.error(error);
     res.status(500).json({ message: error.message });
   }
-};
+};*/
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; //get from req.headers and find what u need like user id
     const { userType, ...updateData } = req.body;
 
     if (!userType) {
@@ -314,7 +314,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 export const softDeleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { userType } = req.body;
+    const { userType } = req.body;// do not use body. everything will be in headers.
 
     if (!userType) {
       res.status(400).json({ message: "userType is required to delete a user" });
