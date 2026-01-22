@@ -1,8 +1,28 @@
 import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client/extension";
+const prisma = new PrismaClient();
 
 // List all skills
-export const listSkills = (req: Request, res: Response): void => {};
+export const listSkills = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const skills = await prisma.skill.findMany({
+      orderBy: {
+        created_at: "desc",
+      },
+    });
 
+    res.status(200).json({
+      message: "Skills fetched successfully",
+      count: skills.length,
+      skills,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 // Create skill (ADMIN only)
 export const createSkill = (req: Request, res: Response): void => {};
 
