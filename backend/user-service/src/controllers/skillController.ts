@@ -160,7 +160,65 @@ export const addSkillToUser = async (req: Request, res: Response): Promise<void>
 };
 
 // Remove skill 
-export const removeSkillFromUser = (req: Request, res: Response): void => {};
+export const removeSkillFromUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = Number(req.headers["x-User-id"]);
+    const userType = req.headers["x-User-type"] as string;
+    const { skillId } = req.body;
+
+    if (!userId || !userType) {
+      res.status(400).json({
+        message: "x-user-id and x-user-type headers are required",
+      });
+      return;
+    }
+
+    if (!skillId) {
+      res.status(400).json({
+        message: "skillId is required in the request body",
+      });
+      return;
+    }
+
+    let userExists = false;
+    switch (userType) {
+      case "STUDENT":
+        userExists = !!(await prisma.student.findUnique({ where: { uid: userId } }));
+        break;
+      case "TEACHER":
+        userExists = !!(await prisma.teacher.findUnique({ where: { uid: userId } }));
+        break;
+      case "ADMIN":
+        userExists = !!(await prisma.admin.findUnique({ where: { uid: userId } }));
+        break;
+      default:
+        res.status(400).json({ message: "Invalid user type" });
+        return;
+    }
+
+    if (!userExists) {
+      res.status(404).json({ message: `${userType} not found` });
+      return;
+    }
+
+    const updatedUser = await prisma.userSkill.deleteMany({
+      where: {
+        userId,
+        skillId,
+      },
+    });
+
+    res.status(200).json({
+      message: "Skill removed from user successfully",
+      removedCount: updatedUser.count,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 // Get user skills
 export const getUserSkills = (req: Request, res: Response): void => {};
