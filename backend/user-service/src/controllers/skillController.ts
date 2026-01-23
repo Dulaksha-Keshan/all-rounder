@@ -221,4 +221,37 @@ export const removeSkillFromUser = async (req: Request, res: Response): Promise<
 };
 
 // Get user skills
-export const getUserSkills = (req: Request, res: Response): void => {};
+export const getUserSkills = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userUid = req.headers["x-User-uid"] as string;
+    const userType = req.headers["x-User-type"] as string;
+
+    if (!userUid || !userType) {
+      res.status(400).json({ message: "x-user-uid and x-user-type headers are required" });
+      return;
+    }
+
+    if (userType !== "STUDENT") {
+      res.status(400).json({ message: "Only students have skills" });
+      return;
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { uid: userUid },
+      include: { skills: true },
+    });
+
+    if (!student) {
+      res.status(404).json({ message: "Student not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "User skills fetched successfully",
+      skills: student.skills,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
