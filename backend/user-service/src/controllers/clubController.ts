@@ -2,9 +2,53 @@ import { Request, Response } from "express";
 import Club from "../mongoose/clubModel.js";
 
 
-export const getAllClubs = (req: Request, res: Response): void => {};
+export const getAllClubs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubs = await Club.find().sort({ createdAt: -1 }); 
 
-export const getClubById = (req: Request, res: Response): void => {};
+    res.status(200).json({
+      message: "Clubs fetched successfully",
+      clubs,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getClubById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+
+    if (!clubId) {
+      res.status(400).json({
+        message: "Club ID is required",
+      });
+      return;
+    }
+
+    const club = await Club.findById(clubId);
+
+    if (!club) {
+      res.status(404).json({
+        message: "Club not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Club fetched successfully",
+      club,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 export const createClub = async (req: Request, res: Response): Promise<void> => {
   try {
