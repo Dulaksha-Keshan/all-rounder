@@ -120,6 +120,75 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
     });
   }
 };
-export const updateClub = (req: Request, res: Response): void => {};
+export const updateClub = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+    const updateData = { ...req.body };
 
-export const deleteClub = (req: Request, res: Response): void => {};
+    if (!clubId) {
+      res.status(400).json({
+        message: "Club ID is required",
+      });
+      return;
+    }
+
+    delete updateData.createdBy; 
+    delete updateData._id;       
+
+    const updatedClub = await Club.findByIdAndUpdate(clubId, updateData, {
+      new: true, 
+      runValidators: true, 
+    });
+
+    if (!updatedClub) {
+      res.status(404).json({
+        message: "Club not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Club updated successfully",
+      club: updatedClub,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+//do we need a soft delete or a hard delete here
+
+export const deleteClub = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+
+    if (!clubId) {
+      res.status(400).json({
+        message: "Club ID is required",
+      });
+      return;
+    }
+
+    const deletedClub = await Club.findByIdAndDelete(clubId);
+
+    if (!deletedClub) {
+      res.status(404).json({
+        message: "Club not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Club deleted successfully",
+      club: deletedClub,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
