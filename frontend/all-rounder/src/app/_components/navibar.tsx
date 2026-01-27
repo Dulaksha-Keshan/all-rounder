@@ -69,7 +69,7 @@ export default function Navbar({
   };
 
   const publicLinks = [
-    { path: "/home", label: "Home" },
+    { path: "/", label: "Home" },
     { path: "/#AboutUs", label: "About Us" },
     { path: "/#Features", label: "Features" },
     { path: "/#Events", label: "Events" },
