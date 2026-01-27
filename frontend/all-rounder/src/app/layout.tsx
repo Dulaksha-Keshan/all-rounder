@@ -12,7 +12,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 // changed this accordingly :) -(the browsing icon and title)
 export const metadata: Metadata = {
   title: "All-Rounder",
@@ -30,13 +29,28 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const websiteSchema = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "All-Rounder",
+    "alternateName": "All Rounder",
+    "url": "https://all-rounder.lk"
+  });
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* Added the structured data script here */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: websiteSchema }}
+        />
       </body>
     </html>
   );
 }
+
