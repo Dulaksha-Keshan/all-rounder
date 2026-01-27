@@ -1,22 +1,15 @@
 import { Request, Response } from "express";
 
-// To create an event
-export const createEvent = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {};
+export const createEvent = (req: Request, res: Response): void => {};
 
-// To populate the main feed
-export const getAllEvents = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {};
+export const getAllEvents = (req: Request, res: Response): void => {};
 
-// When someone clicks an event card
-export const getEventDetails = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {};
+export const getEventById = (req: Request, res: Response): void => {};
+
+export const updateEvent = (req: Request, res: Response): void => {};
+
+export const deleteEvent = (req: Request, res: Response): void => {};
+
 
 // RSVP stands for "Répondez s'il vous plaît" (Please Respond)
 // To handle student registration for an event

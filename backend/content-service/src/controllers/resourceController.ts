@@ -1,10 +1,14 @@
-import { Request, Reponse } from "express";
+import { Request, Response } from "express";
 
-// Handles file storage
-export const uploadResource = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {};
+export const createResource = (req: Request, res: Response): void => {};
+
+export const getAllResources = (req: Request, res: Response): void => {};
+
+export const getResourceById = (req: Request, res: Response): void => {};
+
+export const updateResource = (req: Request, res: Response): void => {};
+
+export const deleteResource = (req: Request, res: Response): void => {};
 
 // To filter subjects or tags
 export const searchResources = async (

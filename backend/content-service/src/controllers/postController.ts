@@ -1,10 +1,15 @@
-import { Request, Resource } from "express";
+import { Request, Response } from "express";
 
-// To creaete a post
-export const createPost = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {};
+export const createPost = (req: Request, res: Response): void => {};
+
+export const getAllPosts = (req: Request, res: Response): void => {};
+
+export const getPostById = (req: Request, res: Response): void => {};
+
+export const updatePost = (req: Request, res: Response): void => {};
+
+export const deletePost = (req: Request, res: Response): void => {};
+
 
 // To fetch a mix of posts for the home screen
 export const getFeed = async (req: Request, res: Response): Promise<void> => {};
