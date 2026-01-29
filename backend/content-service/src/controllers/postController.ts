@@ -1,4 +1,4 @@
-import { Request, Resource } from "express";
+import { Request, Response } from "express";
 
 // To creaete a post
 export const createPost = async (
