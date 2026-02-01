@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+<<<<<<< HEAD
 import multer from "multer";
 import Resource from "../mongoose/resourceModel.js";
 
@@ -62,6 +63,18 @@ export const uploadResource = async (
     res.status(500).json({ message: "Internal server error" });
   }
 };
+=======
+
+export const createResource = (req: Request, res: Response): void => {};
+
+export const getAllResources = (req: Request, res: Response): void => {};
+
+export const getResourceById = (req: Request, res: Response): void => {};
+
+export const updateResource = (req: Request, res: Response): void => {};
+
+export const deleteResource = (req: Request, res: Response): void => {};
+>>>>>>> refs/remotes/origin/back-end-dev
 
 // To filter subjects or tags
 export const searchResources = async (
