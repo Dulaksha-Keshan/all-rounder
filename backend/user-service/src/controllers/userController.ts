@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client/extension";
 import Verification from "../mongoose/verificationModel.js";
 
-const prisma = new PrismaClient();
+import { prisma } from "../prisma.js";
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {

@@ -1,8 +1,3 @@
-# Use this Dockerfile in each service folder
-# Path: backend/api-gateway/Dockerfile
-# Path: backend/user-service/Dockerfile  
-# Path: backend/content-service/Dockerfile
-
 FROM node:20-alpine
 
 # Install dependencies for native modules
