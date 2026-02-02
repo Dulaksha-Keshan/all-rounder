@@ -1,21 +1,116 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import Event from "../mongoose/eventModel.js";
 
-export const createEvent = async (req: Request, res: Response): Promise<void> => {
+export const createEvent = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const event = await Event.create(req.body);
-    res.status(201).json(event);
+    const creatorId = req.headers["x-user-id"] as string;
+
+    if (!creatorId) {
+      res.status(400).json({
+        message: "x-user-id header is required",
+      });
+      return;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(creatorId)) {
+      res.status(400).json({
+        message: "Invalid creator ID",
+      });
+      return;
+    }
+
+    const {
+      title,
+      description,
+      category,
+      eventType,
+      startDate,
+      endDate,
+      location,
+      organizer,
+      eligibility,
+      registrationUrl,
+      isOnline,
+      visibility,
+    } = req.body;
+
+    if (
+      !title ||
+      !description ||
+      !category ||
+      !eventType ||
+      !startDate ||
+      !endDate ||
+      !location ||
+      !organizer ||
+      !eligibility
+    ) {
+      res.status(400).json({
+        message: "Missing required event fields",
+      });
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      res.status(400).json({
+        message: "Start date cannot be after end date",
+      });
+      return;
+    }
+
+    const event = await Event.create({
+      title,
+      description,
+      category,
+      eventType,
+      startDate,
+      endDate,
+      location,
+      organizer,
+      eligibility,
+      registrationUrl,
+      isOnline,
+      visibility,
+      createdBy: creatorId,
+    });
+
+    res.status(201).json({
+      message: "Event created successfully",
+      event,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error creating event", error });
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
-export const getAllEvents = async (req: Request, res: Response): Promise<void> => {
+
+export const getAllEvents = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const events = await Event.find();
-    res.status(200).json(events);
+    const events = await Event.find()
+      .sort({ startDate: 1 })
+      .populate("createdBy", "name email");
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      data: events,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching events", error });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch events",
+      error: error instanceof Error ? error.message : error,
+    });
   }
 };
 

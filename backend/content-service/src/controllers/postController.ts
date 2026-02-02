@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Post from "../mongoose/postModel.js";
+import Post from "../mongoose/postModel.js"
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   try {
