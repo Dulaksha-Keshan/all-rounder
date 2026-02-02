@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client/extension";
-import {createUser} from "./userController.js";
+import { createUser } from "./userController.js";
 
+import { prisma } from "../prisma.js";
 
 
 //in the resgistration form coming from frontend will contain school registration info and admin registration info (id of school will come to admin)
 //create the school profile first
-const prisma = new PrismaClient();
 
 export const createSchool = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -42,7 +41,7 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
     await createUser(
       adminReq,
       {
-        status: () => ({ json: () => {} }),
+        status: () => ({ json: () => { } }),
       } as unknown as Response
     );
 
@@ -211,7 +210,7 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
 };
 
 
-export const getSchoolStatistics = async (req: Request,res: Response): Promise<void> => {
+export const getSchoolStatistics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { schoolId } = req.params;
 

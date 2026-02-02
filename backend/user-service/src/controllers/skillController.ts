@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client/extension";
-const prisma = new PrismaClient();
+import { prisma } from "../prisma.js";
 
 // List all skills
 export const listSkills = async (req: Request, res: Response): Promise<void> => {

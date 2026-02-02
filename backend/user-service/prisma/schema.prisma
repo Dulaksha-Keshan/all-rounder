@@ -5,13 +5,13 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  //  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ==========================================
@@ -19,7 +19,9 @@ datasource db {
 // ==========================================
 
 model Student {
-  uid String @id @unique
+  // Independent ID (Primary Key)
+  student_id  Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields (Formerly in User)
   name            String
@@ -43,7 +45,9 @@ model Student {
 }
 
 model Teacher {
-  uid String @id @unique
+  // Independent ID (Primary Key)
+  teacher_id  Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields
   name            String
@@ -67,7 +71,9 @@ model Teacher {
 }
 
 model Admin {
-  uid String @id @unique
+  // Independent ID (Primary Key)
+  admin_id    Int    @id @default(autoincrement())
+  firebase_id String
 
   // Profile Fields
   name            String

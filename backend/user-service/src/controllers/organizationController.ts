@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client/extension";
 import Verification from "../mongoose/verificationModel.js";
-import {createUser} from "./userController.js";
+import { createUser } from "./userController.js";
 
-const prisma = new PrismaClient();
+import { prisma } from "../prisma.js";
 
 export const listOrganizations = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -103,14 +102,14 @@ export const createOrganization = async (req: Request, res: Response): Promise<v
         ...admin,
         userType: "ORG_ADMIN",
         organization_id: newOrg.organization_id,
-        verificationOption: "DOCUMENT", 
+        verificationOption: "DOCUMENT",
       },
     } as Request;
 
     await createUser(
       adminReq,
       {
-        status: () => ({ json: () => {} }),
+        status: () => ({ json: () => { } }),
       } as unknown as Response
     );
 
