@@ -7,7 +7,7 @@ export const createResource = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const creatorId = req.headers["x-user-id"] as string;
+    const creatorId = req.headers["x-User-id"] as string;
 
     if (!creatorId) {
       res.status(400).json({
@@ -116,6 +116,7 @@ export const getAllResources = async (
     });
   }
 };
+
 export const getResourceById = async (
   req: Request,
   res: Response,
@@ -153,44 +154,101 @@ export const getResourceById = async (
   }
 };
 
-export const updateResource = async (req: Request, res: Response): Promise<void> => {
+export const updateResource = async (
+  req: Request<{ id: string }>,
+  res: Response
+): Promise<void> => {
   try {
-    const resource = await ResourceRequest.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const { id } = req.params;
+
+    const updatedResource = await ResourceRequest.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedResource) {
+      res.status(404).json({ message: "Resource request not found" });
+      return;
+    }
+
+    res.status(200).json(updatedResource);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update resource request",
+      error,
     });
-    if (!resource) {
-      res.status(404).json({ message: "Resource request not found" });
-      return;
-    }
-    res.status(200).json(resource);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating resource request", error });
   }
 };
 
-export const deleteResource = async (req: Request, res: Response): Promise<void> => {
+export const deleteResource = async (
+  req: Request<{ id: string }>,
+  res: Response
+): Promise<void> => {
   try {
-    const resource = await ResourceRequest.findByIdAndDelete(req.params.id);
-    if (!resource) {
-      res.status(404).json({ message: "Resource request not found" });
+    const { id } = req.params;
+
+    const deletedResource = await ResourceRequest.findByIdAndDelete(id);
+
+    if (!deletedResource) {
+      res.status(404).json({
+        message: "Resource request not found",
+      });
       return;
     }
-    res.status(200).json({ message: "Resource request deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting resource request", error });
+
+    res.status(200).json({
+      message: "Resource request deleted successfully",
+      resource: deletedResource,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
-export const searchResources = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { resourceType, status } = req.query;
-        const query: any = {};
-        if (resourceType) query.resourceType = resourceType;
-        if (status) query.status = status;
+export const searchResources = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      keyword,
+      resourceType,
+      urgency,
+      status,
+      visibility,
+    } = req.query;
 
-        const resources = await ResourceRequest.find(query);
-        res.status(200).json(resources);
-    } catch (error) {
-        res.status(500).json({ message: "Error searching resources", error });
+    const filter: any = {};
+
+    if (resourceType) filter.resourceType = resourceType;
+    if (urgency) filter.urgency = urgency;
+    if (status) filter.status = status;
+    if (visibility) filter.visibility = visibility;
+
+    if (keyword) {
+      filter.$or = [
+        { title: { $regex: keyword as string, $options: "i" } },
+        { description: { $regex: keyword as string, $options: "i" } },
+      ];
     }
+
+    const resources = await ResourceRequest.find(filter).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      message: "Resource requests fetched successfully",
+      count: resources.length,
+      resources,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
