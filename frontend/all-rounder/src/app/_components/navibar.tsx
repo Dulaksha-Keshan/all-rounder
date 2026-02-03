@@ -69,7 +69,7 @@ export default function Navbar({
   };
 
   const publicLinks = [
-    { path: "/#Home", label: "Home" },
+    { path: "/", label: "Home" },
     { path: "/#AboutUs", label: "About Us" },
     { path: "/#Features", label: "Features" },
     { path: "/#Events", label: "Events" },
@@ -143,8 +143,8 @@ export default function Navbar({
                   handleLinkClick(link.path, e);
                 }}
                 className={`px-3 py-2 rounded-md transition ${isActive(link.path)
-                    ? "bg-[#8387CC] text-white"
-                    : "text-[#34365C] hover:bg-[#DCD0FF]"
+                  ? "bg-[#8387CC] text-white"
+                  : "text-[#34365C] hover:bg-[#DCD0FF]"
                   }`}
               >
                 {link.label}
@@ -204,8 +204,8 @@ export default function Navbar({
                   handleLinkClick(link.path, e);
                 }}
                 className={`block px-3 py-2 rounded-md transition ${isActive(link.path)
-                    ? "bg-[#8387CC] text-white"
-                    : "text-[#34365C] hover:bg-[#DCD0FF]"
+                  ? "bg-[#8387CC] text-white"
+                  : "text-[#34365C] hover:bg-[#DCD0FF]"
                   }`}
               >
                 {link.label}
