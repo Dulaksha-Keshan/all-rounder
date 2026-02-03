@@ -28,8 +28,6 @@ export default function NeedHelpPage() {
 
   return (
     <div className="bg-gray-50">
-      {/* HEADER */}
-      <Navbar />
       {/* HERO */}
       <section className="relative w-full bg-[#34365C] text-white py-20 overflow-hidden">
         {/* Decorative stars */}
@@ -101,9 +99,6 @@ export default function NeedHelpPage() {
           <div>✔ Student-first platform</div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <Footer />
     </div>
   );
 }

@@ -2,17 +2,12 @@ import { Trophy, Palette, Users } from 'lucide-react';
 import FeatureCard from './FeatureCard';
 import { EventDetails } from './Events';
 import { HeroSection } from './Hero';
-import Footer from './Footer';
-import Header from './navibar';
 import Link from 'next/link';
 
 export default function LandingPage() {
   return (
     
     <div className="flex flex-col min-h-screen bg-[var(--gray-100)]"> 
-      {/* Header */}
-      <Header/>
-     
 
       <main className="flex-grow">
         <div id="Home">
@@ -178,12 +173,9 @@ export default function LandingPage() {
 
       {/*  Events Section */}
       <div id="Events"><EventDetails/></div> 
-      
         
       </main>
-      {/* Footer Section */}
-      <Footer/>
-      
+
      </div> 
 
   );

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function HeroSection() {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -64,22 +65,13 @@ export function HeroSection() {
         });
       });
 
-      // Stars animation
+      // Single twinkling animation for stars
       starsRef.current.forEach((star, i) => {
-        gsap.from(star, {
-          scale: 0,
-          opacity: 0,
-          duration: 0.6,
-          delay: 1 + i * 0.2,
-          ease: 'back.out(2)',
-        });
-
-        // Continuous twinkling
         gsap.to(star, {
-          scale: 1.5,
-          opacity: 0.5,
-          duration: 2,
-          delay: 2 + i * 0.4,
+          scale: 1.3,
+          opacity: 0.6,
+          duration: 2 + Math.random() * 0.5,
+          delay: i * 0.3,
           ease: 'sine.inOut',
           yoyo: true,
           repeat: -1,
@@ -92,14 +84,16 @@ export function HeroSection() {
 
   return (
     <section className="relative w-full min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 lg:py-20 overflow-hidden bg-[var(--primary-dark-purple)]">
-      {/* Decorative Stars */}
+      {/* Decorative Stars - Single Style (★ only) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl text-[var(--secondary-light-lavender)]">✦</div>
-        <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl text-[var(--primary-purple)]">★</div>
-        <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl text-[var(--secondary-light-lavender)]">✦</div>
-        <div ref={(el) => { starsRef.current[3] = el; }} className="absolute top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)]">★</div>
-        <div ref={(el) => { starsRef.current[4] = el; }} className="absolute bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl text-[var(--secondary-light-lavender)]">✦</div>
-        <div ref={(el) => { starsRef.current[5] = el; }} className="absolute top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl text-[var(--primary-purple)]">★</div>
+        <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[3] = el; }} className="absolute top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[4] = el; }} className="absolute bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[5] = el; }} className="absolute top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[6] = el; }} className="absolute top-1/4 left-1/4 text-2xl sm:text-3xl text-[var(--secondary-light-lavender)]">★</div>
+        <div ref={(el) => { starsRef.current[7] = el; }} className="absolute bottom-1/3 right-1/4 text-xl sm:text-2xl text-[var(--secondary-light-lavender)]">★</div>
       </div>
 
       <div className="max-w-7xl mx-auto w-full">
@@ -128,17 +122,15 @@ export function HeroSection() {
             </button>
             {/* </Link> */}
 
-
             <Link href="/help">
               <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--secondary-light-lavender)] bg-transparent text-[var(--secondary-light-lavender)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-purple-200 hover:text-[var(--black)]">
                 <span className="flex items-center justify-center gap-3">Learn More</span>
               </button>
             </Link>
-
           </div>
         </div>
 
-        {/* Laptop Frame with Avatar Inside */}
+        {/* Laptop Frame with Avatar */}
         <div className="relative max-w-4xl mx-auto px-4" ref={laptopRef}>
           {/* Laptop Frame */}
           <div className="relative z-10">
@@ -149,21 +141,40 @@ export function HeroSection() {
                 {/* Screen Content with Avatar and Leaderboard */}
                 <div className="relative aspect-[16/9] flex items-center justify-center bg-[var(--secondary-purple-light)]">
                   {/* Left side - Leaderboard Image */}
-                  <div className="absolute left-0 top-0 bottom-0 w-1/2 flex items-center justify-center p-2 sm:p-4">
-                    <img src="/images/leaderboard.png" alt="Leaderboard" className="w-full h-full object-cover" />
+                  <div className="absolute left-0 top-0 bottom-0 w-1/2 p-2 sm:p-4">
+                    <div className="relative w-full h-full">
+                      <Image 
+                        src="/images/Landing/leaderboard.png" 
+                        alt="Leaderboard" 
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 600px"
+                        className="object-cover rounded-lg"
+                        priority
+                      />
+                    </div>
                   </div>
 
                   {/* Right side - Avatar moving around */}
-                  <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
-                    <div ref={avatarRef} className="relative">
-                      <img src="/avatar.png" alt="Student Avatar" className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 object-contain drop-shadow-2xl" />
-                      {/* Glow effect around avatar */}
-                      <div className="absolute inset-0 rounded-full blur-xl sm:blur-2xl opacity-30 -z-10 bg-[var(--primary-purple)]"></div>
-                    </div>
+                  {/* Right side - Avatar moving around */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
+                  <div ref={avatarRef} className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40">
+                    <Image 
+                      src="/icons/avatar.png" 
+                      alt="Student Avatar" 
+                      fill
+                      sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, (max-width: 1024px) 128px, 160px"
+                      className="object-contain drop-shadow-2xl"
+                      priority
+                    />
+
+                    {/* Glow effect around avatar */}
+                    <div className="absolute inset-0 rounded-full blur-xl sm:blur-2xl opacity-30 -z-10 bg-[var(--primary-purple)]"></div>
                   </div>
                 </div>
+
               </div>
             </div>
+          </div>
 
             {/* Laptop Base */}
             <div className="relative h-2 sm:h-3 lg:h-4 mx-auto" style={{ width: '110%' }}>

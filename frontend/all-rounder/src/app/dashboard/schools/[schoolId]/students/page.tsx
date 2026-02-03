@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { use } from "react";
 import Table from "@/app/dashboard/_components/Table";
 import TableSearch from "@/app/dashboard/_components/TableSearch";
-import Pagination from "@/app/dashboard/_components/Pagination";
+import Pagination from "@/components/Pagiation";
 import { Students, Schools } from "@/app/_data/data";
 
 const ITEM_PER_PAGE = 10;

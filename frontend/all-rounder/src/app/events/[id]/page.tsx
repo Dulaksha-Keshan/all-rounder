@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { Calendar, MapPin, Clock, ArrowLeft, Users, Trophy, Share2, ChevronDown, Mail, Plus, Minus, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
 import { Events } from '../_data/events';
 import { gsap } from 'gsap';
-import Footer from '@/app/_components/Footer';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -387,7 +386,6 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
-      <Footer/>
     </div>
    
   );

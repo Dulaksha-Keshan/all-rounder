@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Navbar from "@/app/_components/navibar";
+
 
 
 export default function LoginPage() {
@@ -45,9 +45,9 @@ export default function LoginPage() {
   return (
     <>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-[var(--white)]">
+      {/* <div className="sticky top-0 z-50 bg-[var(--white)]">
         <Navbar/>
-      </div>
+      </div> */}
   
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-purple-100 py-12 px-4">
         <div className="max-w-md mx-auto">

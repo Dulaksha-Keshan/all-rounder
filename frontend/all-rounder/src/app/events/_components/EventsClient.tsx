@@ -30,9 +30,9 @@ export default function EventsClient({ events }: { events: Event[] }) {
       {/* Header Section */}
       <div className="relative bg-[var(--primary-dark-purple)] text-[var(--white)] overflow-hidden">
         {/* Decorative Elements */}
-        <div className="absolute top-10 left-10 text-6xl text-[var(--secondary-light-lavender)] opacity-30">✦</div>
+        <div className="absolute top-10 left-10 text-6xl text-[var(--secondary-light-lavender)] opacity-30">★</div>
         <div className="absolute top-20 right-20 text-5xl text-[var(--primary-purple)] opacity-30">★</div>
-        <div className="absolute bottom-10 left-1/4 text-4xl text-[var(--secondary-light-lavender)] opacity-30">✦</div>
+        <div className="absolute bottom-10 left-1/4 text-4xl text-[var(--secondary-light-lavender)] opacity-30">★</div>
         <div className="absolute bottom-20 right-1/4 text-5xl text-[var(--primary-purple)] opacity-30">★</div>
         
         <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">

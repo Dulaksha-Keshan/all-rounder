@@ -38,7 +38,7 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}
       <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[var(--primary-dark-purple)] to-[var(--primary-blue)] p-4 shadow-xl">
-        <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
+        {/* <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
           <Image 
             src="/logo.png" 
             alt="Logo" 
@@ -47,7 +47,7 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
             className="brightness-0 invert" 
           />
           <span className="hidden lg:block font-bold text-[var(--white)]">All-Rounder</span>
-        </div>
+        </div> */}
         <Menu schoolId={schoolId} />
       </div>
 

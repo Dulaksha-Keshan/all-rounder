@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function SplashScreen() {
   const [animationState, setAnimationState] = useState('initial');
@@ -58,9 +59,11 @@ export default function SplashScreen() {
               filter: animationState === 'glow' || animationState === 'complete' ? 'drop-shadow(0 0 15px rgba(220,208,255,0.5))' : 'none'
             }}
           >
-            <img 
-              src="/avatar.png"
+            <Image 
+              src="/icons/avatar.png"
               alt="Star Avatar"
+              width={160}
+              height={160}
               className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 ${
                 animationState === 'glow' ? 'animate-bounce' : ''
               }`}
