@@ -7,7 +7,7 @@ export const createResource = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const creatorId = req.headers["x-User-id"] as string;
+    const creatorId = req.headers["x-user-id"] as string;
 
     if (!creatorId) {
       res.status(400).json({
@@ -81,12 +81,14 @@ export const createResource = async (
 
 export const getAllResources = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { status, resourceType, visibility } = req.query;
 
-    const filter: Record<string, any> = {};
+    const filter: Record<string, any> = {
+      isDeleted: false,
+    };
 
     if (status) {
       filter.status = status;
@@ -101,8 +103,8 @@ export const getAllResources = async (
     }
 
     const resources = await ResourceRequest.find(filter)
-      .sort({ createdAt: -1 })
-      .populate("createdBy", "name email");
+      .sort({ createdAt: -1 });
+      // .populate("createdBy", "name email");
 
     res.status(200).json({
       message: "Resources fetched successfully",
@@ -117,9 +119,10 @@ export const getAllResources = async (
   }
 };
 
+
 export const getResourceById = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const id = req.params.id as string;
@@ -132,12 +135,15 @@ export const getResourceById = async (
       return;
     }
 
-    const resource = await ResourceRequest.findById(id)
-      .populate("createdBy", "name email");
+    const resource = await ResourceRequest.findOne({
+      _id: id,
+      isDeleted: false,
+    });
+    // .populate("createdBy", "name email");
 
     if (!resource) {
       res.status(404).json({
-        message: "Resource not found",
+        message: "Resource not found or already deleted",
       });
       return;
     }
@@ -154,6 +160,7 @@ export const getResourceById = async (
   }
 };
 
+
 export const updateResource = async (
   req: Request<{ id: string }>,
   res: Response
@@ -161,25 +168,31 @@ export const updateResource = async (
   try {
     const { id } = req.params;
 
-    const updatedResource = await ResourceRequest.findByIdAndUpdate(
-      id,
+    const updatedResource = await ResourceRequest.findOneAndUpdate(
+      { _id: id, isDeleted: false },
       req.body,
       { new: true, runValidators: true }
     );
 
     if (!updatedResource) {
-      res.status(404).json({ message: "Resource request not found" });
+      res.status(404).json({
+        message: "Resource request not found or already deleted",
+      });
       return;
     }
 
-    res.status(200).json(updatedResource);
-  } catch (error) {
+    res.status(200).json({
+      message: "Update resource request successfully",
+      updatedResource,
+    });
+  } catch (error: any) {
     res.status(500).json({
       message: "Failed to update resource request",
-      error,
+      error: error.message,
     });
   }
 };
+
 
 export const deleteResource = async (
   req: Request<{ id: string }>,
@@ -188,7 +201,14 @@ export const deleteResource = async (
   try {
     const { id } = req.params;
 
-    const deletedResource = await ResourceRequest.findByIdAndDelete(id);
+    const deletedResource = await ResourceRequest.findByIdAndUpdate(
+      id,
+      {
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
+      { new: true }
+    );
 
     if (!deletedResource) {
       res.status(404).json({
@@ -208,6 +228,7 @@ export const deleteResource = async (
     });
   }
 };
+
 
 export const searchResources = async (
   req: Request,

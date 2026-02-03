@@ -1,18 +1,18 @@
 import { Router } from "express";
 import {
-  createResource,
-  getAllResources,
-  getResourceById,
-  updateResource,
-  deleteResource,
-} from "../controllers/resourceController.js";
+  createEvent,
+  getAllEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+} from "../controllers/eventController.js";
 
 const router = Router();
 
-router.post("/", createResource);
-router.get("/", getAllResources);
-router.get("/:id", getResourceById);
-router.put("/:id", updateResource);
-router.delete("/:id", deleteResource);
+router.post("/", createEvent);
+router.get("/", getAllEvents);
+router.get("/:id", getEventById);
+router.put("/:id", updateEvent);
+router.delete("/:id", deleteEvent);
 
 export default router;

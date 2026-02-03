@@ -2,15 +2,9 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     title: {
       type: String,
       required: true,
-      trim: true,
     },
     message: {
       type: String,
@@ -18,15 +12,22 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["system", "event", "achievement", "resource", "general"],
-      default: "general",
+      enum: ["EVENT", "POST", "RESOURCE", "CLUB", "SYSTEM"],
+      required: true,
+    },
+    recipient: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     isRead: {
       type: Boolean,
       default: false,
     },
-    actionUrl: {
-      type: String,
+    relatedId: {
+      // ID of related event/post/resource
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "type", // optional polymorphic reference
     },
   },
   {

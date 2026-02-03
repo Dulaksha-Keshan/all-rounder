@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   try {
-    const studentId = req.headers["x-User-id"] as string;
+    const studentId = req.headers["x-user-id"] as string;
 
     if (!studentId) {
       res.status(400).json({
@@ -62,7 +62,7 @@ export const getAllPosts = async (req: Request, res: Response): Promise<void> =>
     if (visibility) filter.visibility = visibility;
 
     const posts = await Post.find(filter)
-      .populate("student", "name profile_picture grade") 
+      //.populate("student", "name profile_picture grade") because this gives error since it cannot find Student
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -95,10 +95,8 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const post = await Post.findOne({ _id: postId, isDeleted: false }).populate(
-      "student",
-      "name profile_picture grade"
-    );
+    const post = await Post.findOne({ _id: postId, isDeleted: false })
+    //.populate("student","name profile_picture grade");
 
     if (!post) {
       res.status(404).json({

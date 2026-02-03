@@ -7,8 +7,10 @@ export const createEvent = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const creatorId = req.headers["x-user-id"] as string;
+    console.log("All headers:", req.headers);
 
+    const creatorId = req.headers["x-user-id"] as string;
+console.log("creatorId:", creatorId);
     if (!creatorId) {
       res.status(400).json({
         message: "x-user-id header is required",
@@ -98,7 +100,7 @@ export const getAllEvents = async (
   try {
     const events = await Event.find({ isDeleted: false })
       .sort({ startDate: 1 })
-      .populate("createdBy", "name email");
+      //.populate("createdBy", "name email"); because this gives error since it cannot find User
 
     res.status(200).json({
       success: true,
@@ -128,7 +130,7 @@ export const getEventById = async (
       return;
     }
 
-    const event = await Event.findById({
+    const event = await Event.findOne({
   _id: eventId,
   isDeleted: false});
 
@@ -165,14 +167,11 @@ export const updateEvent = async (
       return;
     }
 
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updatedEvent = await Event.findOneAndUpdate(
+  { _id: eventId, isDeleted: false },
+  req.body,
+  { new: true, runValidators: true }
+);
 
     if (!updatedEvent) {
       res.status(404).json({
