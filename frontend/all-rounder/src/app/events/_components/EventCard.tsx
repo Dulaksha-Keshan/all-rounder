@@ -2,18 +2,21 @@ import { Event } from '@/app/_type/type';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
 
+import NextImage from 'next/image';
+
 export const EventCard = ({ event }: { event: Event }) => {
   return (
     <div className="bg-[var(--white)] rounded-2xl overflow-hidden shadow-sm border-2 border-[var(--gray-100)] hover:border-[var(--primary-purple)] transition-all duration-300 hover:shadow-lg">
       <div className="flex flex-col md:flex-row">
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-56 md:h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-[var(--secondary-light-lavender)] to-[var(--secondary-pale-lavender)]">
-          <img 
-            src={event.imageUrl} 
+          <NextImage
+            src={event.imageUrl}
             alt={event.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
-    
+
           {/* Status Badge */}
           {event.status === "Registered" && (
             <div className="absolute top-4 right-4 px-4 py-2 bg-[var(--green-500)] text-[var(--white)] rounded-full text-sm font-semibold shadow-lg">
@@ -61,7 +64,7 @@ export const EventCard = ({ event }: { event: Event }) => {
                   <span>{event.date}</span>
                 </div>
               </div>
-              
+
               {event.deadline && (
                 <div className="flex items-center gap-3 text-sm text-[var(--gray-700)]">
                   <Clock className="w-4 h-4 text-[var(--primary-purple)] flex-shrink-0" />
@@ -71,7 +74,7 @@ export const EventCard = ({ event }: { event: Event }) => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center gap-3 text-sm text-[var(--gray-700)] md:col-span-2">
                 <MapPin className="w-4 h-4 text-[var(--primary-purple)] flex-shrink-0" />
                 <div>
@@ -83,7 +86,7 @@ export const EventCard = ({ event }: { event: Event }) => {
 
             {/* Action Buttons */}
             <div className="flex gap-3 mt-auto">
-              <Link 
+              <Link
                 href={`/events/${event.id}`}
                 className="px-6 py-2.5 bg-[var(--gray-100)] text-[var(--gray-700)] rounded-lg hover:bg-[var(--gray-200)] transition-colors font-medium text-sm text-center"
               >

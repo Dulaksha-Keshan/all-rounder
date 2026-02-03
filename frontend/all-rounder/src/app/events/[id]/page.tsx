@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import NextImage from 'next/image';
 import { Calendar, MapPin, Clock, ArrowLeft, Users, Trophy, Share2, ChevronDown, Mail, Plus, Minus, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
 import { Events } from '../_data/events';
 import { gsap } from 'gsap';
@@ -9,7 +10,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const eventId = Number(params.id);
-  
+
   const event = Events.find(e => e.id === eventId);
 
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -18,10 +19,10 @@ export default function EventDetailPage() {
   useEffect(() => {
     if (titleRef.current && descRef.current) {
       // Animate title
-      gsap.fromTo(titleRef.current, 
-        { 
+      gsap.fromTo(titleRef.current,
+        {
           y: 50,
-          opacity: 0 
+          opacity: 0
         },
         {
           y: 0,
@@ -53,7 +54,7 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-[#34365C] mb-4">Event Not Found</h1>
-          <button 
+          <button
             onClick={() => router.push('/events')}
             className="px-6 py-3 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] transition-colors"
           >
@@ -87,10 +88,12 @@ export default function EventDetailPage() {
       {/* Full Screen Hero Section */}
       <div className="relative h-screen w-full overflow-hidden">
         <div className="absolute inset-0">
-          <img 
-            src={event.imageUrl} 
+          <NextImage
+            src={event.imageUrl}
             alt={event.title}
-            className="w-full h-full object-cover"
+            fill
+            priority
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#34365C]/95"></div>
         </div>
@@ -115,7 +118,7 @@ export default function EventDetailPage() {
             ))}
           </div>
 
-          <h1 
+          <h1
             ref={titleRef}
             className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 max-w-5xl leading-tight"
             style={{ opacity: 0 }}
@@ -123,7 +126,7 @@ export default function EventDetailPage() {
             {event.title}
           </h1>
 
-          <p 
+          <p
             ref={descRef}
             className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl"
             style={{ opacity: 0 }}
@@ -131,7 +134,7 @@ export default function EventDetailPage() {
             {event.description}
           </p>
 
-          <button 
+          <button
             onClick={scrollToContent}
             className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer"
           >
@@ -151,7 +154,7 @@ export default function EventDetailPage() {
                 <div className="w-14 h-14 rounded-xl bg-[#8387CC] flex items-center justify-center">
                   <BookOpen className="w-7 h-7 text-white" />
                 </div>
-                <h2 className="text-4xl font-extrabold text-[#34365C] tracking-tight" style={{fontFamily: 'system-ui, -apple-system, sans-serif'}}>About This Event</h2>
+                <h2 className="text-4xl font-extrabold text-[#34365C] tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>About This Event</h2>
               </div>
             </div>
 
@@ -169,7 +172,7 @@ export default function EventDetailPage() {
               <div className="bg-[#8387CC] rounded-xl p-2 mb-6">
                 <h3 className="text-lg font-semibold text-white text-center">Event Information</h3>
               </div>
-              
+
               <div className="space-y-5">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-[#8387CC] flex items-center justify-center flex-shrink-0">
@@ -206,7 +209,7 @@ export default function EventDetailPage() {
 
               <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
                 {event.status === "Registered" ? (
-                  <button 
+                  <button
                     disabled
                     className="w-full px-6 py-3 bg-green-100 text-green-700 rounded-lg font-semibold text-base cursor-not-allowed"
                   >
@@ -217,7 +220,7 @@ export default function EventDetailPage() {
                     Register Now
                   </button>
                 )}
-                
+
                 <button className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium flex items-center justify-center gap-2">
                   <Share2 className="w-4 h-4" />
                   Share Event
@@ -241,13 +244,13 @@ export default function EventDetailPage() {
                       <h3 className="text-xl font-bold text-[#34365C]">Requirements</h3>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.requirements ? 
-                        <Minus className="w-5 h-5 text-white" /> : 
+                      {expandedSections.requirements ?
+                        <Minus className="w-5 h-5 text-white" /> :
                         <Plus className="w-5 h-5 text-white" />
                       }
                     </div>
                   </button>
-                  
+
                   {expandedSections.requirements && (
                     <div className="px-6 pb-6 pt-2 bg-white">
                       <ul className="space-y-3">
@@ -277,13 +280,13 @@ export default function EventDetailPage() {
                       <h3 className="text-xl font-bold text-[#34365C]">Prizes & Recognition</h3>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.prizes ? 
-                        <Minus className="w-5 h-5 text-white" /> : 
+                      {expandedSections.prizes ?
+                        <Minus className="w-5 h-5 text-white" /> :
                         <Plus className="w-5 h-5 text-white" />
                       }
                     </div>
                   </button>
-                  
+
                   {expandedSections.prizes && (
                     <div className="px-6 pb-6 pt-2 bg-white">
                       <ul className="space-y-3">
@@ -312,13 +315,13 @@ export default function EventDetailPage() {
                     <h3 className="text-xl font-bold text-[#34365C]">Why Participate?</h3>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                    {expandedSections.why ? 
-                      <Minus className="w-5 h-5 text-white" /> : 
+                    {expandedSections.why ?
+                      <Minus className="w-5 h-5 text-white" /> :
                       <Plus className="w-5 h-5 text-white" />
                     }
                   </div>
                 </button>
-                
+
                 {expandedSections.why && (
                   <div className="px-6 pb-6 pt-2 bg-white">
                     <div className="space-y-4">
@@ -359,19 +362,19 @@ export default function EventDetailPage() {
                       <h3 className="text-xl font-bold text-[#34365C]">Need Help?</h3>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.contact ? 
-                        <Minus className="w-5 h-5 text-white" /> : 
+                      {expandedSections.contact ?
+                        <Minus className="w-5 h-5 text-white" /> :
                         <Plus className="w-5 h-5 text-white" />
                       }
                     </div>
                   </button>
-                  
+
                   {expandedSections.contact && (
                     <div className="px-6 pb-6 pt-2 bg-white">
                       <p className="text-gray-600 mb-4">
                         Have questions about this event? Contact the organizers.
                       </p>
-                      <a 
+                      <a
                         href={`mailto:${event.contactEmail}`}
                         className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#8387CC] text-[#8387CC] rounded-lg hover:bg-[#8387CC] hover:text-white transition-colors font-medium"
                       >
@@ -387,6 +390,6 @@ export default function EventDetailPage() {
         </div>
       </div>
     </div>
-   
+
   );
 }

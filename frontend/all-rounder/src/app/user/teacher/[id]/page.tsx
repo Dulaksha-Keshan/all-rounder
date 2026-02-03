@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, use } from 'react';
-import { Teachers, Schools} from '@/app/_data/data';
+import NextImage from 'next/image';
+import { Teachers, Schools } from '@/app/_data/data';
 import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
 import ChangePassword from '../../_components/ChangePassword';
@@ -18,7 +19,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // Find the teacher by ID
   const teacher = Teachers.find(t => t.id === Number(id));
-  
+
   if (!teacher) {
     notFound();
   }
@@ -31,7 +32,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   // For now, assuming logged-in user is teacher with ID 1
   const loggedInUserId = 1; // Replace with actual auth
   const loggedInUserType = "teacher"; // Replace with actual auth
-  
+
   // Check if viewing own profile
   const isOwnProfile = loggedInUserId === teacher.id && loggedInUserType === "teacher";
 
@@ -67,9 +68,11 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-[#DCD0FF]/50">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
-              <img 
-                src={teacherData.photoUrl} 
+              <NextImage
+                src={teacherData.photoUrl}
                 alt={teacherData.name}
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-full object-cover border-4 border-[#DCD0FF]"
               />
               <div>
@@ -78,7 +81,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 <p className="text-sm text-gray-500 mt-1">{schoolName}</p>
               </div>
             </div>
-            
+
             {/* Edit buttons - only show if viewing own profile */}
             {isOwnProfile && (
               <div className="flex gap-2">
@@ -116,55 +119,50 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
             {/* Overview tab - always visible */}
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                activeTab === 'overview'
-                  ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                  : 'text-gray-600 hover:text-[#34365C]'
-              }`}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'overview'
+                ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                : 'text-gray-600 hover:text-[#34365C]'
+                }`}
             >
               Overview
             </button>
-            
+
             {/* Private tabs - only show if viewing own profile */}
             {isOwnProfile && (
               <>
                 <button
                   onClick={() => setActiveTab('personal')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'personal'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'personal'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Personal Info
                 </button>
                 <button
                   onClick={() => setActiveTab('activities')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'activities'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'activities'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   My Activities
                 </button>
                 <button
                   onClick={() => setActiveTab('account')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'account'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'account'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   My Account
                 </button>
                 <button
                   onClick={() => setActiveTab('security')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'security'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'security'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Security
                 </button>
@@ -200,7 +198,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF] hover:border-[#8387CC] transition-all"
                     >
@@ -252,7 +250,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <input
                     type="text"
                     value={editData.name}
-                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -266,7 +264,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <input
                     type="email"
                     value={editData.email}
-                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -291,7 +289,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                     type="text"
                     value={editData.profile?.phone || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, phone: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -308,7 +306,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                     type="text"
                     value={editData.profile?.zipCode || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, zipCode: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -324,7 +322,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <textarea
                     value={editData.profile?.address || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, address: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -341,7 +339,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <textarea
                     value={editData.profile?.bio || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, bio: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -363,7 +361,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               {registeredEventsWithDetails.length > 0 ? (
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF]"
                     >

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, use } from 'react';
-import { Students, Schools} from '@/app/_data/data';
+import NextImage from 'next/image';
+import { Students, Schools } from '@/app/_data/data';
 import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
 
@@ -16,7 +17,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
   // Find the student by ID
   const student = Students.find(s => s.id === Number(id));
-  
+
   if (!student) {
     notFound();
   }
@@ -28,7 +29,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   // TODO: Get this from your auth system
   const loggedInUserId = 1; // Replace with actual auth
   const loggedInUserType = "student"; // Replace with actual auth
-  
+
   // Check if viewing own profile
   const isOwnProfile = loggedInUserId === student.id && loggedInUserType === "student";
 
@@ -64,9 +65,11 @@ export default function StudentProfile({ params }: StudentProfileProps) {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-[#DCD0FF]/50">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
-              <img 
-                src={studentData.photoUrl} 
+              <NextImage
+                src={studentData.photoUrl}
                 alt={studentData.name}
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-full object-cover border-4 border-[#DCD0FF]"
               />
               <div>
@@ -75,7 +78,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                 <p className="text-sm text-gray-500 mt-1">{schoolName} • Age {studentData.age}</p>
               </div>
             </div>
-            
+
             {/* Edit buttons - only show if viewing own profile */}
             {isOwnProfile && (
               <div className="flex gap-2">
@@ -113,45 +116,41 @@ export default function StudentProfile({ params }: StudentProfileProps) {
             {/* Overview tab - always visible */}
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                activeTab === 'overview'
-                  ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                  : 'text-gray-600 hover:text-[#34365C]'
-              }`}
+              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'overview'
+                ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                : 'text-gray-600 hover:text-[#34365C]'
+                }`}
             >
               Overview
             </button>
-            
+
             {/* Private tabs - only show if viewing own profile */}
             {isOwnProfile && (
               <>
                 <button
                   onClick={() => setActiveTab('personal')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'personal'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'personal'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Personal Info
                 </button>
                 <button
                   onClick={() => setActiveTab('activities')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'activities'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'activities'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   My Activities
                 </button>
                 <button
                   onClick={() => setActiveTab('skills')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'skills'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'skills'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Skills
                 </button>
@@ -193,7 +192,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Skills & Talents</h2>
                 <div className="flex flex-wrap gap-2">
                   {studentData.skills.map((skill, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="px-4 py-2 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white rounded-full text-sm font-medium"
                     >
@@ -210,7 +209,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF] hover:border-[#8387CC] transition-all"
                     >
@@ -262,7 +261,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <input
                     type="text"
                     value={editData.name}
-                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -276,7 +275,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <input
                     type="email"
                     value={editData.email}
-                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -290,7 +289,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <input
                     type="number"
                     value={editData.age}
-                    onChange={(e) => setEditData({...editData, age: Number(e.target.value)})}
+                    onChange={(e) => setEditData({ ...editData, age: Number(e.target.value) })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -315,7 +314,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                     type="text"
                     value={editData.profile?.phone || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, phone: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -331,7 +330,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <textarea
                     value={editData.profile?.address || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, address: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -348,7 +347,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <textarea
                     value={editData.profile?.bio || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, bio: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -369,7 +368,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
             {registeredEventsWithDetails.length > 0 ? (
               <div className="space-y-3">
                 {registeredEventsWithDetails.map((reg, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF]"
                   >
@@ -402,7 +401,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
             {studentData.skills && studentData.skills.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {studentData.skills.map((skill, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="px-6 py-3 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white rounded-lg text-base font-medium shadow-md"
                   >

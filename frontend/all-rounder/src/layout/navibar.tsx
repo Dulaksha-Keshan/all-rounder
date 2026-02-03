@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import NextImage from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -122,11 +123,17 @@ export default function Navbar({
 
           {/* Logo */}
           <Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
-            <img
-              src="/logo.png"
-              alt="All-Rounder Logo"
-              className="h-10 sm:h-12 lg:h-15 w-auto"
-            />
+            <div className="relative h-10 sm:h-12 lg:h-15 w-auto">
+              {/* Using a rough aspect ratio based on typical logo dims, but letting css control height */}
+              <NextImage
+                src="/logo.png"
+                alt="All-Rounder Logo"
+                width={200}
+                height={60}
+                className="h-10 sm:h-12 lg:h-15 w-auto object-contain"
+                priority
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -154,9 +161,11 @@ export default function Navbar({
             {isAuthenticated && (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-300">
                 <div className="flex items-center gap-2">
-                  <img
+                  <NextImage
                     src="/user.png"
                     alt="User"
+                    width={24}
+                    height={24}
                     className="w-6 h-6 rounded-full object-cover"
                   />
                   <span className="capitalize text-sm text-[#34365C]">
@@ -179,9 +188,11 @@ export default function Navbar({
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-md hover:bg-[#DCD0FF]"
           >
-            <img
+            <NextImage
               src={mobileMenuOpen ? "/images/close.jpeg" : "/images/menu.png"}
               alt="Menu"
+              width={24}
+              height={24}
               className="w-6 h-6"
             />
           </button>
@@ -215,9 +226,11 @@ export default function Navbar({
             {isAuthenticated && (
               <div className="pt-3 mt-3 border-t border-gray-300">
                 <div className="flex items-center gap-2 px-3 py-2">
-                  <img
+                  <NextImage
                     src="/user.png"
                     alt="User"
+                    width={24}
+                    height={24}
                     className="w-6 h-6 rounded-full"
                   />
                   <span className="capitalize">{userType}</span>
