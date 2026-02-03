@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { use } from "react";
 import Table from "@/app/dashboard/_components/Table";
 import TableSearch from "@/app/dashboard/_components/TableSearch";
-import Pagination from "@/components/Pagiation";
+import Pagination from "@/components/Pagination";
 import { Students, Schools } from "@/app/_data/data";
 
 const ITEM_PER_PAGE = 10;
@@ -28,7 +28,7 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
 
   // Find the school - show 404 if not found
   const school = Schools.find((s) => s.id === schoolId);
-  
+
   if (!school) {
     notFound();
   }
@@ -88,11 +88,10 @@ const StudentListPage = ({ params }: StudentListPageProps) => {
       </td>
       <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-4 px-6">
         <span
-          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-            student.sex === "MALE"
+          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${student.sex === "MALE"
               ? "bg-blue-100 text-blue-700"
               : "bg-pink-100 text-pink-700"
-          }`}
+            }`}
         >
           {student.sex}
         </span>
