@@ -114,44 +114,118 @@ export const getAllEvents = async (
   }
 };
 
-export const getEventById = async (req: Request, res: Response): Promise<void> => {
+export const getEventById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const event = await Event.findById(req.params.id);
-    if (!event) {
-      res.status(404).json({ message: "Event not found" });
+    const eventId = req.params.id as string;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({
+        message: "Invalid event ID",
+      });
       return;
     }
-    res.status(200).json(event);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching event", error });
-  }
-};
 
-export const updateEvent = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      res.status(404).json({
+        message: "Event not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      event,
     });
-    if (!event) {
-      res.status(404).json({ message: "Event not found" });
-      return;
-    }
-    res.status(200).json(event);
   } catch (error) {
-    res.status(500).json({ message: "Error updating event", error });
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
-export const deleteEvent = async (req: Request, res: Response): Promise<void> => {
+
+export const updateEvent = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) {
-      res.status(404).json({ message: "Event not found" });
+    const eventId = req.params.id as string;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({
+        message: "Invalid event ID",
+      });
       return;
     }
-    res.status(200).json({ message: "Event deleted successfully" });
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+      eventId,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedEvent) {
+      res.status(404).json({
+        message: "Event not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Event updated successfully",
+      event: updatedEvent,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting event", error });
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+
+export const deleteEvent = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const eventId = req.params.id as string;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      res.status(400).json({
+        message: "Invalid event ID",
+      });
+      return;
+    }
+
+    const event = await Event.findById(eventId);
+
+    if (!event || event.isDeleted) {
+      res.status(404).json({
+        message: "Event not found",
+      });
+      return;
+    }
+
+    event.isDeleted = true;
+    await event.save();
+
+    res.status(200).json({
+      message: "Event deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
