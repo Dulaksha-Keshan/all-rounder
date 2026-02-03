@@ -71,7 +71,9 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* User Type Selection */}
+
+              
+              {/* User Type Selection
               <div>
                 <label className="block text-sm mb-2 text-gray-800">
                   I am a:
@@ -92,7 +94,7 @@ export default function LoginPage() {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Email */}
               <div>
@@ -199,9 +201,13 @@ export default function LoginPage() {
             {/* Sign Up Links */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center mb-3">
-                Don't have an account?
+                Don't have an account? <button className="text-sm text-blue-500 hover:underline">
+                Sign Up
+              </button>
               </p>
-              <div className="grid grid-cols-2 gap-2">
+
+            
+              {/* <div className="grid grid-cols-2 gap-2">
                 <Link
                   href="/signup/student"
                   className="text-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm"
@@ -226,7 +232,8 @@ export default function LoginPage() {
                 >
                   Organization Signup
                 </Link>
-              </div>
+              </div> */}
+
             </div>
           </div>
         </div>
