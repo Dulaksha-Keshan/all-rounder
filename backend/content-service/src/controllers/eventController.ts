@@ -96,7 +96,7 @@ export const getAllEvents = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const events = await Event.find()
+    const events = await Event.find({ isDeleted: false })
       .sort({ startDate: 1 })
       .populate("createdBy", "name email");
 
@@ -128,7 +128,9 @@ export const getEventById = async (
       return;
     }
 
-    const event = await Event.findById(eventId);
+    const event = await Event.findById({
+  _id: eventId,
+  isDeleted: false});
 
     if (!event) {
       res.status(404).json({

@@ -7,41 +7,55 @@ const postSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     content: {
       type: String,
       required: true,
     },
-
+    category: {
+      type: String, // e.g., "achievement", "participation", "competition", "project"
+      required: true,
+    },
     postType: {
       type: String,
-      enum: ["announcement", "update", "general"],
-      default: "general",
+      enum: ["achievement", "participation", "event", "project"], 
+      default: "achievement",
     },
-
-    tags: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-
-    attachments: [
-      {
-        type: String, 
-      },
-    ],
-
     visibility: {
       type: String,
       enum: ["public", "private"],
       default: "public",
     },
-
-    createdBy: {
+    attachments: [
+      {
+        type: String, // URLs for images, certificates, or media
+      },
+    ],
+    tags: [
+      {
+        type: String, // e.g., "science-fair", "math-competition"
+      },
+    ],
+    student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      ref: "Student",
+      required: true, // posts are always tied to a student
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
+    comments: [
+      {
+        student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+        comment: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    isDeleted: {
+      type: Boolean,
+      default: false, 
     },
   },
   {
