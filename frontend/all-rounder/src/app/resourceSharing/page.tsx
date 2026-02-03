@@ -180,7 +180,7 @@ export default function ResourceSharing() {
                     </div>
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs capitalize ${getUrgencyColor(
+                    className={`flex items-center px-3 py-3 rounded-full text-xs capitalize ${getUrgencyColor(
                       request.urgency
                     )}`}
                   >
