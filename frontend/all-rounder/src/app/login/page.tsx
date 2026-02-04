@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/app/_components/navibar";
@@ -201,7 +200,8 @@ export default function LoginPage() {
             {/* Sign Up Links */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center mb-3">
-                Don't have an account? <button className="text-sm text-blue-500 hover:underline">
+                Don't have an account? {" "} 
+                <button className="text-sm text-blue-500 hover:underline">
                 Sign Up
               </button>
               </p>
