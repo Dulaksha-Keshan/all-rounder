@@ -10,6 +10,8 @@ import Pagination from "@/components/Pagination";
 import GoBackButton from "@/components/GoBackButton";
 import { Teachers, Schools } from "@/app/_data/data";
 import { Teacher } from "@/app/_type/type";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 const ITEM_PER_PAGE = 10;
 
@@ -63,10 +65,27 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
         { header: "Actions", accessor: "action" },
     ];
 
+    const tableRef = useRef<HTMLTableElement>(null);
+
+    useEffect(() => {
+        if (!tableRef.current) return;
+        const rows = tableRef.current.querySelectorAll('tbody tr');
+        gsap.fromTo(rows,
+            { y: 10, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 0.4,
+                stagger: 0.05,
+                ease: "power2.out"
+            }
+        );
+    }, [data]);
+
     const renderRow = (teacher: Teacher) => (
         <tr
             key={teacher.id}
-            className="border-b border-[var(--secondary-light-lavender)]/30 text-sm hover:bg-gradient-to-r hover:from-[var(--secondary-pale-lavender)] hover:to-[var(--secondary-light-lavender)]/30 transition-all"
+            className="border-b border-[var(--gray-100)] text-sm hover:bg-[var(--gray-50)] transition-all opacity-0"
         >
             <td className="py-4 px-6">
                 <div className="flex items-center gap-3">
@@ -77,21 +96,21 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
                         height={40}
                         className="rounded-full ring-2 ring-[var(--primary-purple)]/30"
                     />
-                    <span className="font-medium text-[var(--primary-dark-purple)]">{teacher.name}</span>
+                    <span className="font-bold text-[var(--text-main)]">{teacher.name}</span>
                 </div>
             </td>
 
-            <td className="hidden md:table-cell text-[var(--accent-purple-text)] py-4 px-6">
+            <td className="hidden md:table-cell text-[var(--text-muted)] py-4 px-6">
                 {teacher.email}
             </td>
 
-            <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-4 px-6 text-center">
+            <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6 text-center">
                 <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-purple)] px-3 py-1 rounded-full text-xs font-bold">
                     #{teacher.id}
                 </span>
             </td>
 
-            <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-4 px-6">
+            <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6">
                 <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${teacher.sex === "MALE"
                         ? "bg-blue-100 text-blue-700"
@@ -114,7 +133,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
     );
 
     return (
-        <div className="bg-gradient-to-br from-[var(--white)] to-[var(--secondary-pale-lavender)] p-8 m-4 rounded-2xl shadow-lg border-2 border-[var(--secondary-light-lavender)]/50">
+        <div className="bg-[var(--white)] p-8 m-4 rounded-2xl shadow-xl border border-[var(--gray-200)] transition-all duration-300">
             {/* TOP BAR */}
             <div className="mb-4">
                 <GoBackButton variant="solid" />
@@ -130,14 +149,14 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
             </div>
 
             {/* STATS */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-[var(--primary-purple)]/10 to-[var(--primary-blue)]/10 rounded-lg border border-[var(--secondary-light-lavender)]">
-                <p className="text-sm text-[var(--primary-dark-purple)]">
-                    <span className="font-bold text-lg">{count}</span> teachers on staff
+            <div className="mb-4 p-4 bg-[var(--gray-50)] rounded-lg border border-[var(--gray-200)]">
+                <p className="text-sm text-[var(--text-main)]">
+                    <span className="font-extrabold text-xl text-[var(--primary-purple)]">{count}</span> teachers on staff
                 </p>
             </div>
 
             {/* TABLE */}
-            <div className="bg-[var(--white)] rounded-xl overflow-hidden border-2 border-[var(--secondary-light-lavender)]/50 shadow-sm">
+            <div ref={tableRef} className="bg-[var(--white)] rounded-xl overflow-hidden border border-[var(--gray-200)] shadow-sm">
                 {data.length > 0 ? (
                     <Table columns={columns} data={data} renderRow={renderRow} />
                 ) : (

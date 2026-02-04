@@ -1,104 +1,119 @@
+"use client";
+
+import { Calendar, MapPin, Clock, Trophy } from 'lucide-react';
+import Image from 'next/image';
 import { Event } from '@/app/_type/type';
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import Link from 'next/link';
 
-import NextImage from 'next/image';
+export function EventCard({ event, index = 0 }: { event: Event; index?: number }) {
+  const cardRef = useRef<HTMLDivElement>(null);
 
-export const EventCard = ({ event }: { event: Event }) => {
+  useEffect(() => {
+    if (!cardRef.current) return;
+    gsap.fromTo(cardRef.current,
+      { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, delay: index * 0.1, ease: "power2.out" }
+    );
+  }, [index]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Registered":
+        return "bg-green-500 text-white";
+      case "Completed":
+        return "bg-blue-500 text-white";
+      case "Upcoming":
+        return "bg-yellow-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
+
   return (
-    <div className="bg-[var(--white)] rounded-2xl overflow-hidden shadow-xl shadow-[#DCD0FF]/25 border border-[#DCD0FF]/50 hover:border-[#8387CC] transition-all duration-500 hover:shadow-2xl hover:shadow-[#8387CC]/20 group">
+    <div ref={cardRef} className="bg-[var(--white)] rounded-2xl overflow-hidden shadow-xl shadow-[#DCD0FF]/25 border border-[#DCD0FF]/50 hover:border-[#8387CC] transition-all duration-500 hover:shadow-2xl hover:shadow-[#8387CC]/20 group opacity-0">
       <div className="flex flex-col md:flex-row h-full">
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden bg-[#F8F8FF]">
-          <NextImage
+          <Image
             src={event.imageUrl}
             alt={event.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-          {/* Status Badge */}
-          {event.status === "Registered" && (
-            <div className="absolute top-4 left-4 px-4 py-1.5 bg-green-500 text-[var(--white)] rounded-full text-xs font-bold shadow-lg backdrop-blur-md bg-green-500/80 border border-white/20">
-              ✓ ENROLLED
-            </div>
-          )}
-
-          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-            <span className="text-white text-xs font-medium px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg">
-              {event.location}
-            </span>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="flex-1 p-7 flex flex-col">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex gap-2">
-              {event.categories?.slice(0, 2).map((cat, idx) => (
-                <span
-                  key={idx}
-                  className="px-2.5 py-1 bg-[var(--secondary-light-lavender)]/20 text-[var(--primary-purple)] text-[10px] rounded-lg font-bold tracking-wider uppercase"
-                >
-                  {cat}
-                </span>
-              ))}
-            </div>
-            <span className="text-[var(--primary-blue)] font-bold text-xs bg-[var(--primary-blue)]/10 px-2.5 py-1 rounded-lg">
+          <div className="absolute top-4 left-4">
+            <span className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md ${getStatusColor(event.status)}`}>
               {event.status}
             </span>
           </div>
+          {event.isMajor && (
+            <div className="absolute top-4 right-4 p-2 bg-yellow-400 rounded-full shadow-lg border-2 border-white text-yellow-900">
+              <Trophy size={16} fill="currentColor" />
+            </div>
+          )}
+        </div>
 
-          <h3 className="text-2xl font-black text-[var(--text-main)] mb-3 leading-tight group-hover:text-[var(--primary-purple)] transition-colors">
-            {event.title}
-          </h3>
-
-          <p className="text-[var(--text-muted)] text-sm mb-6 line-clamp-2 leading-relaxed font-medium">
-            {event.description}
-          </p>
-
-          {/* Event Details Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-6 mt-auto py-4 border-y border-[var(--secondary-light-lavender)]/20">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[var(--secondary-light-lavender)]/20 flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-[var(--primary-purple)]" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Date</span>
-                <span className="text-xs font-bold text-[var(--text-main)]">{event.date}</span>
+        {/* Content Section */}
+        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white dark:bg-[var(--card-bg)]">
+          <div>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <span className="px-3 py-1 bg-[var(--secondary-pale-lavender)] text-[var(--primary-purple)] text-xs font-bold rounded-lg border border-[var(--secondary-light-lavender)]">
+                {event.category}
+              </span>
+              <div className="flex items-center gap-1.5 text-[var(--gray-400)] text-xs font-medium">
+                <Clock size={14} />
+                <span>{event.time}</span>
               </div>
             </div>
 
-            {event.deadline && (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FFF0F0] flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-red-400" />
+            <h3 className="text-xl md:text-2xl font-bold text-[var(--primary-dark-purple)] mb-3 group-hover:text-[var(--primary-blue)] transition-colors">
+              {event.title}
+            </h3>
+
+            <p className="text-[var(--gray-600)] text-sm md:text-base leading-relaxed mb-6 line-clamp-2">
+              {event.description}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <div className="flex items-center gap-3 text-[var(--gray-600)]">
+                <div className="p-2 bg-[var(--gray-50)] rounded-lg text-[var(--primary-purple)]">
+                  <Calendar size={18} />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-400 font-bold uppercase">Deadline</span>
-                  <span className="text-xs font-bold text-red-500">{event.deadline}</span>
+                <div>
+                  <p className="text-[10px] text-[var(--gray-400)] uppercase font-bold tracking-wider">Date</p>
+                  <p className="text-sm font-semibold">{event.date}</p>
                 </div>
               </div>
-            )}
+              <div className="flex items-center gap-3 text-[var(--gray-600)]">
+                <div className="p-2 bg-[var(--gray-50)] rounded-lg text-[var(--primary-blue)]">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-[var(--gray-400)] uppercase font-bold tracking-wider">Location</p>
+                  <p className="text-sm font-semibold truncate">{event.location}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <Link
-              href={`/events/${event.id}`}
-              className="flex-1 px-4 py-3 bg-[#F8F8FF] text-[#34365C] rounded-xl hover:bg-[#F0EEFF] transition-all font-bold text-sm text-center border border-[#DCD0FF]/50"
-            >
-              View More
+          <div className="flex items-center justify-between pt-6 border-t border-[var(--gray-100)]">
+            <div className="flex -space-x-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary-purple)]/20 to-[var(--primary-blue)]/20" />
+                </div>
+              ))}
+              <div className="w-8 h-8 rounded-full border-2 border-white bg-[var(--gray-100)] flex items-center justify-center text-[10px] font-bold text-[var(--gray-600)]">
+                +12
+              </div>
+            </div>
+
+            <Link href={`/events/${event.id}`}>
+              <button className="px-6 py-2.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                Details
+              </button>
             </Link>
-            {event.status === "Registered" ? (
-              <button className="flex-1 px-4 py-3 bg-green-50 text-green-600 rounded-xl font-bold text-sm cursor-not-allowed border border-green-100" disabled>
-                Registered ✓
-              </button>
-            ) : (
-              <button className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/20 transition-all font-bold text-sm">
-                Register Now
-              </button>
-            )}
           </div>
         </div>
       </div>

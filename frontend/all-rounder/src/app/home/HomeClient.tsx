@@ -9,9 +9,12 @@ import UpcomingEvents from "./_components/UpcomingEvents";
 import Feed from "./_components/Feed";
 import { useHomeStore } from "@/context/useHomeStore";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 function HomeClientContent() {
     const { posts, stats, createPost, deletePost, likePost, commentPost } = useHomeStore();
+    const headerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
@@ -38,12 +41,20 @@ function HomeClientContent() {
         commentPost(id, text);
     };
 
+    useEffect(() => {
+        if (!headerRef.current) return;
+        gsap.fromTo(headerRef.current,
+            { y: -20, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+        );
+    }, []);
+
     return (
-        <div className="p-4 md:p-6 lg:p-8 bg-[var(--gray-50)] min-h-screen">
+        <div className="p-4 md:p-6 lg:p-8 bg-[var(--page-bg)] min-h-screen transition-colors duration-300">
             {/* Header Section */}
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-[var(--primary-dark-purple)]">Welcome Back!</h1>
+                <div ref={headerRef}>
+                    <h1 className="text-3xl font-extrabold text-[var(--text-main)]">Welcome Back!</h1>
                 </div>
                 <SearchBar />
             </div>
