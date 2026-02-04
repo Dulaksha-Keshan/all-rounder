@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Star, Trophy, Book, GraduationCap, Heart, Palette } from 'lucide-react';
 
 export function HeroSection() {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -12,6 +13,7 @@ export function HeroSection() {
   const buttonsRef = useRef<HTMLDivElement>(null);
   const laptopRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
+  const iconsRef = useRef<(HTMLDivElement | null)[]>([]);
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -63,6 +65,22 @@ export function HeroSection() {
           duration: 1.5,
           ease: 'power1.inOut',
         });
+      });
+
+      // Animate floating achievement icons
+      iconsRef.current.forEach((icon, i) => {
+        if (icon) {
+          gsap.to(icon, {
+            y: 'random(-40, 40)',
+            x: 'random(-40, 40)',
+            rotation: 'random(-15, 15)',
+            duration: 4 + Math.random() * 2,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: i * 0.5
+          });
+        }
       });
 
       // Single twinkling animation for stars
@@ -143,9 +161,9 @@ export function HeroSection() {
                   {/* Left side - Leaderboard Image */}
                   <div className="absolute left-0 top-0 bottom-0 w-1/2 p-2 sm:p-4">
                     <div className="relative w-full h-full">
-                      <Image 
-                        src="/images/Landing/leaderboard.png" 
-                        alt="Leaderboard" 
+                      <Image
+                        src="/images/Landing/leaderboard.png"
+                        alt="Leaderboard"
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 600px"
                         className="object-cover rounded-lg"
@@ -155,26 +173,46 @@ export function HeroSection() {
                   </div>
 
                   {/* Right side - Avatar moving around */}
-                  {/* Right side - Avatar moving around */}
-                <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
-                  <div ref={avatarRef} className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40">
-                    <Image 
-                      src="/icons/avatar.png" 
-                      alt="Student Avatar" 
-                      fill
-                      sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, (max-width: 1024px) 128px, 160px"
-                      className="object-contain drop-shadow-2xl"
-                      priority
-                    />
+                  <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
 
-                    {/* Glow effect around avatar */}
-                    <div className="absolute inset-0 rounded-full blur-xl sm:blur-2xl opacity-30 -z-10 bg-[var(--primary-purple)]"></div>
+                    {/* Floating Achievement Icons */}
+                    <div ref={(el) => { iconsRef.current[0] = el; }} className="absolute top-[20%] right-[25%] text-[var(--primary-blue)] opacity-40 blur-[0.5px]">
+                      <Star size={24} fill="currentColor" />
+                    </div>
+                    <div ref={(el) => { iconsRef.current[1] = el; }} className="absolute bottom-[20%] left-[20%] text-[var(--primary-purple)] opacity-40 blur-[0.5px]">
+                      <Trophy size={28} />
+                    </div>
+                    <div ref={(el) => { iconsRef.current[2] = el; }} className="absolute top-[55%] right-[15%] text-[var(--secondary-light-lavender)] opacity-40 blur-[0.5px]">
+                      <Book size={20} />
+                    </div>
+                    <div ref={(el) => { iconsRef.current[3] = el; }} className="absolute top-[35%] left-[25%] text-[var(--primary-blue)] opacity-30 blur-[0.5px]">
+                      <GraduationCap size={22} />
+                    </div>
+                    <div ref={(el) => { iconsRef.current[4] = el; }} className="absolute bottom-[40%] right-[20%] text-pink-400 opacity-30 blur-[0.5px]">
+                      <Heart size={18} fill="currentColor" />
+                    </div>
+                    <div ref={(el) => { iconsRef.current[5] = el; }} className="absolute top-[70%] left-[30%] text-orange-400 opacity-30 blur-[0.5px]">
+                      <Palette size={20} />
+                    </div>
+
+                    <div ref={avatarRef} className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 z-10">
+                      <Image
+                        src="/icons/Avatar.png"
+                        alt="Student Avatar"
+                        fill
+                        sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, (max-width: 1024px) 128px, 160px"
+                        className="object-contain drop-shadow-2xl"
+                        priority
+                      />
+
+                      {/* Glow effect around avatar */}
+                      <div className="absolute inset-0 rounded-full blur-xl sm:blur-2xl opacity-30 -z-10 bg-[var(--primary-purple)]"></div>
+                    </div>
                   </div>
-                </div>
 
+                </div>
               </div>
             </div>
-          </div>
 
             {/* Laptop Base */}
             <div className="relative h-2 sm:h-3 lg:h-4 mx-auto" style={{ width: '110%' }}>

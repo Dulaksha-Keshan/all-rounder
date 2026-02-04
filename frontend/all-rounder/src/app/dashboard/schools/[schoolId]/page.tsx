@@ -7,6 +7,7 @@ import BigCalendarContainer from "@/app/dashboard/_components/BigCalendarContain
 import Menu from "@/app/dashboard/_components/Menu";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import GoBackButton from "@/components/GoBackButton";
 
 
 interface SchoolDashboardProps {
@@ -55,6 +56,9 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
       <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-gradient-to-br from-[var(--secondary-pale-lavender)] via-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)] flex-1">
         <div className="p-6">
           <div className="max-w-[1400px] mx-auto">
+            <div className="mb-4">
+              <GoBackButton variant="solid" />
+            </div>
             {/* Header */}
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{school.name}</h1>

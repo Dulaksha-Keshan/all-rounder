@@ -3,6 +3,7 @@
 import { Image as ImageIcon, FileText, Video, Send, X } from "lucide-react";
 import Image from "next/image";
 import { useState, useRef } from "react";
+import { useHomeStore } from "@/context/useHomeStore";
 
 interface PostCreatorProps {
     onCreatePost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
@@ -14,11 +15,21 @@ export default function PostCreator({ onCreatePost, userImage }: PostCreatorProp
     const [media, setMedia] = useState<{ type: 'image' | 'video' | 'doc'; url: string; name: string }[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const { saveDraft } = useHomeStore();
+
     const handlePost = () => {
         if (!content.trim() && media.length === 0) return;
         onCreatePost(content, media);
         setContent("");
         setMedia([]);
+    };
+
+    const handleSaveDraft = () => {
+        if (!content.trim() && media.length === 0) return;
+        saveDraft(content, media);
+        setContent("");
+        setMedia([]);
+        alert("Post saved as draft!");
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,14 +116,23 @@ export default function PostCreator({ onCreatePost, userImage }: PostCreatorProp
                             </button>
                         </div>
 
-                        <button
-                            onClick={handlePost}
-                            disabled={!content.trim() && media.length === 0}
-                            className="bg-[var(--primary-purple)] text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-[var(--primary-dark-purple)] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <span>Post</span>
-                            <Send size={16} />
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleSaveDraft}
+                                disabled={!content.trim() && media.length === 0}
+                                className="px-4 py-2 rounded-lg font-medium text-sm text-[var(--gray-600)] hover:bg-[var(--gray-100)] transition-colors disabled:opacity-50"
+                            >
+                                Save as Draft
+                            </button>
+                            <button
+                                onClick={handlePost}
+                                disabled={!content.trim() && media.length === 0}
+                                className="bg-[var(--primary-purple)] text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-[var(--primary-dark-purple)] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span>Post</span>
+                                <Send size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

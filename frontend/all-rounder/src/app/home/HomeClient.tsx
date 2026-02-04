@@ -1,19 +1,25 @@
 "use client";
 
+import { Suspense } from "react";
 
 import HomeStats from "./_components/HomeStats";
 import QuickActions from "./_components/QuickActions";
 import SearchBar from "@/components/SearchBar";
 import UpcomingEvents from "./_components/UpcomingEvents";
 import Feed from "./_components/Feed";
-import { PostType } from "./_components/PostCard";
-
-
-
 import { useHomeStore } from "@/context/useHomeStore";
+import { useSearchParams } from "next/navigation";
 
-export default function HomeClient() {
+function HomeClientContent() {
     const { posts, stats, createPost, deletePost, likePost, commentPost } = useHomeStore();
+    const searchParams = useSearchParams();
+    const searchQuery = searchParams.get("search")?.toLowerCase() || "";
+
+    // Filter posts based on search query
+    const filteredPosts = posts.filter(post =>
+        post.content.toLowerCase().includes(searchQuery) ||
+        post.author.name.toLowerCase().includes(searchQuery)
+    );
 
     // Handlers now directly call store actions
     const handleCreatePost = (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => {
@@ -38,7 +44,6 @@ export default function HomeClient() {
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-[var(--primary-dark-purple)]">Welcome Back!</h1>
-                    <p className="text-[var(--gray-600)] mt-1">Here's what's happening with your account.</p>
                 </div>
                 <SearchBar />
             </div>
@@ -51,7 +56,7 @@ export default function HomeClient() {
                 {/* Left Column: Feed (2 cols wide on large screens) */}
                 <div className="lg:col-span-2">
                     <Feed
-                        posts={posts}
+                        posts={filteredPosts}
                         onCreatePost={handleCreatePost}
                         onLike={handleLike}
                         onComment={handleComment}
@@ -66,5 +71,12 @@ export default function HomeClient() {
                 </div>
             </div>
         </div>
+    );
+}
+export default function HomeClient() {
+    return (
+        <Suspense fallback={<div>Loading Home...</div>}>
+            <HomeClientContent />
+        </Suspense>
     );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Moon, Sun } from "lucide-react";
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -19,6 +20,30 @@ export default function Navbar({
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    if (newMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
 
   // Track active section based on scroll position
   useEffect(() => {
@@ -117,7 +142,7 @@ export default function Navbar({
   };
 
   return (
-    <nav className="bg-white sticky top-0 z-50 shadow-lg border-b border-gray-200">
+    <nav className="bg-[var(--white)] sticky top-0 z-50 shadow-lg border-b border-[var(--gray-200)] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -150,13 +175,22 @@ export default function Navbar({
                   handleLinkClick(link.path, e);
                 }}
                 className={`px-3 py-2 rounded-md transition ${isActive(link.path)
-                  ? "bg-[#8387CC] text-white"
-                  : "text-[#34365C] hover:bg-[#DCD0FF]"
+                  ? "bg-[var(--primary-purple)] text-white"
+                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
                   }`}
               >
                 {link.label}
               </Link>
             ))}
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg bg-[var(--secondary-light-lavender)]/20 text-[var(--primary-purple)] hover:bg-[var(--secondary-light-lavender)] transition-all"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
 
             {isAuthenticated && (
               <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-300">
@@ -168,14 +202,14 @@ export default function Navbar({
                     height={24}
                     className="w-6 h-6 rounded-full object-cover"
                   />
-                  <span className="capitalize text-sm text-[#34365C]">
+                  <span className="capitalize text-sm text-[var(--text-main)]">
                     {userType}
                   </span>
                 </div>
 
                 <button
                   onClick={onLogout}
-                  className="px-4 py-2 bg-[#4169E1] hover:bg-[#3557c1] text-white rounded-md transition"
+                  className="px-4 py-2 bg-[var(--primary-blue)] hover:shadow-lg text-white rounded-md transition font-bold"
                 >
                   Logout
                 </button>
@@ -183,25 +217,33 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-[#DCD0FF]"
-          >
-            <NextImage
-              src={mobileMenuOpen ? "/images/close.jpeg" : "/images/menu.png"}
-              alt="Menu"
-              width={24}
-              height={24}
-              className="w-6 h-6"
-            />
-          </button>
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg bg-[var(--secondary-light-lavender)]/20 text-[var(--primary-purple)]"
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md hover:bg-[var(--secondary-light-lavender)]"
+            >
+              <NextImage
+                src={mobileMenuOpen ? "/images/close.jpeg" : "/images/menu.png"}
+                alt="Menu"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="md:hidden bg-[var(--white)] border-t border-[var(--gray-200)] pb-4">
           <div className="px-4 py-3 space-y-2">
             {links.map((link) => (
               <Link
@@ -215,8 +257,8 @@ export default function Navbar({
                   handleLinkClick(link.path, e);
                 }}
                 className={`block px-3 py-2 rounded-md transition ${isActive(link.path)
-                  ? "bg-[#8387CC] text-white"
-                  : "text-[#34365C] hover:bg-[#DCD0FF]"
+                  ? "bg-[var(--primary-purple)] text-white font-bold"
+                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
                   }`}
               >
                 {link.label}

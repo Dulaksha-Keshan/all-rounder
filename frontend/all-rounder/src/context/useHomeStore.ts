@@ -7,6 +7,7 @@ import { INITIAL_POSTS } from '../app/home/constants';
 
 interface HomeState {
     posts: PostType[];
+    drafts: PostType[];
     stats: {
         views: number;
         achievements: number;
@@ -14,7 +15,9 @@ interface HomeState {
         contributions: number;
     };
     createPost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
+    saveDraft: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
     deletePost: (id: number) => void;
+    deleteDraft: (id: number) => void;
     likePost: (id: number) => void;
     commentPost: (id: number, text: string) => void;
     updateStats: (key: keyof HomeState['stats'], value: number) => void;
@@ -23,9 +26,8 @@ interface HomeState {
 export const useHomeStore = create<HomeState>()(
     persist(
         (set) => ({
-            posts: INITIAL_POSTS, // This might cause circular dependency if we import INITIAL_POSTS from HomeClient. 
-            // Better to copy INITIAL_POSTS here or move it to a separate constants file. 
-            // For now, I will duplicate the initial posts to avoid circular dependency issues which are common in Next.js
+            posts: INITIAL_POSTS,
+            drafts: [],
             stats: {
                 views: 1234,
                 achievements: 24,
@@ -52,8 +54,28 @@ export const useHomeStore = create<HomeState>()(
                     stats: { ...state.stats, contributions: state.stats.contributions + 1 }
                 };
             }),
+            saveDraft: (content, media) => set((state) => {
+                const newDraft: PostType = {
+                    id: Date.now(),
+                    author: {
+                        name: "You (Draft)",
+                        role: "Student",
+                    },
+                    time: "Draft",
+                    content,
+                    likes: 0,
+                    comments: 0,
+                    media
+                };
+                return {
+                    drafts: [newDraft, ...state.drafts]
+                };
+            }),
             deletePost: (id) => set((state) => ({
                 posts: state.posts.filter(p => p.id !== id)
+            })),
+            deleteDraft: (id) => set((state) => ({
+                drafts: state.drafts.filter(d => d.id !== id)
             })),
             likePost: (id) => set((state) => ({
                 posts: state.posts.map(p => {

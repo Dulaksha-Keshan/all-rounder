@@ -63,16 +63,16 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-[#34365C] mb-6">Change Password</h2>
-      
+    <div className="bg-[var(--white)] rounded-xl p-6 shadow-sm border border-[var(--gray-200)] transition-colors duration-300">
+      <h2 className="text-2xl font-bold text-[var(--text-main)] mb-6">Change Password</h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
             {error}
           </div>
         )}
-        
+
         {success && (
           <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
             {success}
@@ -80,7 +80,7 @@ export default function ChangePassword() {
         )}
 
         <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium text-[#34365C] mb-2">
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-[var(--text-main)] mb-2">
             Current Password
           </label>
           <input
@@ -94,7 +94,7 @@ export default function ChangePassword() {
         </div>
 
         <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium text-[#34365C] mb-2">
+          <label htmlFor="newPassword" className="block text-sm font-medium text-[var(--text-main)] mb-2">
             New Password
           </label>
           <input
@@ -108,7 +108,7 @@ export default function ChangePassword() {
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#34365C] mb-2">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--text-main)] mb-2">
             Confirm New Password
           </label>
           <input
@@ -124,7 +124,7 @@ export default function ChangePassword() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2 px-4 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="w-full py-2 px-4 bg-[var(--primary-blue)] text-white rounded-lg hover:shadow-lg disabled:bg-[var(--gray-300)] disabled:cursor-not-allowed transition-all font-bold"
         >
           {loading ? 'Changing...' : 'Change Password'}
         </button>

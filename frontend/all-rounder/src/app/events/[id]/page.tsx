@@ -5,6 +5,7 @@ import NextImage from 'next/image';
 import { Calendar, MapPin, Clock, ArrowLeft, Users, Trophy, Share2, ChevronDown, Mail, Plus, Minus, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
 import { Events } from '../_data/events';
 import { gsap } from 'gsap';
+import GoBackButton from '@/components/GoBackButton';
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -54,12 +55,10 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-[#34365C] mb-4">Event Not Found</h1>
-          <button
-            onClick={() => router.push('/events')}
-            className="px-6 py-3 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] transition-colors"
-          >
-            Back to Events
-          </button>
+          <GoBackButton
+            variant="solid"
+            className="px-6 py-3"
+          />
         </div>
       </div>
     );
@@ -98,13 +97,9 @@ export default function EventDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#34365C]/95"></div>
         </div>
 
-        <button
-          onClick={() => router.push('/events')}
-          className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all rounded-lg border border-white/20"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Events</span>
-        </button>
+        <GoBackButton
+          className="absolute top-6 left-6 z-20"
+        />
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center">
           <div className="flex gap-2 mb-6 flex-wrap justify-center">

@@ -5,6 +5,7 @@ import Menu from "@/app/dashboard/_components/Menu";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import GoBackButton from "@/components/GoBackButton";
 
 interface OrgDashboardProps {
   params: Promise<{
@@ -20,10 +21,10 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
 
   // Find the organization
   const org = Organizations.find((o) => o.id === orgId);
-  
+
   // Debug: Log if org is found
   console.log("Organization found:", org);
-  
+
   // If organization not found, show 404
   if (!org) {
     notFound();
@@ -41,12 +42,12 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
       {/* LEFT SIDEBAR */}
       <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] bg-gradient-to-b from-[var(--primary-dark-purple)] to-[var(--primary-blue)] p-4 shadow-xl">
         <div className="flex items-center justify-center lg:justify-start gap-2 mb-8">
-          <Image 
-            src="/logo.png" 
-            alt="Logo" 
-            width={32} 
-            height={32} 
-            className="brightness-0 invert" 
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={32}
+            height={32}
+            className="brightness-0 invert"
           />
           <span className="hidden lg:block font-bold text-[var(--white)]">All-Rounder</span>
         </div>
@@ -57,6 +58,9 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
       <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-gradient-to-br from-[var(--secondary-pale-lavender)] via-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)] overflow-scroll">
         <div className="p-6">
           <div className="max-w-[1400px] mx-auto">
+            <div className="mb-4">
+              <GoBackButton variant="solid" />
+            </div>
             {/* Header */}
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{org.name}</h1>
@@ -73,9 +77,9 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
                     </span>
                   </div>
                   <svg className="w-5 h-5 text-[var(--white)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="5" r="1.5"/>
-                    <circle cx="12" cy="12" r="1.5"/>
-                    <circle cx="12" cy="19" r="1.5"/>
+                    <circle cx="12" cy="5" r="1.5" />
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="12" cy="19" r="1.5" />
                   </svg>
                 </div>
                 <h1 className="text-4xl font-semibold mb-2 text-[var(--white)]">
@@ -84,9 +88,9 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
                 <h2 className="text-base font-medium text-[var(--white)]/90 mb-4">
                   Total Events
                 </h2>
-                
+
                 {/* View Analytics Button */}
-                <Link 
+                <Link
                   href={`/dashboard/orgs/${orgId}/analytics`}
                   className="inline-flex items-center gap-2 bg-[var(--white)] text-[var(--primary-blue)] px-4 py-2 rounded-lg font-medium hover:bg-[var(--white)]/90 transition-colors"
                 >
