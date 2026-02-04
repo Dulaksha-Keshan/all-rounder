@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import SplashScreen from '../_components/SplashScreen';
-import LandingPage from '../_components/LandingPage';
+import SplashScreen from './_components/SplashScreen';
+import LandingPage from './_components/LandingPage';
+
 
 export default function SplashToLanding() {
   const [showSplash, setShowSplash] = useState(false);

@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, use } from 'react';
-import { Teachers, Schools} from '@/app/_data/data';
+import NextImage from 'next/image';
+import { Teachers, Schools } from '@/app/_data/data';
 import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
+import GoBackButton from '@/components/GoBackButton';
+import { useHomeStore } from '@/context/useHomeStore';
+import PostCard from '@/app/home/_components/PostCard';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import ChangePassword from '../../_components/ChangePassword';
 import MyAccount from '../../_components/MyAccount';
 
@@ -18,7 +23,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // Find the teacher by ID
   const teacher = Teachers.find(t => t.id === Number(id));
-  
+
   if (!teacher) {
     notFound();
   }
@@ -31,7 +36,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   // For now, assuming logged-in user is teacher with ID 1
   const loggedInUserId = 1; // Replace with actual auth
   const loggedInUserType = "teacher"; // Replace with actual auth
-  
+
   // Check if viewing own profile
   const isOwnProfile = loggedInUserId === teacher.id && loggedInUserType === "teacher";
 
@@ -39,6 +44,9 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [teacherData, setTeacherData] = useState(teacher);
   const [editData, setEditData] = useState({ ...teacher });
+  const { drafts, deleteDraft } = useHomeStore();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
 
   // Get full event details for registered events
   const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
@@ -61,31 +69,36 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8F8FF] via-[#DCD0FF]/20 to-[#F8F8FF] p-6">
+    <div className="min-h-screen bg-[var(--page-bg)] p-6 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-4">
+          <GoBackButton variant="solid" />
+        </div>
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-[#DCD0FF]/50">
+        <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 mb-6 border border-[var(--gray-200)]">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
-              <img 
-                src={teacherData.photoUrl} 
+              <NextImage
+                src={teacherData.photoUrl}
                 alt={teacherData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-[#DCD0FF]"
+                width={96}
+                height={96}
+                className="w-24 h-24 rounded-full object-cover border-4 border-[var(--primary-purple)]/20 shadow-md"
               />
               <div>
-                <h1 className="text-3xl font-bold text-[#34365C]">{teacherData.name}</h1>
-                <p className="text-gray-600 mt-1">{teacherData.email}</p>
-                <p className="text-sm text-gray-500 mt-1">{schoolName}</p>
+                <h1 className="text-3xl font-bold text-[var(--text-main)]">{teacherData.name}</h1>
+                <p className="text-[var(--text-muted)] mt-1 font-medium">{teacherData.email}</p>
+                <p className="text-sm text-[var(--gray-400)] mt-1">{schoolName}</p>
               </div>
             </div>
-            
+
             {/* Edit buttons - only show if viewing own profile */}
             {isOwnProfile && (
               <div className="flex gap-2">
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-[#8387CC] text-white rounded-lg hover:bg-[#4169E1] transition-colors"
+                    className="px-4 py-2 bg-[var(--primary-blue)] text-white rounded-lg hover:shadow-lg transition-all font-bold"
                   >
                     Edit Profile
                   </button>
@@ -111,62 +124,66 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-6 border border-[#DCD0FF]/50">
+        <div className="bg-[var(--white)] rounded-xl shadow-lg mb-6 border border-[var(--gray-200)]">
           <div className="flex border-b overflow-x-auto">
             {/* Overview tab - always visible */}
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                activeTab === 'overview'
-                  ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                  : 'text-gray-600 hover:text-[#34365C]'
-              }`}
+              className={`px-6 py-3 font-bold whitespace-nowrap transition-colors ${activeTab === 'overview'
+                ? 'border-b-2 border-[var(--primary-blue)] text-[var(--primary-blue)] bg-[var(--primary-blue)]/5'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--white)]/50'
+                }`}
             >
               Overview
             </button>
-            
+
             {/* Private tabs - only show if viewing own profile */}
             {isOwnProfile && (
               <>
                 <button
                   onClick={() => setActiveTab('personal')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'personal'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'personal'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Personal Info
                 </button>
                 <button
                   onClick={() => setActiveTab('activities')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'activities'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'activities'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   My Activities
                 </button>
                 <button
                   onClick={() => setActiveTab('account')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'account'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'account'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   My Account
                 </button>
                 <button
                   onClick={() => setActiveTab('security')}
-                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${
-                    activeTab === 'security'
-                      ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
-                      : 'text-gray-600 hover:text-[#34365C]'
-                  }`}
+                  className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === 'security'
+                    ? 'border-b-2 border-[#8387CC] text-[#8387CC]'
+                    : 'text-gray-600 hover:text-[#34365C]'
+                    }`}
                 >
                   Security
+                </button>
+                <button
+                  onClick={() => setActiveTab('drafts')}
+                  className={`px-6 py-3 font-bold whitespace-nowrap transition-colors ${activeTab === 'drafts'
+                    ? 'border-b-2 border-[var(--primary-blue)] text-[var(--primary-blue)] bg-[var(--primary-blue)]/5'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--white)]/50'
+                    }`}
+                >
+                  My Drafts
                 </button>
               </>
             )}
@@ -178,19 +195,19 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
           <div className="space-y-6">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">Events Registered</p>
-                <p className="text-3xl font-bold text-[#8387CC]">
+              <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
+                <p className="text-[var(--text-muted)] text-sm font-medium">Events Registered</p>
+                <p className="text-3xl font-bold text-[var(--primary-purple)]">
                   {teacherData.registeredEvents?.length || 0}
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">School</p>
-                <p className="text-xl font-bold text-[#4169E1]">{schoolName}</p>
+              <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
+                <p className="text-[var(--text-muted)] text-sm font-medium">School</p>
+                <p className="text-xl font-bold text-[var(--primary-blue)]">{schoolName}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">Gender</p>
-                <p className="text-xl font-bold text-green-600">{teacherData.sex}</p>
+              <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
+                <p className="text-[var(--text-muted)] text-sm font-medium">Gender</p>
+                <p className="text-xl font-bold text-green-500">{teacherData.sex}</p>
               </div>
             </div>
 
@@ -200,7 +217,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF] hover:border-[#8387CC] transition-all"
                     >
@@ -233,9 +250,9 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
             {/* Bio Section */}
             {teacherData.profile?.bio && (
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
-                <h2 className="text-xl font-bold text-[#34365C] mb-4">About</h2>
-                <p className="text-gray-700 leading-relaxed">{teacherData.profile.bio}</p>
+              <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 border border-[var(--gray-200)]">
+                <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">About</h2>
+                <p className="text-[var(--text-main)] leading-relaxed font-medium">{teacherData.profile.bio}</p>
               </div>
             )}
           </div>
@@ -252,7 +269,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <input
                     type="text"
                     value={editData.name}
-                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -266,7 +283,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <input
                     type="email"
                     value={editData.email}
-                    onChange={(e) => setEditData({...editData, email: e.target.value})}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
@@ -291,7 +308,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                     type="text"
                     value={editData.profile?.phone || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, phone: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -308,7 +325,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                     type="text"
                     value={editData.profile?.zipCode || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, zipCode: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -324,7 +341,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <textarea
                     value={editData.profile?.address || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, address: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -341,7 +358,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   <textarea
                     value={editData.profile?.bio || ''}
                     onChange={(e) => setEditData({
-                      ...editData, 
+                      ...editData,
                       profile: { ...editData.profile, bio: e.target.value } as any
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
@@ -363,7 +380,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               {registeredEventsWithDetails.length > 0 ? (
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF]"
                     >
@@ -399,6 +416,44 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         {activeTab === 'security' && isOwnProfile && (
           <ChangePassword />
         )}
+
+        {/* DRAFTS TAB - PRIVATE */}
+        {activeTab === 'drafts' && isOwnProfile && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-[#34365C] mb-4">Saved Drafts</h2>
+            {drafts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {drafts.map((draft) => (
+                  <PostCard
+                    key={draft.id}
+                    post={draft}
+                    onLike={() => { }}
+                    onComment={() => { }}
+                    onDelete={(id) => {
+                      setDraftToDelete(id);
+                      setIsDeleteModalOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-12 border border-[#DCD0FF]/50 text-center">
+                <p className="text-gray-500">You don't have any saved drafts yet.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => draftToDelete && deleteDraft(draftToDelete)}
+          title="Delete Draft"
+          message="Are you sure you want to delete this draft?"
+          confirmLabel="Delete Draft"
+          cancelLabel="Cancel"
+          variant="danger"
+        />
       </div>
     </div>
   );

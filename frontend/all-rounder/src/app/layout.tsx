@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/layout/navibar";
+import Footer from "@/layout/Footer";
+import GoToTopButton from "@/components/GoToTopButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,12 +46,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Navbar />
         {children}
         {/* Added the structured data script here */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: websiteSchema }}
         />
+        <Footer />
+        <GoToTopButton />
       </body>
     </html>
   );

@@ -1,9 +1,10 @@
 'use client';
 import { Linkedin, Instagram, Github, Mail } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="relative bg-gradient-to-br from-[#2a2c4e] via-[#34365C] to-[#3d3f6b] text-white w-full overflow-hidden -mb-1">
+    <footer className="relative bg-gradient-to-br from-[#2a2c4e] via-[#34365C] to-[#3d3f6b] text-white w-full overflow-scroll -mb-1">
       {/* Decorative background elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400 rounded-full blur-3xl"></div>
@@ -15,11 +16,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-10">
           {/* Logo & Tagline */}
           <div className="flex flex-col items-center lg:items-start">
-            <img
-              src="/logo.png"
-              alt="All-Rounder Logo"
-              className="h-24 w-auto brightness-0 invert mb-4 object-contain"
-            />
+
+          <Image 
+            src="/icons/Logo.png"
+            alt="All-Rounder Logo" 
+            width={150}
+            height={150}
+            className="h-24 w-auto brightness-0 invert mb-4 object-contain"
+          />
             <p className="text-gray-200 text-base leading-relaxed max-w-sm text-center lg:text-left">
               Empowering students to explore, excel, and shine in every extra-curricular pursuit. Where passions meet opportunities.
             </p>

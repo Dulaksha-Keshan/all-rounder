@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import NextImage from "next/image";
 import {
   Trophy,
   Medal,
@@ -16,7 +17,7 @@ import {
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  
+
 
 
   // Sample leaderboard data
@@ -224,9 +225,11 @@ export default function LeaderboardPage() {
             {leaderboardData.map((user) => (
               <div key={user.rank} className="p-4 flex items-center gap-4">
                 {getRankBadge(user.rank)}
-                <img
+                <NextImage
                   src={user.avatar}
                   alt={user.name}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div className="flex-1">

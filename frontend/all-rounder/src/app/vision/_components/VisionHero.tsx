@@ -3,7 +3,7 @@
 export default function VisionHero() {
   return (
     <section className="relative w-full bg-[#34365C] text-white py-20 overflow-hidden">
-      
+
       {/* Decorative stars */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-16 left-20 text-4xl opacity-20">✦</div>
@@ -22,7 +22,7 @@ export default function VisionHero() {
         </h1>
 
         <p className="max-w-3xl text-xl text-[#DCD0FF] opacity-90">
-          Empowering students to showcase their unique journey throug three core pillars that define our platform.
+          Empowering students to showcase their unique journey through three core pillars that define our platform.
         </p>
       </div>
     </section>

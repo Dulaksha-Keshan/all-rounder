@@ -20,17 +20,18 @@ body {
   --primary-dark-purple: #34365C;
   --primary-purple: #8387CC;
   --primary-blue: #4169E1;
-  
+
   /* Secondary Colors */
   --secondary-light-lavender: #DCD0FF;
   --secondary-pale-lavender: #F8F8FF;
   --secondary-purple-100: #e9d5ff;
   --secondary-purple-light: #CEB0E8;
-  
+  --contact-bg: #F8F8FF;
+
   /* Accent Colors */
   --accent-purple-text: #505485;
   --accent-purple-darker: #6a6dad;
-  
+
   /* Neutral Colors */
   --white: #FFFFFF;
   --black: #000000;
@@ -40,19 +41,50 @@ body {
   --gray-300: #D1D5DB;
   --gray-600: #4B5563;
   --gray-700: #374151;
-  --dark-bg: #1a1a2e;
-  
-  /* Indigo Colors (for buttons/nav) */
-  --indigo-100: #E0E7FF;
-  --indigo-600: #4F46E5;
-  --indigo-700: #4338CA;
-  
-  /* Additional Colors from Hero/Events */
+
+  /* Functional Backgrounds */
+  --page-bg: #F8F8FF;
+  --card-bg: #FFFFFF;
+  --text-main: #34365C;
+  --text-muted: #6B7280;
+
+  /* Additional Colors */
   --blue-500: #3B82F6;
   --red-500: #EF4444;
   --green-500: #10B981;
   --purple-500: #A855F7;
   --pink-50: #FDF2F8;
+}
+
+/* Dark Mode Variables */
+.dark {
+  --primary-dark-purple: #34365C;
+  --primary-purple: #8387CC;
+  --primary-blue: #4169E1;
+
+  --secondary-light-lavender: #DCD0FF;
+  --secondary-pale-lavender: #F8F8FF;
+  --secondary-purple-100: #e9d5ff;
+  --secondary-purple-light: #CEB0E8;
+  --contact-bg: #111827;
+
+  --accent-purple-text: #E0E7FF;
+  --accent-purple-darker: #C7D2FE;
+
+  --white: #111827;
+  /* Dark background color for cards/elements that were white */
+  --black: #F9FAFB;
+  --gray-50: #1F2937;
+  --gray-100: #374151;
+  --gray-200: #4B5563;
+  --gray-300: #6B7280;
+  --gray-600: #E5E7EB;
+  --gray-700: #F9FAFB;
+
+  --page-bg: #0F172A;
+  --card-bg: #1E293B;
+  --text-main: #FFFFFF;
+  --text-muted: #D1D5DB;
 }
 
 /* Utility Classes for Quick Use */

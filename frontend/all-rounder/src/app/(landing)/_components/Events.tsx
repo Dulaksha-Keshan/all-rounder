@@ -1,10 +1,11 @@
 'use client';
-import { Events } from '../events/_data/events';
+
+import { Events } from '@/app/events/_data/events';
 import { useRef, useState, useEffect } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import Link from 'next/link';
+import Image from 'next/image';
 
 export function EventDetails() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,7 +121,6 @@ export function EventDetails() {
       },
       '-=0.4'
     );
-
   }, [currentIndex]);
 
   const totalEvents = Events.length;
@@ -142,7 +142,6 @@ export function EventDetails() {
   };
 
   return (
-    // Change this line at the top of the EventDetails component:
     <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-8 sm:py-10 lg:py-10 overflow-hidden'>
       <div ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Animated Title */}
@@ -173,27 +172,26 @@ export function EventDetails() {
           <div className="event-card-container relative px-12 sm:px-14 lg:px-0" style={{ transformStyle: 'preserve-3d' }}>
             <div className="bg-[var(--white)] rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border-2 sm:border-4 border-[var(--primary-purple)] overflow-hidden relative group transform transition-transform duration-300 hover:scale-[1.02]">
               {/* Image with parallax effect on hover */}
-              <div className="overflow-hidden relative">
-                <img 
+              <div className="overflow-hidden relative h-[250px] sm:h-[350px] lg:h-[400px]">
+                <Image 
                   src={currentEvent.imageUrl} 
                   alt={currentEvent.title}
-                  className="event-image w-full h-[250px] sm:h-[350px] lg:h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
+                  className="event-image object-cover transition-transform duration-700 group-hover:scale-110"
+                  priority
                 />
                 
                 {/* Gradient overlay for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/80 via-[var(--black)]/30 to-transparent"></div>
-              
 
                 {/* Event Title Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 text-[var(--white)]">
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 event-info-item drop-shadow-lg">
                     {currentEvent.title}
                   </h3>
-                  <p className="text-sm sm:text-base lg:text-lg text-[var(--gray-200)] event-info-item drop-shadow-md">
-                    {currentEvent.description}
-                  </p>
                 </div>
-                
+
                 {/* Floating particles effect on hover */}
                 {isMounted && (
                   <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
@@ -241,10 +239,10 @@ export function EventDetails() {
                 {/* Find Out More Button with glow effect */}
                 <div className="flex justify-center event-button">
                   {/* <Link href="/events"> */}
-                    <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
-                      <span className="relative z-10">Find Out More</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                    </button>
+                  <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
+                    <span className="relative z-10">Find Out More</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                  </button>
                   {/* </Link> */}
                 </div>
               </div>
