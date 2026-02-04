@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Login | All-Rounder",
   description: "Sign in to your All-Rounder account",
   icons: {
-    icon: "/icons/browserImg.png",
+    icon: "/icons/browserImage.png",
   },
 };
 

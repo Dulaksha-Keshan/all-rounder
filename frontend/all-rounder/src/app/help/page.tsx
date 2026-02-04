@@ -3,10 +3,12 @@
 import { useState } from "react";
 import FAQSection from "./_components/FAQSection";
 
+
 type FAQItemType = {
   q: string;
   a: string;
 };
+
 
 export default function HelpPage() {
   const [search, setSearch] = useState("");

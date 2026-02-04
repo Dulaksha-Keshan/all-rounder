@@ -4,15 +4,12 @@ import MeetOurTeam from './_components/MeetOurTeam';
 import VisionHero from './_components/VisionHero';
 import VisionCards from './_components/VisionCards';
 import AboutAllRounder from './_components/AboutAllRounder';
-import Footer from '@/app/_components/Footer';
-import Navbar from '../_components/navibar';
 
 
 export default function VisionPage() {
   return (
     <>
-      {/* HEADER */}
-      <Navbar />
+     
       {/* HERO */}
       <VisionHero />
 
@@ -30,9 +27,6 @@ export default function VisionPage() {
       <section className="max-w-6xl mx-auto mt-10">
         <MeetOurTeam />
       </section> 
-
-      {/* FOOTER */}
-      <Footer />
 
 
     </>

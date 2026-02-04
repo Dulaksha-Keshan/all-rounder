@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import NextImage from 'next/image';
 
 const teamMembers = [
   {
@@ -92,11 +93,12 @@ export default function MeetOurTeam() {
               <div className="w-[300px] md:w-[500px] h-[300px] bg-[#F3EEFF] border border-[#8387CC]/40 rounded-3xl shadow-lg p-8 flex flex-col items-center text-center">
 
                 {/* IMAGE */}
-                <div className="w-28 h-28 rounded-2xl overflow-hidden mb-6 border border-[#8387CC]/40">
-                  <img
+                <div className="relative w-28 h-28 rounded-2xl overflow-hidden mb-6 border border-[#8387CC]/40">
+                  <NextImage
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
 
