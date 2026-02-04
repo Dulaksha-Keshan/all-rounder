@@ -1,4 +1,4 @@
-type HelpCardProps = {
+/*type HelpCardProps = {
   title: string;
   description: string;
   icon: string;
@@ -34,5 +34,41 @@ export default function HelpCard({
       </p>
     </button>
   );
-}
+}*/
+export default function HelpCard() {
+  return (
+    <section className="gradient-purple-blue rounded-2xl p-8 text-white">
+      <h3 className="text-2xl font-semibold mb-2">
+        Still Need Help?
+      </h3>
 
+      <p className="text-white/80 mb-6">
+        Our support team is here to assist you.
+        Reach out through any of these channels.
+      </p>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="bg-white/10 rounded-xl p-4">
+          <p className="font-semibold">Email Us</p>
+          <p className="text-sm opacity-80">
+            mail.allrounder.sdgp@gmail.com
+          </p>
+        </div>
+
+        <div className="bg-white/10 rounded-xl p-4">
+          <p className="font-semibold">Live Chat</p>
+          <p className="text-sm opacity-80">
+            Available 9 AM – 5 PM
+          </p>
+        </div>
+
+        <div className="bg-white/10 rounded-xl p-4">
+          <p className="font-semibold">Call Us</p>
+          <p className="text-sm opacity-80">
+            +94 71 093 2786
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
