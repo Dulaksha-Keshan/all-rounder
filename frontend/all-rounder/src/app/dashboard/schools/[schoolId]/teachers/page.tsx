@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import { use } from "react";
 import Table from "@/app/dashboard/_components/Table";
-import TableSearch from "@/app/dashboard/_components/TableSearch";
+import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 import { Teachers, Schools } from "@/app/_data/data";
 import { Teacher } from "@/app/_type/type";
@@ -29,7 +29,7 @@ const TeacherListPage = ({ params }: TeacherListPageProps) => {
 
   // Find the school - show 404 if not found
   const school = Schools.find((s) => s.id === schoolId);
-  
+
   if (!school) {
     notFound();
   }
@@ -94,11 +94,10 @@ const TeacherListPage = ({ params }: TeacherListPageProps) => {
 
       <td className="hidden lg:table-cell text-[var(--accent-purple-text)] py-4 px-6">
         <span
-          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-            teacher.sex === "MALE"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-pink-100 text-pink-700"
-          }`}
+          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${teacher.sex === "MALE"
+            ? "bg-blue-100 text-blue-700"
+            : "bg-pink-100 text-pink-700"
+            }`}
         >
           {teacher.sex}
         </span>
@@ -116,7 +115,7 @@ const TeacherListPage = ({ params }: TeacherListPageProps) => {
   );
 
   return (
-    <div className="bg-gradient-to-br from-[var(--white)] to-[var(--secondary-pale-lavender)] p-6 rounded-2xl shadow-lg border-2 border-[var(--secondary-light-lavender)]/50">
+    <div className="bg-gradient-to-br from-[var(--white)] to-[var(--secondary-pale-lavender)] p-8 m-4 rounded-2xl shadow-lg border-2 border-[var(--secondary-light-lavender)]/50">
       {/* TOP BAR */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -125,7 +124,7 @@ const TeacherListPage = ({ params }: TeacherListPageProps) => {
           </h1>
           <p className="text-sm text-gray-500 mt-1">{school.location}</p>
         </div>
-        <TableSearch />
+        <SearchBar />
       </div>
 
       {/* STATS */}

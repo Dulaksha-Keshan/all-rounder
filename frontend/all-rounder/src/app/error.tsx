@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { User, AlertCircle } from "lucide-react";
 
 export default function Error({
     error,
@@ -16,6 +17,9 @@ export default function Error({
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--secondary-pale-lavender)] text-[var(--primary-dark-purple)]">
+            <div className="w-24 h-24 rounded-full bg-[var(--gray-100)] flex items-center justify-center mb-6 border-4 border-[var(--white)] shadow-md">
+                <AlertCircle size={48} className="text-[var(--primary-purple)]" />
+            </div>
             <h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
             <button
                 onClick={

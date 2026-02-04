@@ -34,7 +34,7 @@ export default function NotFound() {
                 {/* Action Button */}
                 <div className="pt-4">
                     <Link
-                        href="/"
+                        href="/home"
                         className="inline-flex items-center px-8 py-3 rounded-xl bg-[var(--primary-purple)] text-white font-semibold shadow-lg shadow-indigo-200 hover:bg-[var(--primary-dark-purple)] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ease-in-out group"
                     >
                         <span>Return Home</span>
