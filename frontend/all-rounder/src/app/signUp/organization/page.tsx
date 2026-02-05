@@ -124,98 +124,103 @@ export default function OrganizationSignup() {
         {/* Form */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit}>
-            {/* STEP 1 */}
+
+            {/* Step 1: Organization Information */}
             {currentStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-[#34365C] mb-4">
-                  Organization Information
-                </h3>
-
+                <h3 className="text-[#34365C] mb-4">Organization Information</h3>
+                
                 <div>
-                  <label className="block text-sm mb-2">
-                    Organization Name *
-                  </label>
+                  <label className="block text-sm mb-2 text-[#34365C]">Organization Name *</label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
-                      required
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                      type="text"
                       value={formData.organizationName}
-                      onChange={(e) =>
-                        updateField("organizationName", e.target.value)
-                      }
+                      onChange={(e) => updateField("organizationName", e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2">
-                    Organization Type *
-                  </label>
+                  <label className="block text-sm mb-2 text-[#34365C]">Organization Type *</label>
                   <select
-                    required
-                    className="w-full px-4 py-2 border rounded-lg"
                     value={formData.organizationType}
-                    onChange={(e) =>
-                      updateField("organizationType", e.target.value)
-                    }
+                    onChange={(e) => updateField("organizationType", e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                    required
                   >
-                    <option value="">Select Type</option>
-                    <option value="nonprofit">Non-Profit</option>
-                    <option value="corporate">Corporate</option>
+                    <option value="" disabled>Select Type</option>
+                    <option value="nonprofit">Non-Profit Organization</option>
+                    <option value="corporate">Corporate/Business</option>
                     <option value="foundation">Foundation</option>
-                    <option value="government">Government</option>
+                    <option value="government">Government Agency</option>
                     <option value="ngo">NGO</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Tax ID/EIN *</label>
+                    <input
+                      type="text"
+                      value={formData.taxId}
+                      onChange={(e) => updateField("taxId", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      placeholder="XX-XXXXXXX"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Registration Number</label>
+                    <input
+                      type="text"
+                      value={formData.registrationNumber}
+                      onChange={(e) => updateField("registrationNumber", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm mb-2">
-                    Mission Statement *
-                  </label>
+                  <label className="block text-sm mb-2 text-[#34365C]">Mission Statement *</label>
                   <textarea
-                    required
-                    rows={3}
-                    className="w-full px-4 py-2 border rounded-lg"
                     value={formData.missionStatement}
-                    onChange={(e) =>
-                      updateField("missionStatement", e.target.value)
-                    }
+                    onChange={(e) => updateField("missionStatement", e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                    rows={3}
+                    placeholder="Briefly describe your organization's mission and goals"
+                    required
                   />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2">
-                      Password *
-                    </label>
+                    <label className="block text-sm mb-2 text-[#34365C]">Password *</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type="password"
-                        required
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg"
                         value={formData.password}
-                        onChange={(e) =>
-                          updateField("password", e.target.value)
-                        }
+                        onChange={(e) => updateField("password", e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                        required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2">
-                      Confirm Password *
-                    </label>
+                    <label className="block text-sm mb-2 text-[#34365C]">Confirm Password *</label>
                     <input
                       type="password"
-                      required
-                      className="w-full px-4 py-2 border rounded-lg"
                       value={formData.confirmPassword}
-                      onChange={(e) =>
-                        updateField("confirmPassword", e.target.value)
-                      }
+                      onChange={(e) => updateField("confirmPassword", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      required
                     />
                   </div>
                 </div>
@@ -325,42 +330,109 @@ export default function OrganizationSignup() {
             )}
 
 
-            {/* STEP 3 */}
+            {/* Step 3: Representative Information */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <h3 className="text-[#34365C] mb-4">
-                  Authorized Representative
-                </h3>
+                <h3 className="text-[#34365C] mb-4">Authorized Representative</h3>
+                
+                <div className="p-4 bg-[#F8F8FF] border border-[#DCD0FF] rounded-lg mb-4">
+                  <p className="text-sm text-gray-700">
+                    Please provide details of the authorized representative who will manage this account.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Representative Name *</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={formData.repName}
+                        onChange={(e) => updateField("repName", e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Title/Position *</label>
+                    <input
+                      type="text"
+                      value={formData.repTitle}
+                      onChange={(e) => updateField("repTitle", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      placeholder="e.g., Director, CEO"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Representative Email *</label>
+                    <input
+                      type="email"
+                      value={formData.repEmail}
+                      onChange={(e) => updateField("repEmail", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm mb-2 text-[#34365C]">Representative Phone *</label>
+                    <input
+                      type="tel"
+                      value={formData.repPhone}
+                      onChange={(e) => updateField("repPhone", e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                      required
+                    />
+                  </div>
+                </div>
 
                 <div>
-                  <label className="block text-sm mb-2">
-                    Upload Verification Documents *
-                  </label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <label className="block text-sm mb-2 text-[#34365C]">Upload Verification Documents *</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#8387CC] transition">
                     <input
                       type="file"
-                      hidden
+                      onChange={handleFileUpload}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
                       id="file-upload"
                       required
-                      onChange={handleFileUpload}
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
-                      <Upload className="mx-auto mb-2 text-gray-400" />
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                       {uploadedFile ? (
-                        <div className="flex justify-center items-center gap-2 text-[#8387CC]">
+                        <div className="flex items-center justify-center gap-2 text-[#8387CC]">
                           <FileText className="w-5 h-5" />
-                          {uploadedFile.name}
+                          <span>{uploadedFile.name}</span>
                         </div>
                       ) : (
-                        <p className="text-gray-600">
-                          Upload registration documents
-                        </p>
+                        <>
+                          <p className="text-gray-600">Upload registration documents</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Tax exemption letter, articles of incorporation, or business license
+                          </p>
+                          <p className="text-sm text-gray-500">PDF, JPG, or PNG (max 10MB)</p>
+                        </>
                       )}
                     </label>
                   </div>
                 </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    🔒 Your organization will be verified within 3-5 business days. 
+                    You'll receive confirmation via email once approved.
+                  </p>
+                </div>
               </div>
             )}
+
 
             {/* Buttons */}
             <div className="flex gap-4 mt-8">
