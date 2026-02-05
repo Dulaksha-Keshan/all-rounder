@@ -28,6 +28,37 @@ body {
   --secondary-purple-light: #CEB0E8;
   --contact-bg: #F8F8FF;
 
+/* Rich Text Editor Custom Styles */
+.rich-text-editor .ql-container {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  font-size: 0.875rem; /* text-sm */
+  font-family: inherit;
+}
+.rich-text-editor .ql-toolbar {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border-color: #e5e7eb;
+  background-color: #f9fafb;
+}
+.rich-text-editor .ql-container.ql-snow {
+  border-color: #e5e7eb;
+}
+.rich-text-editor .ql-editor {
+  min-height: 100px;
+}
+.rich-text-editor .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: normal;
+}
+.rich-text-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+.rich-text-content ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
   /* Accent Colors */
   --accent-purple-text: #505485;
   --accent-purple-darker: #6a6dad;

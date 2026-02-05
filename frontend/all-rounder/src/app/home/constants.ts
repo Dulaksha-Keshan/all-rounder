@@ -10,8 +10,18 @@ export const INITIAL_POSTS: PostType[] = [
         },
         time: "2 hours ago",
         content: "Just submitted our team's project for the National Science Fair! 🚀 Keeping our fingers crossed. Thanks to everyone who contributed to this amazing journey.",
-        likes: 42,
-        comments: 5,
+        likes: [
+            { userId: 101, name: "John Doe" },
+            { userId: 102, name: "Jane Doe" }
+        ],
+        comments: [
+            {
+                id: 1,
+                author: { name: "Emily Davis" },
+                text: "Good luck! You guys worked so hard.",
+                timestamp: "1 hour ago"
+            }
+        ],
         media: [
             { type: 'image', url: 'https://images.unsplash.com/photo-1564981797816-1043664bf78d?w=800&auto=format&fit=crop&q=60', name: 'project.jpg' }
         ]
@@ -25,7 +35,7 @@ export const INITIAL_POSTS: PostType[] = [
         },
         time: "5 hours ago",
         content: "The annual Sports Week schedule is out! Check out the notice board for more details. Who else is excited for the inter-house cricket tournament? 🏏",
-        likes: 128,
-        comments: 24,
+        likes: [],
+        comments: [],
     }
 ];
