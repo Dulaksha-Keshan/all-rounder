@@ -81,7 +81,7 @@ function HomeClientContent() {
                             <Link
                                 key={`s-${student.id}`}
                                 href={`/user/student/${student.id}`}
-                                className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
+                                className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
                                     <Image src={student.photoUrl || "/icons/Avatar.png"} alt={student.name} fill className="object-cover" />
@@ -96,7 +96,7 @@ function HomeClientContent() {
                             <Link
                                 key={`t-${teacher.id}`}
                                 href={`/user/teacher/${teacher.id}`}
-                                className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
+                                className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
                                     <Image src={teacher.photoUrl || "/icons/Avatar.png"} alt={teacher.name} fill className="object-cover" />

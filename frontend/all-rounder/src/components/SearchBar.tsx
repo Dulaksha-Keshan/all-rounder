@@ -34,15 +34,15 @@ const SearchBar = () => {
     return (
         <form
             onSubmit={handleSubmit}
-            className="w-full md:w-auto flex items-center gap-3 text-xs rounded-full ring-1 ring-[#DCD0FF] px-4 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#8387CC] transition-all"
+            className="w-full md:w-auto flex items-center gap-3 text-xs rounded-full ring-1 ring-[var(--secondary-light-lavender)] px-4 bg-[var(--card-bg)] shadow-sm focus-within:ring-2 focus-within:ring-[var(--primary-purple)] transition-all"
         >
-            <Search size={16} className="text-[#8387CC]" />
+            <Search size={16} className="text-[var(--primary-purple)]" />
             <input
                 type="text"
                 name="search"
                 onChange={handleChange}
                 placeholder="Search..."
-                className="w-[200px] py-2.5 bg-transparent outline-none text-[#34365C] placeholder:text-[#8387CC]/60"
+                className="w-[200px] py-2.5 bg-transparent outline-none text-[var(--text-main)] placeholder:text-[var(--text-muted)]"
             />
         </form>
     );

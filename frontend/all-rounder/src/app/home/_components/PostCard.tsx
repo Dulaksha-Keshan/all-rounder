@@ -210,7 +210,7 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
             {/* Likes Modal */}
             {showLikesModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl max-w-sm w-full p-4 overflow-hidden shadow-2xl animate-fade-in-up">
+                    <div className="bg-[var(--card-bg)] text-[var(--text-main)] rounded-xl max-w-sm w-full p-4 overflow-hidden shadow-2xl animate-fade-in-up">
                         <div className="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 className="font-bold text-lg">Likes</h3>
                             <button onClick={() => setShowLikesModal(false)} className="p-1 hover:bg-gray-100 rounded-full">
@@ -256,12 +256,12 @@ export default function PostCard({ post, onLike, onComment, onDelete }: PostCard
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                        <div className="bg-[var(--card-bg)] p-3 rounded-lg border border-[var(--gray-200)] shadow-sm">
                                             <div className="flex justify-between items-baseline mb-1">
                                                 <span className="font-bold text-xs">{comment.author.name}</span>
                                                 <span className="text-[10px] text-gray-400">{comment.timestamp}</span>
                                             </div>
-                                            <p className="text-sm text-gray-700">{comment.text}</p>
+                                            <p className="text-sm text-[var(--text-main)] opacity-90">{comment.text}</p>
                                         </div>
                                     </div>
                                 </div>

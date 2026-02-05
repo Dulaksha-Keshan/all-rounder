@@ -207,7 +207,7 @@ export default function Navbar({
 
                 {/* Dropdown */}
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-[var(--gray-200)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute right-0 mt-2 w-80 bg-[var(--card-bg)] rounded-xl shadow-xl border border-[var(--gray-200)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-4 border-b border-[var(--gray-100)]">
                       <h3 className="font-bold text-[var(--text-main)]">Notifications</h3>
                     </div>
@@ -242,7 +242,7 @@ export default function Navbar({
                                       </button>
                                       <button
                                         onClick={() => declineFollowRequest(requestId)}
-                                        className="flex-1 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
+                                        className="flex-1 py-1.5 bg-[var(--gray-100)] text-[var(--gray-700)] text-xs font-bold rounded-md hover:bg-[var(--gray-200)] transition-colors flex items-center justify-center gap-1"
                                       >
                                         <X size={14} /> Decline
                                       </button>
