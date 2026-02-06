@@ -11,7 +11,8 @@ import { useHomeStore } from "@/context/useHomeStore";
 import { useUserStore } from "@/context/useUserStore";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { Students, Teachers } from "@/app/_data/data";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useTeacherStore } from "@/context/useTeacherStore";
 import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
@@ -19,6 +20,8 @@ import gsap from "gsap";
 function HomeClientContent() {
     const { posts, stats, createPost, deletePost, editPost, likePost, commentPost } = useHomeStore();
     const { followRequests, acceptFollowRequest, declineFollowRequest } = useUserStore();
+    const { students } = useStudentStore();
+    const { teachers } = useTeacherStore();
     const headerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get("search")?.toLowerCase() || "";
@@ -30,8 +33,8 @@ function HomeClientContent() {
     );
 
     // Filter people based on search query
-    const filteredStudents = searchQuery ? Students.filter(student => student.name.toLowerCase().includes(searchQuery)) : [];
-    const filteredTeachers = searchQuery ? Teachers.filter(teacher => teacher.name.toLowerCase().includes(searchQuery)) : [];
+    const filteredStudents = searchQuery ? students.filter(student => student.name.toLowerCase().includes(searchQuery)) : [];
+    const filteredTeachers = searchQuery ? teachers.filter(teacher => teacher.name.toLowerCase().includes(searchQuery)) : [];
     const hasPeopleResults = filteredStudents.length > 0 || filteredTeachers.length > 0;
 
     // Handlers now directly call store actions

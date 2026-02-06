@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import Image from "next/image";
 import { ThumbsUp, MessageCircle, Share2, Trash2, Send, Download, User, MoreHorizontal, Edit2 } from 'lucide-react';
 import { useHomeStore } from '@/context/useHomeStore';
-// import { Post } from '@/app/_type/type';
 import gsap from 'gsap';
 import ConfirmationModal from "@/components/ConfirmationModal";
 

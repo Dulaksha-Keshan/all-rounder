@@ -2,7 +2,28 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Event } from '@/app/_type/type';
+export type OrganizerType = "School" | "Organization";
+
+export interface Event {
+    id: number;
+    title: string;
+    description: string;
+    fullDescription?: string;
+    date: string;
+    deadline?: string;
+    location: string;
+    imageUrl: string;
+    categories?: string[];
+    status?: "Registered" | "Open";
+    requirements?: string[];
+    prizes?: string[];
+    contactEmail?: string;
+    time?: string;
+    organizerId: string;
+    organizerType: OrganizerType;
+    isMajor?: boolean;
+}
+
 import { Events } from '@/app/events/_data/events';
 
 interface EventState {

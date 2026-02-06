@@ -71,24 +71,4 @@ export interface Organization {
 
 // ==================== EVENT INTERFACES ====================
 
-export type OrganizerType = "School" | "Organization";
-
-export interface Event {
-  id: number;
-  title: string;
-  description: string;
-  fullDescription?: string;
-  date: string;
-  deadline?: string;
-  location: string;
-  imageUrl: string;
-  categories?: string[];
-  status?: "Registered" | "Open";
-  requirements?: string[];
-  prizes?: string[];
-  contactEmail?: string;
-  time?: string;
-  organizerId: string;
-  organizerType: OrganizerType;
-  isMajor?: boolean;
-}
+export type { OrganizerType, Event } from "@/context/useEventStore";

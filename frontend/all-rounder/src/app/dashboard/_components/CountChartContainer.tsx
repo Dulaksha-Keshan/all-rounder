@@ -3,7 +3,7 @@
 "use client";
 import Image from "next/image";
 import CountChart from "./CountChart";
-import { Students } from "@/app/_data/data";
+import { useStudentStore } from "@/context/useStudentStore";
 
 interface CountChartContainerProps {
   schoolId?: string;
@@ -11,13 +11,14 @@ interface CountChartContainerProps {
 }
 
 const CountChartContainer = ({ schoolId, orgId }: CountChartContainerProps) => {
+  const { students } = useStudentStore();
   // Filter students based on schoolId or orgId
-  let filteredStudents = Students;
+  let filteredStudents = students;
 
   if (schoolId) {
-    filteredStudents = Students.filter((s) => s.schoolId === schoolId);
+    filteredStudents = students.filter((s) => s.schoolId === schoolId);
   } else if (orgId) {
-    filteredStudents = Students.filter((s) => s.organizationId === orgId);
+    filteredStudents = students.filter((s) => s.organizationId === orgId);
   }
 
   // Count boys and girls from the filtered data

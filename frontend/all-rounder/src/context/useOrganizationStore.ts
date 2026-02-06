@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Organization } from '@/app/_type/type';
+import { Organizations } from '@/app/_data/data';
 
 interface OrganizationState {
     organizations: Organization[];
@@ -15,12 +16,13 @@ interface OrganizationState {
     updateOrganization: (id: string, updates: Partial<Organization>) => void;
     deleteOrganization: (id: string) => void;
     setActiveOrganization: (org: Organization | null) => void;
+    getOrganizationById: (id: string) => Organization | undefined;
 }
 
 export const useOrganizationStore = create<OrganizationState>()(
     persist(
-        (set) => ({
-            organizations: [],
+        (set, get) => ({
+            organizations: Organizations,
             activeOrganization: null,
             isLoading: false,
 
@@ -45,6 +47,10 @@ export const useOrganizationStore = create<OrganizationState>()(
             })),
 
             setActiveOrganization: (org) => set({ activeOrganization: org }),
+
+            getOrganizationById: (id: string) => {
+                return get().organizations.find(o => o.id === id);
+            },
         }),
         {
             name: 'organization-storage',

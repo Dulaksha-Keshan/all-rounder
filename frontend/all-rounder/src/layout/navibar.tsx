@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, Bell, Check, X } from "lucide-react";
+import { Bell, Check, X, Sun, Moon } from "lucide-react";
 import { useUserStore } from "@/context/useUserStore";
-import { Students, Teachers } from "@/app/_data/data";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useTeacherStore } from "@/context/useTeacherStore";
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -25,7 +26,18 @@ export default function Navbar({
   const [activeSection, setActiveSection] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const { isAuthenticated: storeAuth, userRole: storeRole, followRequests, acceptFollowRequest, declineFollowRequest, logout } = useUserStore();
+  const {
+    isAuthenticated: storeAuth,
+    userRole: storeRole,
+    currentUser,
+    followRequests,
+    acceptFollowRequest,
+    declineFollowRequest,
+    logout
+  } = useUserStore();
+
+  const { students } = useStudentStore();
+  const { teachers } = useTeacherStore();
 
   // Use props if provided, otherwise fallback to store
   const isAuth = isAuthenticated || storeAuth;
@@ -120,7 +132,7 @@ export default function Navbar({
       case "organization":
         return "/organization-profile";
       default:
-        return "/user/student/" + (useUserStore.getState().currentUser?.id || "1"); // Update to dynamic ID
+        return "/user/student/" + (currentUser?.id || "1");
     }
   };
 
@@ -220,7 +232,7 @@ export default function Navbar({
                       ) : (
                         <div className="divide-y divide-[var(--gray-100)]">
                           {followRequests.map(requestId => {
-                            const requestUser = Students.find(s => s.id === requestId) || Teachers.find(t => t.id === requestId);
+                            const requestUser = students.find(s => s.id === requestId) || teachers.find(t => t.id === requestId);
                             if (!requestUser) return null;
 
                             return (

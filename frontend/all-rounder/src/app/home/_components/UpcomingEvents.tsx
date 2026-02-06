@@ -4,12 +4,12 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { useEventStore } from "@/context/useEventStore";
+import { useEventStore, Event } from "@/context/useEventStore";
 
 export default function UpcomingEvents() {
     const containerRef = useRef<HTMLDivElement>(null);
     const { events } = useEventStore();
-    const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+    const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
     useEffect(() => {
         // Filter and sort events
@@ -25,20 +25,7 @@ export default function UpcomingEvents() {
             .slice(0, 3); // Take top 3
 
         // Map to display format if needed, or use directly
-        const displayEvents = futureEvents.map(e => ({
-            title: e.title,
-            date: e.date,
-            type: e.categories?.[0] || 'Event',
-            color: "bg-[var(--primary-blue)]/10 text-[var(--primary-blue)]" // Dynamic color could be added later
-        }));
-
-        // Fallback if no real events yet (for demo purposes if store is empty)
-        if (displayEvents.length === 0 && events.length === 0) {
-            // Keep static only if strictly needed, but user asked for "real numbers". 
-            // We return empty or a "No upcoming events" state? 
-            // User said "Even though i have used staici data i want you to go through it and check whether everything works functionally".
-            // So I should implement the logic.
-        }
+        const displayEvents = futureEvents;
 
         setUpcomingEvents(displayEvents);
 
@@ -76,13 +63,14 @@ export default function UpcomingEvents() {
                                     {event.title}
                                 </h3>
                                 <p className="text-xs text-[var(--text-muted)] font-medium mt-1">{event.date}</p>
-                                <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-2 font-bold ${event.color}`}>
-                                    {event.type}
+                                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full mt-2 font-bold bg-[var(--primary-blue)]/10 text-[var(--primary-blue)]">
+                                    {event.categories?.[0] || 'Event'}
                                 </span>
                             </div>
                         </div>
                     ))
                 ) : (
+
                     <p className="text-sm text-[var(--text-muted)]">No upcoming events found.</p>
                 )}
             </div>

@@ -2,9 +2,10 @@
 
 import { useState, use } from 'react';
 import NextImage from 'next/image';
-import { Teachers, Schools } from '@/app/_data/data';
-import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
+import { useTeacherStore } from '@/context/useTeacherStore';
+import { useSchoolStore } from '@/context/useSchoolStore';
+import { useEventStore } from '@/context/useEventStore';
 import GoBackButton from '@/components/GoBackButton';
 import { useHomeStore } from '@/context/useHomeStore';
 import { useUserStore } from '@/context/useUserStore';
@@ -31,15 +32,20 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     });
   };
 
+  // Get data from stores
+  const { getTeacherById } = useTeacherStore();
+  const { getSchoolById } = useSchoolStore();
+  const { getEventById } = useEventStore();
+
   // Find the teacher by ID
-  const teacher = Teachers.find(t => t.id === Number(id));
+  const teacher = getTeacherById(Number(id));
 
   if (!teacher) {
     notFound();
   }
 
   // Get school name
-  const school = Schools.find(s => s.id === teacher.schoolId);
+  const school = getSchoolById(teacher.schoolId);
   const schoolName = school?.name || 'Unknown School';
 
   // TODO: Get this from your auth system
@@ -67,7 +73,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // Get full event details for registered events
   const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
-    const event = Events.find(e => e.id === Number(reg.eventId));
+    const event = getEventById(Number(reg.eventId));
     return {
       ...reg,
       eventDetails: event
