@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { Skills } from '@/app/_data/skills';
 
 export interface Skill {
     id: number;
@@ -27,11 +28,7 @@ interface SkillState {
 export const useSkillStore = create<SkillState>()(
     persist(
         (set) => ({
-            skills: [
-                { id: 1, name: "React", category: "Development", level: "Intermediate", endorsements: 5 },
-                { id: 2, name: "Public Speaking", category: "Soft Skills", level: "Advanced", endorsements: 12 },
-                { id: 3, name: "Photography", category: "Arts", level: "Beginner", endorsements: 2 },
-            ],
+            skills: Skills, // Import from data file instead of hardcoding
             userSkills: [],
             searchQuery: "",
 

@@ -17,7 +17,7 @@ import Image from "next/image";
 import gsap from "gsap";
 
 function HomeClientContent() {
-    const { posts, stats, createPost, deletePost, likePost, commentPost } = useHomeStore();
+    const { posts, stats, createPost, deletePost, editPost, likePost, commentPost } = useHomeStore();
     const { followRequests, acceptFollowRequest, declineFollowRequest } = useUserStore();
     const headerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
@@ -41,6 +41,10 @@ function HomeClientContent() {
 
     const handleDeletePost = (id: number) => {
         deletePost(id);
+    };
+
+    const handleEdit = (id: number, newContent: string) => {
+        editPost(id, newContent);
     };
 
     const handleLike = (id: number) => {
@@ -121,6 +125,7 @@ function HomeClientContent() {
                         onLike={handleLike}
                         onComment={handleComment}
                         onDelete={handleDeletePost}
+                        onEdit={handleEdit}
                     />
                 </div>
 
