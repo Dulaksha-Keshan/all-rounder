@@ -1,3 +1,4 @@
+
 import { Trophy, Palette, Users } from 'lucide-react';
 import FeatureCard from './FeatureCard';
 import { EventDetails } from './Events';

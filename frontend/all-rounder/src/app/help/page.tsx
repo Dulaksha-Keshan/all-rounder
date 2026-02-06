@@ -32,29 +32,34 @@ export default function HelpPage() {
       {
         q: "What is All-Rounder?",
         a: `All-Rounder is a comprehensive student extracurricular activities sharing platform designed to go beyond academics.
-
-It connects students, teachers, schools, and organizations into one trusted ecosystem where achievements, skills, and participation can be showcased digitally.
-
-The platform helps students build a verified profile of their talents, while institutions and organizations can discover, validate, and support student potential.`,
+          It connects students, teachers, schools, and organizations into one trusted ecosystem where achievements, skills, and participation can be showcased digitally.
+        The platform helps students build a verified profile of their talents, while institutions and organizations can discover, validate, and support student potential.`,
       },
       {
         q: "How do I create an account?",
         a: `You can create an account by signing up using your personal email address or your institution-provided credentials.
-
-Once registered, you’ll be guided through a simple onboarding process where you select your user type and complete your profile details.
-
-Account creation is free and only takes a few minutes.`,
+          Once registered, you’ll be guided through a simple onboarding process where you select your user type and complete your profile details.
+        Account creation is free and only takes a few minutes.`,
       },
       {
-        q: "What are the different user types?",
-        a: `All-Rounder supports multiple user roles to ensure proper access and verification.
+  q: "What are the different user types?",
+  a: (
+    <>
+      All-Rounder supports multiple user roles to ensure proper access and verification.
+      <br />
+      The main user types include:
+      <br />
+      • <strong>Students</strong> – to showcase skills and achievements
+      <br />
+      • <strong>Teachers</strong> – to verify and mentor students
+      <br />
+      • <strong>Schools</strong> – to manage and monitor student activities
+      <br />
+      • <strong>Organizations</strong> – to host events, competitions, and opportunities
+    </>
+  ),
+}
 
-The main user types include:
-• Students – to showcase skills and achievements
-• Teachers – to verify and mentor students
-• Schools – to manage and monitor student activities
-• Organizations – to host events, competitions, and opportunities`,
-      },
     ],
   },
   {
@@ -63,10 +68,8 @@ The main user types include:
       {
         q: "How does student verification work?",
         a: `Student verification is handled through their registered educational institution.
-
-After signing up, students submit basic institutional details, which are reviewed by teachers or school administrators to confirm authenticity.
-
-This process ensures that all student profiles on the platform are genuine and trustworthy.`,
+        After signing up, students submit basic institutional details, which are reviewed by teachers or school administrators to confirm authenticity.
+        This process ensures that all student profiles on the platform are genuine and trustworthy.`,
       },
       {
         q: "What employment proof do teachers need?",
@@ -207,7 +210,7 @@ This process ensures that all student profiles on the platform are genuine and t
       {/* FAQ SECTIONS */}
       <div className="max-w-4xl mx-auto space-y-8">
         {faqData.map((section, index) => {
-          const filteredItems = filterItems(section.items);
+          const filteredItems = filterItems(section.items as FAQItemType[]);
 
           if (filteredItems.length === 0) return null;
 
@@ -231,35 +234,17 @@ This process ensures that all student profiles on the platform are genuine and t
   </p>
 
   <div className="grid md:grid-cols-3 gap-4">
-    {/* Email */}
-    <div className="bg-white/10 rounded-2xl p-5 text-center">
+  <div className="md:col-span-3 flex justify-center">
+    <div className="bg-white/10 rounded-2xl p-5 text-center w-full max-w-sm">
       <div className="text-2xl mb-2">✉️</div>
-      <p className="font-medium ">Email Us</p>
+      <p className="font-medium">Email Us</p>
       <p className="text-sm opacity-90">
         mail.allrounder.sdgp@gmail.com
       </p>
     </div>
-
-    {/* Live Chat */}
-    <div className="bg-white/10 rounded-2xl p-5 text-center">
-      <div className="text-2xl mb-2">💬</div>
-      <p className="font-medium">Live Chat</p>
-      <p className="text-sm opacity-90">
-        Available 9 AM – 5 PM
-      </p>
-    </div>
-
-    {/* Call */}
-    <div className="bg-white/10 rounded-2xl p-5 text-center">
-      <div className="text-2xl mb-2">📞</div>
-      <p className="font-medium">Call Us</p>
-      <p className="text-sm opacity-90">
-        +94 71 090 3786
-      </p>
-    </div>
+  </div>
   </div>
 </section>
-
-    </main>
+</main>
   );
 }
