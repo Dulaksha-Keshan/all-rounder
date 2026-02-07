@@ -8,37 +8,37 @@ const teamMembers = [
     name: 'Pathumi Kaweesha',
     role: 'Group Leader & Backend Developer',
     description: 'Leads the team while designing and developing reliable backend systems that support smooth application functionality.',
-    image: '/team/member01.jpeg',
+    image: '/images/team/member01.jpeg',
   },
   {
     name: 'Teneesha Alwis',
     role: 'Frontend Developer',
     description: 'Builds responsive and user-friendly interfaces that deliver a smooth and engaging user experience.Designing meaningful and accessible user experiences.',
-    image: '/team/member02.jpeg',
+    image: '/images/team/member02.jpeg',
   },
   {
     name: 'Kulani Tennakoon',
     role: 'Frontend Developer',
     description: 'Develops interactive web interfaces using modern frontend technologies with a focus on performance and usability.',
-    image: '/team/member03.jpeg',
+    image: '/images/team/member03.jpeg',
   },
   {
     name: 'Imandi Kariyapperuma',
     role: 'Frontend Developer',
     description: 'Implements frontend components, ensures responsive design, and enhances usability across devices.',
-    image: '/team/member04.jpeg',
+    image: '/images/team/member04.jpeg',
   },
   {
     name: 'Dulaksha Jayasinghe',
     role: 'Backend Developer',
     description: 'Develops server-side logic, APIs, and databases to ensure secure and efficient application performance.',
-    image: '/team/member05.jpeg',
+    image: '/images/team/member05.jpeg',
   },
   {
     name: 'Abdul Malik',
     role: 'Backend Developer',
     description: 'Builds scalable backend systems, manages databases, and integrates APIs to support application functionality.',
-    image: '/team/member06.jpeg',
+    image: '/images/team/member06.jpeg',
   },
 ];
 
