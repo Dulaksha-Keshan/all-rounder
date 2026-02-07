@@ -2,8 +2,15 @@
 "use client";
 
 import { useParams } from "next/navigation";
+<<<<<<< HEAD
 //import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { Organization } from "@/app/_type/type";
+=======
+import { useOrganizationStore } from "@/context/useOrganizationStore";
+import { Organization } from "@/app/_type/type";
+import Footer from "@/layout/Footer";
+
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 import OrganizationHeader from "./OrganizationHeader";
 import OrganizationTabs from "./OrganizationTabs";
 import Footer from "@/layout/Footer";
@@ -12,10 +19,15 @@ import { Organizations } from "@/app/_data/data";
 export default function OrganizationProfilePage() {
   const { organizationId } = useParams<{ organizationId: string }>();
 
+<<<<<<< HEAD
   // ✅ EXACT SAME AS FRIEND
   const organization: Organization | undefined = Organizations.find(
     (o) => o.id === organizationId
   );
+=======
+  const { getOrganizationById } = useOrganizationStore();
+  const organization = getOrganizationById(organizationId as string);
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 
   if (!organization) {
     return (

@@ -1,5 +1,8 @@
-import { Organizations } from "@/app/_data/data";
-import { Events } from "@/app/events/_data/events";
+"use client";
+
+import { use } from "react";
+import { useOrganizationStore } from "@/context/useOrganizationStore";
+import { useEventStore } from "@/context/useEventStore";
 import BigCalendarContainer from "@/app/dashboard/_components/BigCalendarContainer";
 import Menu from "@/app/dashboard/_components/Menu";
 import Image from "next/image";
@@ -13,14 +16,16 @@ interface OrgDashboardProps {
   }>;
 }
 
-export default async function OrgDashboard({ params }: OrgDashboardProps) {
-  const { orgId } = await params;
+export default function OrgDashboard({ params }: OrgDashboardProps) {
+  const { orgId } = use(params);
+  const { getOrganizationById } = useOrganizationStore();
+  const { events } = useEventStore();
 
   // Debug: Log the orgId
   console.log("Organization ID:", orgId);
 
   // Find the organization
-  const org = Organizations.find((o) => o.id === orgId);
+  const org = getOrganizationById(orgId);
 
   // Debug: Log if org is found
   console.log("Organization found:", org);
@@ -31,7 +36,7 @@ export default async function OrgDashboard({ params }: OrgDashboardProps) {
   }
 
   // Filter events by organization
-  const orgEvents = Events.filter(
+  const orgEvents = events.filter(
     (e) => e.organizerId === orgId && e.organizerType === "Organization"
   );
 

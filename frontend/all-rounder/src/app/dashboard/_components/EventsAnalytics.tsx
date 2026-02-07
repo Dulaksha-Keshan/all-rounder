@@ -1,7 +1,10 @@
 "use client";
 import Image from "next/image";
-import { Students, Teachers, Schools, Organizations } from "@/app/_data/data";
-import { Events } from "@/app/events/_data/events";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useTeacherStore } from "@/context/useTeacherStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import { useOrganizationStore } from "@/context/useOrganizationStore";
+import { useEventStore } from "@/context/useEventStore";
 import {
   BarChart,
   Bar,
@@ -22,15 +25,20 @@ interface EventsAnalyticsProps {
 }
 
 const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
+  const { students } = useStudentStore();
+  const { teachers } = useTeacherStore();
+  const { schools } = useSchoolStore();
+  const { organizations } = useOrganizationStore();
+  const { events } = useEventStore();
   // Get organizer name
   const getOrganizerName = () => {
     if (!organizerId) return null;
-    
+
     if (type === "School") {
-      const school = Schools.find((s) => s.id === organizerId);
+      const school = schools.find((s) => s.id === organizerId);
       return school?.name || organizerId;
     } else {
-      const org = Organizations.find((o) => o.id === organizerId);
+      const org = organizations.find((o) => o.id === organizerId);
       return org?.name || organizerId;
     }
   };
@@ -38,7 +46,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   const organizerName = getOrganizerName();
 
   // Filter events based on organizer ID and type
-  const filteredEvents = Events.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     if (organizerId) {
       return event.organizerId === organizerId && event.organizerType === type;
     }
@@ -46,7 +54,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   });
 
   // Filter students based on school or organization ID
-  const filteredStudents = Students.filter((student) => {
+  const filteredStudents = students.filter((student) => {
     if (!organizerId) return true;
     if (type === "School") {
       return student.schoolId === organizerId;
@@ -57,7 +65,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   });
 
   // Filter teachers based on school or organization ID
-  const filteredTeachers = Teachers.filter((teacher) => {
+  const filteredTeachers = teachers.filter((teacher) => {
     if (!organizerId) return true;
     if (type === "School") {
       return teacher.schoolId === organizerId;

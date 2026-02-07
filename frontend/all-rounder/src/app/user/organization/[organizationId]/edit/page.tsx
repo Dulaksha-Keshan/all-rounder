@@ -10,9 +10,8 @@ export default function EditOrganizationPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
   const router = useRouter();
 
-  const organization: Organization | undefined = Organizations.find(
-    (o) => o.id === organizationId
-  );
+  const { getOrganizationById, updateOrganization } = useOrganizationStore();
+  const organization = getOrganizationById(organizationId as string);
 
   if (!organization) {
     return <p className="p-6 text-gray-500">Organization not found</p>;
@@ -23,10 +22,18 @@ export default function EditOrganizationPage() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+<<<<<<< HEAD
 
     // TEMP: just log / later sync to store or API
     console.log("Updated:", { name, location });
 
+=======
+    // ✅ Save to store
+    updateOrganization(organizationId as string, {
+      name,
+      location,
+    });
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
     router.push(`/user/organization/${organizationId}`);
   }
 

@@ -18,6 +18,7 @@ interface HomeState {
     saveDraft: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
     deletePost: (id: number) => void;
     deleteDraft: (id: number) => void;
+    editPost: (id: number, newContent: string) => void;
     likePost: (id: number) => void;
     commentPost: (id: number, text: string) => void;
     updateStats: (key: keyof HomeState['stats'], value: number) => void;
@@ -75,6 +76,11 @@ export const useHomeStore = create<HomeState>()(
             })),
             deleteDraft: (id) => set((state) => ({
                 drafts: state.drafts.filter(d => d.id !== id)
+            })),
+            editPost: (id, newContent) => set((state) => ({
+                posts: state.posts.map(p =>
+                    p.id === id ? { ...p, content: newContent } : p
+                )
             })),
             likePost: (id) => set((state) => ({
                 posts: state.posts.map(p => {

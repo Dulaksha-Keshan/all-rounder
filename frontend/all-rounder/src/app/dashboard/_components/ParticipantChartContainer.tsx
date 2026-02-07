@@ -2,35 +2,37 @@
 
 import Image from "next/image";
 import ParticipantsChart from "./ParticipantChart";
-import { Students } from "@/app/_data/data"; // 
-import { Events } from "@/app/events/_data/events";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useEventStore } from "@/context/useEventStore";
 
 const ParticipantsChartContainer = () => {
+  const { students } = useStudentStore();
+  const { events } = useEventStore();
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   // Count participants per day
   const data = daysOfWeek.map((day) => {
     let participantsCount = 0;
 
-    Students.forEach((student) => {
+    students.forEach((student) => {
       if (
         student.registeredEvents?.some((registration) => {
-          const event = Events.find(
+          const event = events.find(
             (e) => e.id === Number(registration.eventId)
           );
           if (!event) return false;
-    
+
           const eventDate = new Date(event.date);
           const eventDay = eventDate.getDay(); // 0 = Sunday
           const dayIndex = daysOfWeek.indexOf(day); // 0 = Monday
-    
+
           return eventDay === (dayIndex + 1) % 7;
         })
       ) {
         participantsCount += 1;
       }
     });
-    
+
 
     return {
       day,

@@ -1,5 +1,8 @@
 
-import { Organizations } from "@/app/_data/data";
+"use client";
+
+import { use } from "react";
+import { useOrganizationStore } from "@/context/useOrganizationStore";
 import EventsAnalytics from "@/app/dashboard/_components/EventsAnalytics";
 import Menu from "@/app/dashboard/_components/Menu";
 import Image from "next/image";
@@ -12,11 +15,12 @@ interface OrgAnalyticsProps {
   }>;
 }
 
-export default async function OrgAnalytics({ params }: OrgAnalyticsProps) {
-  const { orgId } = await params;
+export default function OrgAnalytics({ params }: OrgAnalyticsProps) {
+  const { orgId } = use(params);
+  const { getOrganizationById } = useOrganizationStore();
 
   // Find the organization
-  const org = Organizations.find((o) => o.id === orgId);
+  const org = getOrganizationById(orgId);
 
   // If organization not found, show 404
   if (!org) {

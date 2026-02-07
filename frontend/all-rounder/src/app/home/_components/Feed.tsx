@@ -8,10 +8,11 @@ interface FeedProps {
     onLike: (id: number) => void;
     onComment: (id: number, text: string) => void;
     onDelete: (id: number) => void;
+    onEdit: (id: number, newContent: string) => void;
     onCreatePost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
 }
 
-export default function Feed({ posts, onLike, onComment, onDelete, onCreatePost }: FeedProps) {
+export default function Feed({ posts, onLike, onComment, onDelete, onEdit, onCreatePost }: FeedProps) {
     return (
         <div className="w-full">
             <PostCreator onCreatePost={onCreatePost} />
@@ -24,6 +25,7 @@ export default function Feed({ posts, onLike, onComment, onDelete, onCreatePost 
                         onLike={onLike}
                         onComment={onComment}
                         onDelete={onDelete}
+                        onEdit={onEdit}
                     />
                 ))}
             </div>

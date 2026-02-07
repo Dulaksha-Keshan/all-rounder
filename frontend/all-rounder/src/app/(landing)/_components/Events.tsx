@@ -1,7 +1,7 @@
 'use client';
 
-import { Events } from '@/app/events/_data/events';
 import { useRef, useState, useEffect } from 'react';
+import { useEventStore, Event } from '@/context/useEventStore';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Calendar, Clock, MapPin } from 'lucide-react';
@@ -15,6 +15,8 @@ export function EventDetails() {
   const [direction, setDirection] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
 
+  const { events } = useEventStore();
+
   // Fix hydration by only rendering random particles on client
   useEffect(() => {
     setIsMounted(true);
@@ -26,7 +28,7 @@ export function EventDetails() {
 
     const interval = setInterval(() => {
       setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % Events.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length);
     }, 4000);
 
     return () => clearInterval(interval);
@@ -38,7 +40,7 @@ export function EventDetails() {
     if (!titleText || !titleText.textContent) return;
 
     const chars = titleText.textContent.split('');
-    titleText.innerHTML = chars.map(char => 
+    titleText.innerHTML = chars.map(char =>
       `<span class="inline-block">${char === ' ' ? '&nbsp;' : char}</span>`
     ).join('');
 
@@ -59,14 +61,14 @@ export function EventDetails() {
     const tl = gsap.timeline();
 
     // Image entrance with 3D effect
-    tl.fromTo('.event-image', 
-      { 
+    tl.fromTo('.event-image',
+      {
         scale: 0.8,
         rotateY: direction > 0 ? 30 : -30,
         opacity: 0,
         filter: 'blur(10px)'
-      }, 
-      { 
+      },
+      {
         scale: 1,
         rotateY: 0,
         opacity: 1,
@@ -78,12 +80,12 @@ export function EventDetails() {
 
     // Card container with slide effect
     tl.fromTo('.event-card-container',
-      { 
+      {
         x: direction > 0 ? 100 : -100,
         opacity: 0,
         rotateY: direction > 0 ? 10 : -10
       },
-      { 
+      {
         x: 0,
         opacity: 1,
         rotateY: 0,
@@ -107,12 +109,12 @@ export function EventDetails() {
 
     // Button with bounce
     tl.fromTo('.event-button',
-      { 
+      {
         scale: 0,
         rotation: -180,
         opacity: 0
       },
-      { 
+      {
         scale: 1,
         rotation: 0,
         opacity: 1,
@@ -123,7 +125,7 @@ export function EventDetails() {
     );
   }, [currentIndex]);
 
-  const totalEvents = Events.length;
+  const totalEvents = events.length;
 
   const goToSlide = (index: number) => {
     const newIndex = (index + totalEvents) % totalEvents;
@@ -131,7 +133,7 @@ export function EventDetails() {
     setCurrentIndex(newIndex);
   };
 
-  const currentEvent = Events[currentIndex];
+  const currentEvent = events[currentIndex];
 
   // Category color mapping
   const categoryColors: { [key: string]: string } = {
@@ -145,7 +147,7 @@ export function EventDetails() {
     <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-8 sm:py-10 lg:py-10 overflow-hidden'>
       <div ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Animated Title */}
-        <h2 
+        <h2
           ref={titleRef}
           className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[var(--primary-dark-purple)] text-center mb-8 sm:mb-10 lg:mb-12 overflow-hidden"
         >
@@ -153,14 +155,14 @@ export function EventDetails() {
         </h2>
 
         {/* Event Carousel */}
-        <div 
+        <div
           className="relative max-w-5xl mx-auto"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           style={{ perspective: '1000px' }}
         >
           {/* Left Arrow with hover effect */}
-          <button 
+          <button
             className="absolute left-0 sm:left-2 lg:-left-16 top-1/2 -translate-y-1/2 -translate-x-0 sm:-translate-x-2 lg:-translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:-translate-x-20"
             onClick={() => goToSlide(currentIndex - 1)}
             aria-label="Previous event"
@@ -173,15 +175,15 @@ export function EventDetails() {
             <div className="bg-[var(--white)] rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border-2 sm:border-4 border-[var(--primary-purple)] overflow-hidden relative group transform transition-transform duration-300 hover:scale-[1.02]">
               {/* Image with parallax effect on hover */}
               <div className="overflow-hidden relative h-[250px] sm:h-[350px] lg:h-[400px]">
-                <Image 
-                  src={currentEvent.imageUrl} 
+                <Image
+                  src={currentEvent.imageUrl}
                   alt={currentEvent.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
                   className="event-image object-cover transition-transform duration-700 group-hover:scale-110"
                   priority
                 />
-                
+
                 {/* Gradient overlay for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/80 via-[var(--black)]/30 to-transparent"></div>
 
@@ -250,7 +252,7 @@ export function EventDetails() {
           </div>
 
           {/* Right Arrow */}
-          <button 
+          <button
             className="absolute right-0 sm:right-2 lg:-right-16 top-1/2 -translate-y-1/2 translate-x-0 sm:translate-x-2 lg:translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:translate-x-20"
             onClick={() => goToSlide(currentIndex + 1)}
             aria-label="Next event"
@@ -261,15 +263,14 @@ export function EventDetails() {
 
         {/* Animated Carousel Dots */}
         <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10 lg:mt-12">
-          {Events.map((_, index) => (
+          {events.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${
-                index === currentIndex 
-                  ? 'bg-[var(--primary-purple)] w-8 sm:w-10 lg:w-12 shadow-lg shadow-[var(--primary-purple)]/50' 
-                  : 'bg-[var(--secondary-light-lavender)] hover:bg-[var(--primary-purple)] w-2 sm:w-3 hover:w-4 sm:hover:w-6'
-              }`}
+              className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${index === currentIndex
+                ? 'bg-[var(--primary-purple)] w-8 sm:w-10 lg:w-12 shadow-lg shadow-[var(--primary-purple)]/50'
+                : 'bg-[var(--secondary-light-lavender)] hover:bg-[var(--primary-purple)] w-2 sm:w-3 hover:w-4 sm:hover:w-6'
+                }`}
               aria-label={`Go to event ${index + 1}`}
             />
           ))}

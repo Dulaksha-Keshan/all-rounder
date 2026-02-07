@@ -2,7 +2,29 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Event } from '@/app/_type/type';
+export type OrganizerType = "School" | "Organization";
+
+export interface Event {
+    id: number;
+    title: string;
+    description: string;
+    fullDescription?: string;
+    date: string;
+    deadline?: string;
+    location: string;
+    imageUrl: string;
+    categories?: string[];
+    status?: "Registered" | "Open";
+    requirements?: string[];
+    prizes?: string[];
+    contactEmail?: string;
+    time?: string;
+    organizerId: string;
+    organizerType: OrganizerType;
+    isMajor?: boolean;
+}
+
+import { Events } from '@/app/events/_data/events';
 
 interface EventState {
     events: Event[];
@@ -17,12 +39,13 @@ interface EventState {
     deleteEvent: (id: number) => void;
     setActiveEvent: (event: Event | null) => void;
     rsvpEvent: (eventId: number) => void;
+    getEventById: (id: number) => Event | undefined;
 }
 
 export const useEventStore = create<EventState>()(
     persist(
-        (set) => ({
-            events: [],
+        (set, get) => ({
+            events: Events, // Initialize with static data
             activeEvent: null,
             isLoading: false,
             error: null,
@@ -57,6 +80,10 @@ export const useEventStore = create<EventState>()(
                     return e;
                 })
             })),
+
+            getEventById: (id: number) => {
+                return get().events.find(e => e.id === id);
+            },
         }),
         {
             name: 'event-storage',
