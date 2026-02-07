@@ -126,11 +126,11 @@ app.use('/api/users',
     on: {
       proxyReq: (proxyReq, req: Request) => {
         if (req.user) {
-          proxyReq.setHeader('X-User-Id', req.user.uid);
-          proxyReq.setHeader('X-User-Role', req.user.role);
-          proxyReq.setHeader('X-User-Email', req.user.email);
+          proxyReq.setHeader('x-user-id', req.user.uid);
+          proxyReq.setHeader('x-user-role', req.user.role);
+          proxyReq.setHeader('x-user-email', req.user.email);
           if (req.user.schoolId) {
-            proxyReq.setHeader('X-School-Id', req.user.schoolId)
+            proxyReq.setHeader('x-school-id', req.user.schoolId)
           }
 
         }

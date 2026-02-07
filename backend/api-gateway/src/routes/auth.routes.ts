@@ -208,8 +208,8 @@ router.get('/me', async (req: Request, res: Response) => {
   try {
     const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/${req.user!.uid}`, {
       headers: {
-        "X-User-Id": req.user!.uid,
-        "X-User-Role": req.user!.role
+        "x-user-id": req.user!.uid,
+        "x-user-role": req.user!.role
       }
     });
 
