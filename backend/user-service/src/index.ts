@@ -15,11 +15,22 @@ const app = express();
 app.use(express.json());
 
 
+app.use((req, res, next) => {
+  console.log(`📨 [User Service] Received: ${req.method} ${req.url}`);
+  console.log(`   Headers: uid=${req.headers['x-user-uid']}, type=${req.headers['x-user-type']}`);
+  next();
+});
+
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP', service: 'User Service' });
+});
+
 app.use("/api/users", userRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/organizations", organizationRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

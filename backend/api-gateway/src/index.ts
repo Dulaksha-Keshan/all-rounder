@@ -7,6 +7,8 @@ import { getFirebaseAdmin } from './config/firebase-admin.js';
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { verifyToken } from "./middleware/auth.middleware.js";
 import authRoutes from "./routes/auth.routes.js"
+
+
 const app = express();
 
 dotenv.config();
@@ -27,6 +29,7 @@ try {
 
 //setting cors and helmet for express app
 app.use(helmet());
+app.use(express.json())
 app.use(cors({
   origin: process.env.CORS_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -41,6 +44,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   next()
 });
+
 //global request rate limitter 
 
 const globalLimitter = rateLimit({
@@ -64,6 +68,7 @@ app.get("/health", (req: Request, res: Response) => {
     }
   })
 });
+
 
 app.get("/health/services", async (req: Request, res: Response) => {
   const services = {
@@ -97,12 +102,12 @@ app.use('/api/auth', authRoutes);
 
 
 //Public routes such  public viewing such as donations page as well will have a puclic route for content service 
-app.use('api/users/public',
+app.use('/api/users/public',
   createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-      '^/api/users/public': '/api/users/public'
+      '^/api/users/public': '/api/users/'
     },
     on: {
       error: (err, req, res) => {
@@ -121,18 +126,22 @@ app.use('api/users/public',
 app.use('/api/users',
   verifyToken,
   createProxyMiddleware({
-    target: process.env.USER_SERVICE_URL,
+    target: "http://localhost:3001",
     changeOrigin: true,
+    pathRewrite: {
+      '^/': '/api/users/'
+    },
     on: {
       proxyReq: (proxyReq, req: Request) => {
+        console.log(`[Proxy] Forwarding 1 to: ${req.url}`);
         if (req.user) {
-          proxyReq.setHeader('x-user-id', req.user.uid);
-          proxyReq.setHeader('x-user-role', req.user.role);
+          console.log(`[Proxy] Forwarding to: ${req.url}`);
+          proxyReq.setHeader('x-User-uid', req.user.uid);
+          proxyReq.setHeader('x-User-type', req.user.role);
           proxyReq.setHeader('x-user-email', req.user.email);
           if (req.user.schoolId) {
             proxyReq.setHeader('x-school-id', req.user.schoolId)
           }
-
         }
       },
       error: (err, req, res) => {
