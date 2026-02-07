@@ -6,9 +6,11 @@ import { Schools } from "@/app/_data/data";
 import { School } from "@/app/_type/type";
 
 export default function EditSchoolPage() {
-  const { schoolId } = useParams();
+  // ✅ typed params (important)
+  const { schoolId } = useParams<{ schoolId: string }>();
   const router = useRouter();
 
+  // ✅ static data lookup (same as friend)
   const school: School | undefined = Schools.find(
     (s) => s.id === schoolId
   );
@@ -17,21 +19,21 @@ export default function EditSchoolPage() {
     return <p className="p-6 text-gray-500">School not found</p>;
   }
 
-  // ✅ Controlled state (IMPORTANT)
+  // ✅ controlled state
   const [name, setName] = useState(school.name);
   const [location, setLocation] = useState(school.location);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // 🚧 MOCK SAVE (replace with API later)
+    // 🚧 mock save (backend later)
     console.log("Saving school:", {
       id: schoolId,
       name,
       location,
     });
 
-    // ✅ Redirect back to school profile
+    // ✅ redirect back
     router.push(`/user/school/${schoolId}`);
   }
 

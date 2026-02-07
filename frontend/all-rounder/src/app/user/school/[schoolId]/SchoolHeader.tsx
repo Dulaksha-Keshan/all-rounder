@@ -47,3 +47,4 @@ export default function SchoolHeader({ school }: { school: School }) {
     </div>
   );
 }
+
