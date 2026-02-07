@@ -1,16 +1,18 @@
+
 "use client";
 
 import { useParams } from "next/navigation";
-import { Organizations } from "@/app/_data/data";
+//import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { Organization } from "@/app/_type/type";
-import Footer from "@/app/_components/Footer";
-
 import OrganizationHeader from "./OrganizationHeader";
 import OrganizationTabs from "./OrganizationTabs";
+import Footer from "@/layout/Footer";
+import { Organizations } from "@/app/_data/data";
 
 export default function OrganizationProfilePage() {
-  const { organizationId } = useParams();
+  const { organizationId } = useParams<{ organizationId: string }>();
 
+  // ✅ EXACT SAME AS FRIEND
   const organization: Organization | undefined = Organizations.find(
     (o) => o.id === organizationId
   );
@@ -32,7 +34,6 @@ export default function OrganizationProfilePage() {
         <OrganizationHeader organization={organization} />
         <OrganizationTabs organization={organization} />
       </div>
-      {/* FOOTER */}
       <Footer />
     </div>
   );

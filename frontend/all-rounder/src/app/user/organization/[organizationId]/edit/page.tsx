@@ -2,11 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Organizations } from "@/app/_data/data";
+import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { Organization } from "@/app/_type/type";
+import { Organizations } from "@/app/_data/data";
 
 export default function EditOrganizationPage() {
-  const { organizationId } = useParams();
+  const { organizationId } = useParams<{ organizationId: string }>();
   const router = useRouter();
 
   const organization: Organization | undefined = Organizations.find(
@@ -20,9 +21,12 @@ export default function EditOrganizationPage() {
   const [name, setName] = useState(organization.name);
   const [location, setLocation] = useState(organization.location);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("Saving organization", { name, location });
+
+    // TEMP: just log / later sync to store or API
+    console.log("Updated:", { name, location });
+
     router.push(`/user/organization/${organizationId}`);
   }
 
@@ -43,8 +47,7 @@ export default function EditOrganizationPage() {
               className="mt-1 w-full rounded-lg border px-4 py-2 text-sm"
             />
           </div>
-
-          <div>
+           <div>
             <label className="text-sm text-gray-500">Location</label>
             <input
               value={location}

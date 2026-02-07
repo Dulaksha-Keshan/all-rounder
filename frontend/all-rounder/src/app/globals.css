@@ -28,6 +28,45 @@ body {
   --secondary-purple-light: #CEB0E8;
   --contact-bg: #F8F8FF;
 
+  /* Rich Text Editor Custom Styles */
+  .rich-text-editor .ql-container {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    font-size: 0.875rem;
+    /* text-sm */
+    font-family: inherit;
+  }
+
+  .rich-text-editor .ql-toolbar {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    border-color: #e5e7eb;
+    background-color: #f9fafb;
+  }
+
+  .rich-text-editor .ql-container.ql-snow {
+    border-color: #e5e7eb;
+  }
+
+  .rich-text-editor .ql-editor {
+    min-height: 100px;
+  }
+
+  .rich-text-editor .ql-editor.ql-blank::before {
+    color: #9ca3af;
+    font-style: normal;
+  }
+
+  .rich-text-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+  }
+
+  .rich-text-content ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+  }
+
   /* Accent Colors */
   --accent-purple-text: #505485;
   --accent-purple-darker: #6a6dad;
@@ -58,33 +97,53 @@ body {
 
 /* Dark Mode Variables */
 .dark {
+  /* Keep branding colors but ensure they work well on dark */
   --primary-dark-purple: #34365C;
   --primary-purple: #8387CC;
   --primary-blue: #4169E1;
 
   --secondary-light-lavender: #DCD0FF;
-  --secondary-pale-lavender: #F8F8FF;
-  --secondary-purple-100: #e9d5ff;
-  --secondary-purple-light: #CEB0E8;
-  --contact-bg: #111827;
+  --secondary-pale-lavender: #1F2937;
+  /* Was F8F8FF (white-ish), now Gray-800 for contrast areas */
+  --secondary-purple-100: #3730a3;
+  /* Was e9d5ff (light), now dark indigo */
+  --secondary-purple-light: #6366f1;
+  /* Was CEB0E8, now indigo-500 */
+  --contact-bg: #1F2937;
+  /* Gray-800 */
 
   --accent-purple-text: #E0E7FF;
   --accent-purple-darker: #C7D2FE;
 
-  --white: #111827;
-  /* Dark background color for cards/elements that were white */
-  --black: #F9FAFB;
-  --gray-50: #1F2937;
-  --gray-100: #374151;
-  --gray-200: #4B5563;
-  --gray-300: #6B7280;
-  --gray-600: #E5E7EB;
-  --gray-700: #F9FAFB;
+  --white: #1F2937;
+  /* Gray-800 - Cards/Containers */
+  --black: #F3F4F6;
+  /* Gray-100 - Main Text */
 
-  --page-bg: #0F172A;
-  --card-bg: #1E293B;
-  --text-main: #FFFFFF;
-  --text-muted: #D1D5DB;
+  /* Grays adapted for dark mode */
+  --gray-50: #111827;
+  /* Gray-900 */
+  --gray-100: #1F2937;
+  /* Gray-800 */
+  --gray-200: #374151;
+  /* Gray-700 */
+  --gray-300: #4B5563;
+  /* Gray-600 */
+  --gray-600: #D1D5DB;
+  /* Gray-300 (Text) */
+  --gray-700: #E5E7EB;
+  /* Gray-200 (Text) */
+
+  /* The "Too Dark" fix - Using a rich deep purple/slate instead of pure black/slate-900 */
+  --page-bg: #0F121F;
+  /* A rich dark midnight blue/purple - lighter/richer than pure black */
+  --card-bg: #1A1D2E;
+  /* Slightly lighter version for cards */
+
+  --text-main: #F3F4F6;
+  /* Gray-100 */
+  --text-muted: #9CA3AF;
+  /* Gray-400 */
 }
 
 /* Utility Classes for Quick Use */
@@ -106,6 +165,11 @@ body {
 
 .text-primary-dark {
   color: var(--primary-dark-purple);
+}
+
+/* Fix for invisible text in dark mode: Override text-primary-dark to be light when in .dark */
+.dark .text-primary-dark {
+  color: var(--secondary-light-lavender);
 }
 
 .text-primary-purple {

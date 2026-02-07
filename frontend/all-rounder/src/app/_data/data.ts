@@ -22,14 +22,14 @@ export const Organizations: Organization[] = [
 
 // Mock student data
 export const Students: Student[] = [
-  { 
-    id: 1, 
-    name: "Aanya Perera", 
-    email: "aanya@example.com", 
-    photoUrl: "/images/Dashboard/profile.png", 
-    age: 11, 
+  {
+    id: 1,
+    name: "Aanya Perera",
+    email: "aanya@example.com",
+    photoUrl: "/icons/Avatar.png",
+    age: 11,
     schoolId: "1",  // ← Changed
-    sex: "FEMALE", 
+    sex: "FEMALE",
     profile: {
       bio: "Hello, I'm Anshan Handgun Creative Graphic Designer & User Experience Designer based in Website, I create digital Products a more Beautiful and usable place. Morbid accusant ipsum. Nam nec tellus at.",
       phone: "(+94) 77 178 4997",
@@ -68,11 +68,11 @@ export const Students: Student[] = [
 
 // Teachers
 export const Teachers: Teacher[] = [
-  { 
-    id: 1, 
-    name: "Mr. Fernando", 
-    email: "fernando@example.com", 
-    photoUrl: "/images/Dashboard/profile.png", 
+  {
+    id: 1,
+    name: "Mr. Fernando",
+    email: "fernando@example.com",
+    photoUrl: "/icons/Avatar.png",
     schoolId: "1",  // ← Changed
     sex: "MALE",
     profile: {

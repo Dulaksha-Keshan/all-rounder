@@ -7,17 +7,25 @@ import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
 import GoBackButton from '@/components/GoBackButton';
 import { useHomeStore } from '@/context/useHomeStore';
+import { useUserStore } from '@/context/useUserStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
 
 interface StudentProfileProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string; }>;
 }
 
 export default function StudentProfile({ params }: StudentProfileProps) {
   const { id } = use(params);
+
+  // Helper function for consistent date formatting
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   // Find the student by ID
   const student = Students.find(s => s.id === Number(id));
@@ -35,12 +43,27 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const loggedInUserType = "student"; // Replace with actual auth
 
   // Check if viewing own profile
+  // Check if viewing own profile
   const isOwnProfile = loggedInUserId === student.id && loggedInUserType === "student";
+
+  const { currentUser, updateProfile } = useUserStore();
 
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [studentData, setStudentData] = useState(student);
-  const [editData, setEditData] = useState({ ...student });
+
+  // Use persistent currentUser if it's the logged-in user, otherwise use static data
+  const initialData = (isOwnProfile && currentUser) ? (currentUser as typeof student) : student;
+  const [studentData, setStudentData] = useState(initialData);
+  const [editData, setEditData] = useState({ ...initialData });
+
+  // Sync effect: invalidates local state if store updates elsewhere (optional but good)
+  // useEffect(() => {
+  //   if (isOwnProfile && currentUser) {
+  //      setStudentData(currentUser as typeof student);
+  //   }
+  // }, [currentUser, isOwnProfile]);
+
+
   const { drafts, deleteDraft, likePost, commentPost } = useHomeStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
@@ -55,7 +78,12 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   }) || [];
 
   const handleSave = () => {
-    setStudentData(editData);
+    if (isOwnProfile) {
+      // Persist to store
+      updateProfile(editData);
+      // Local update for immediate feedback
+      setStudentData(editData);
+    }
     setIsEditing(false);
     alert('Changes saved successfully!');
   };
@@ -65,34 +93,68 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     setIsEditing(false);
   };
 
+  const {
+    following,
+    followRequests,
+    sentRequests,
+    followUser,
+    unfollowUser,
+    sendFollowRequest,
+    cancelFollowRequest
+  } = useUserStore();
+
+  const isFollowing = following.includes(student.id);
+  const isRequested = sentRequests.includes(student.id);
+
+  const handleFollowAction = () => {
+    if (isFollowing) {
+      unfollowUser(student.id);
+    } else if (isRequested) {
+      cancelFollowRequest(student.id);
+    } else {
+      // For now, assume public profiles for simplicity, or toggle based on logic
+      followUser(student.id);
+      // If private: sendFollowRequest(student.id);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--page-bg)] p-6 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF] p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-4">
-          <GoBackButton variant="solid" />
-        </div>
+        {/* <GoBackButton /> */}
+
         {/* Header */}
-        <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 mb-6 border border-[var(--gray-200)]">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-6">
-              <NextImage
-                src={studentData.photoUrl}
-                alt={studentData.name}
-                width={96}
-                height={96}
-                className="w-24 h-24 rounded-full object-cover border-4 border-[var(--primary-purple)]/20 shadow-md"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-[var(--text-main)]">{studentData.name}</h1>
-                <p className="text-[var(--text-muted)] mt-1 font-medium">{studentData.email}</p>
-                <p className="text-sm text-[var(--gray-400)] mt-1">{schoolName} • Age {studentData.age}</p>
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6 border border-[#DCD0FF]/50">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 bg-gradient-to-br from-[#8387CC] to-[#4169E1] rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+              {studentData.name.charAt(0)}
+            </div>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-[#34365C] mb-2">
+                {studentData.name}
+              </h1>
+              <p className="text-gray-600 mb-1">{studentData.email}</p>
+              <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
+                <span>{schoolName}</span>
+                <span>•</span>
+                <span>Age {studentData.age}</span>
+              </div>
+
+              {/* Social Stats */}
+              <div className="flex items-center gap-4 text-sm font-medium">
+                <div className="text-[var(--text-main)]">
+                  <span className="font-bold text-[var(--primary-purple)]">120</span> Followers
+                </div>
+                <div className="text-[var(--text-main)]">
+                  <span className="font-bold text-[var(--primary-purple)]">45</span> Following
+                </div>
               </div>
             </div>
 
-            {/* Edit buttons - only show if viewing own profile */}
-            {isOwnProfile && (
-              <div className="flex gap-2">
-                {!isEditing ? (
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              {isOwnProfile ? (
+                !isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
                     className="px-4 py-2 bg-[var(--primary-blue)] text-white rounded-lg hover:shadow-lg transition-all font-bold"
@@ -114,15 +176,27 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                       Cancel
                     </button>
                   </>
-                )}
-              </div>
-            )}
+                )
+              ) : (
+                <button
+                  onClick={handleFollowAction}
+                  className={`px-6 py-2 rounded-lg font-bold transition-all ${isFollowing
+                    ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600 border border-gray-200'
+                    : isRequested
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                      : 'bg-[var(--primary-blue)] text-white hover:shadow-lg'
+                    }`}
+                >
+                  {isFollowing ? 'Unfollow' : isRequested ? 'Requested' : 'Follow'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-[var(--white)] rounded-xl shadow-lg mb-6 border border-[var(--gray-200)]">
-          <div className="flex border-b overflow-x-auto">
+        <div className="bg-white rounded-xl shadow-lg mb-6 border border-[#DCD0FF]/50 overflow-x-auto">
+          <div className="flex">
             {/* Overview tab - always visible */}
             <button
               onClick={() => setActiveTab('overview')}
@@ -182,24 +256,24 @@ export default function StudentProfile({ params }: StudentProfileProps) {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
-                <p className="text-gray-600 text-sm">Events Registered</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+                <p className="text-sm text-gray-600 mb-1">Events Registered</p>
                 <p className="text-3xl font-bold text-[#8387CC]">
                   {studentData.registeredEvents?.length || 0}
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">School</p>
-                <p className="text-lg font-bold text-[#4169E1]">{schoolName}</p>
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+                <p className="text-sm text-gray-600 mb-1">School</p>
+                <p className="text-xl font-bold text-[#34365C]">{schoolName}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">Age</p>
-                <p className="text-3xl font-bold text-green-600">{studentData.age}</p>
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+                <p className="text-sm text-gray-600 mb-1">Age</p>
+                <p className="text-3xl font-bold text-[#8387CC]">{studentData.age}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-[#DCD0FF]/50">
-                <p className="text-gray-600 text-sm">Skills</p>
-                <p className="text-3xl font-bold text-purple-600">
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+                <p className="text-sm text-gray-600 mb-1">Skills</p>
+                <p className="text-3xl font-bold text-[#8387CC]">
                   {studentData.skills?.length || 0}
                 </p>
               </div>
@@ -207,13 +281,13 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
             {/* Skills Display */}
             {studentData.skills && studentData.skills.length > 0 && (
-              <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 border border-[var(--gray-200)]">
-                <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">Skills & Talents</h2>
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+                <h2 className="text-xl font-bold text-[#34365C] mb-4">Skills & Talents</h2>
+                <div className="flex flex-wrap gap-3">
                   {studentData.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-4 py-2 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-white rounded-full text-sm font-bold shadow-md"
+                      className="px-4 py-2 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white rounded-lg text-sm font-medium shadow-md"
                     >
                       {skill.name}
                     </span>
@@ -224,46 +298,48 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
             {/* Registered Events */}
             {registeredEventsWithDetails.length > 0 ? (
-              <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 border border-[var(--gray-200)]">
-                <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">Registered Events</h2>
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+                <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
                 <div className="space-y-3">
                   {registeredEventsWithDetails.map((reg, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-[var(--primary-blue)]/5 rounded-lg border-2 border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
+                      className="p-4 bg-purple-50 rounded-lg border-2 border-[#DCD0FF] hover:border-[#8387CC] transition-colors"
                     >
-                      <div>
-                        <h4 className="font-semibold text-[#34365C]">
-                          {reg.eventDetails?.title || `Event #${reg.eventId}`}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          Registered on {new Date(reg.registeredAt).toLocaleDateString()}
-                        </p>
-                        {reg.eventDetails && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(reg.eventDetails.date).toLocaleDateString()} • {reg.eventDetails.location}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-[#34365C]">
+                            {reg.eventDetails?.title || `Event #${reg.eventId}`}
+                          </h4>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Registered on {formatDate(reg.registeredAt)}
                           </p>
-                        )}
+                          {reg.eventDetails && (
+                            <p className="text-xs text-gray-600 mt-2">
+                              {formatDate(reg.eventDetails.date)} • {reg.eventDetails.location}
+                            </p>
+                          )}
+                        </div>
+                        <button className="text-[#8387CC] hover:text-[#4169E1] font-medium text-sm">
+                          View Details →
+                        </button>
                       </div>
-                      <button className="px-4 py-2 text-[#8387CC] hover:text-[#4169E1] font-medium transition-colors">
-                        View Details →
-                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
-                <h2 className="text-xl font-bold text-[#34365C] mb-4">Registered Events</h2>
-                <p className="text-gray-500 text-center py-8">No events registered yet.</p>
+              <div className="bg-white rounded-xl shadow-lg p-12 border border-[#DCD0FF]/50 text-center">
+                <h2 className="text-xl font-bold text-[#34365C] mb-2">Registered Events</h2>
+                <p className="text-gray-500">No events registered yet.</p>
               </div>
             )}
 
             {/* Bio Section */}
             {studentData.profile?.bio && (
-              <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 border border-[var(--gray-200)]">
-                <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">About</h2>
-                <p className="text-[var(--text-main)] leading-relaxed font-medium">{studentData.profile.bio}</p>
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+                <h2 className="text-xl font-bold text-[#34365C] mb-4">About</h2>
+                <p className="text-gray-700 leading-relaxed">{studentData.profile.bio}</p>
               </div>
             )}
           </div>
@@ -275,7 +351,9 @@ export default function StudentProfile({ params }: StudentProfileProps) {
             <h2 className="text-xl font-bold text-[#34365C] mb-6">Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Full Name
+                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -284,12 +362,14 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
-                  <p className="text-gray-800">{studentData.name}</p>
+                  <p className="text-[var(--text-main)] font-medium">{studentData.name}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">Email</label>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Email
+                </label>
                 {isEditing ? (
                   <input
                     type="email"
@@ -303,7 +383,9 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">Age</label>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Age
+                </label>
                 {isEditing ? (
                   <input
                     type="number"
@@ -317,41 +399,55 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Gender</label>
-                <p className="text-gray-800">{studentData.sex}</p>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Gender
+                </label>
+                <p className="text-[var(--text-main)] font-medium">{studentData.sex}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#34365C] mb-2">School</label>
-                <p className="text-gray-800">{schoolName}</p>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  School
+                </label>
+                <p className="text-[var(--text-main)] font-medium">{schoolName}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Phone</label>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Phone
+                </label>
                 {isEditing ? (
                   <input
-                    type="text"
+                    type="tel"
                     value={editData.profile?.phone || ''}
-                    onChange={(e) => setEditData({
-                      ...editData,
-                      profile: { ...editData.profile, phone: e.target.value } as any
-                    })}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        profile: { ...editData.profile, phone: e.target.value } as any
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
-                  <p className="text-gray-800">{studentData.profile?.phone || 'N/A'}</p>
+                  <p className="text-[var(--text-main)] font-medium">
+                    {studentData.profile?.phone || 'N/A'}
+                  </p>
                 )}
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Address</label>
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Address
+                </label>
                 {isEditing ? (
                   <textarea
                     value={editData.profile?.address || ''}
-                    onChange={(e) => setEditData({
-                      ...editData,
-                      profile: { ...editData.profile, address: e.target.value } as any
-                    })}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        profile: { ...editData.profile, address: e.target.value } as any
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                     rows={3}
                   />
@@ -361,19 +457,25 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">Bio</label>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Bio
+                </label>
                 {isEditing ? (
                   <textarea
                     value={editData.profile?.bio || ''}
-                    onChange={(e) => setEditData({
-                      ...editData,
-                      profile: { ...editData.profile, bio: e.target.value } as any
-                    })}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        profile: { ...editData.profile, bio: e.target.value } as any
+                      })
+                    }
                     className="w-full px-3 py-2 border border-[var(--gray-200)] bg-[var(--white)] text-[var(--text-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)]"
                     rows={4}
                   />
                 ) : (
-                  <p className="text-[var(--text-main)] font-medium">{studentData.profile?.bio || 'N/A'}</p>
+                  <p className="text-[var(--text-main)] font-medium">
+                    {studentData.profile?.bio || 'N/A'}
+                  </p>
                 )}
               </div>
             </div>
@@ -397,7 +499,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                           {reg.eventDetails?.title || `Event #${reg.eventId}`}
                         </h4>
                         <p className="text-xs text-gray-500 mt-1">
-                          Registered: {new Date(reg.registeredAt).toLocaleDateString()}
+                          Registered: {formatDate(reg.registeredAt)}
                         </p>
                       </div>
                       <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
