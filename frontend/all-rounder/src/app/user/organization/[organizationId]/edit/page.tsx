@@ -3,8 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
-import { Organization } from "@/app/_type/type";
-import { Organizations } from "@/app/_data/data";
+
 
 export default function EditOrganizationPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
@@ -22,18 +21,13 @@ export default function EditOrganizationPage() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-<<<<<<< HEAD
 
-    // TEMP: just log / later sync to store or API
-    console.log("Updated:", { name, location });
-
-=======
     // ✅ Save to store
     updateOrganization(organizationId as string, {
       name,
       location,
     });
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
+
     router.push(`/user/organization/${organizationId}`);
   }
 

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSchoolStore } from "@/context/useSchoolStore";
-import { School } from "@/app/_type/type";
+
 
 export default function EditSchoolPage() {
   // ✅ typed params (important)

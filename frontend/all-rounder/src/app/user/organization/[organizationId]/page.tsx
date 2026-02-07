@@ -2,47 +2,29 @@
 "use client";
 
 import { useParams } from "next/navigation";
-<<<<<<< HEAD
-//import { useOrganizationStore } from "@/context/useOrganizationStore";
-import { Organization } from "@/app/_type/type";
-=======
 import { useOrganizationStore } from "@/context/useOrganizationStore";
-import { Organization } from "@/app/_type/type";
-import Footer from "@/layout/Footer";
-
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 import OrganizationHeader from "./OrganizationHeader";
 import OrganizationTabs from "./OrganizationTabs";
 import Footer from "@/layout/Footer";
-import { Organizations } from "@/app/_data/data";
 
 export default function OrganizationProfilePage() {
   const { organizationId } = useParams<{ organizationId: string }>();
-
-<<<<<<< HEAD
-  // ✅ EXACT SAME AS FRIEND
-  const organization: Organization | undefined = Organizations.find(
-    (o) => o.id === organizationId
-  );
-=======
   const { getOrganizationById } = useOrganizationStore();
+
   const organization = getOrganizationById(organizationId as string);
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 
   if (!organization) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#F6F5FF]">
-        <p className="p-6 text-gray-500 flex-grow">
-          Organization not found
-        </p>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF]">
+        <p className="p-6 text-gray-500 flex-grow">Organization not found</p>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="bg-[#F6F5FF] min-h-screen">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF]">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         <OrganizationHeader organization={organization} />
         <OrganizationTabs organization={organization} />
       </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -19,22 +20,26 @@ export default function OrganizationTabs({
 
   return (
     <>
-      <div className="flex gap-6 border-b border-gray-200">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`pb-2 text-sm ${
-              activeTab === tab
-                ? "border-b-2 border-indigo-500 text-indigo-600 font-medium"
-                : "text-gray-500"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Tab Header */}
+      <div className="bg-white rounded-xl shadow-lg border border-[#DCD0FF]/50 overflow-x-auto">
+        <div className="flex">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 font-bold whitespace-nowrap transition-colors ${
+                activeTab === tab
+                  ? "border-b-2 border-[var(--primary-blue)] text-[var(--primary-blue)] bg-[var(--primary-blue)]/5"
+                  : "text-gray-500 hover:text-[#34365C]"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Tab Content */}
       {activeTab === "Overview" && (
         <OrganizationOverviewTab organization={organization} />
       )}

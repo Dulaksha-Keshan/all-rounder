@@ -52,10 +52,12 @@ export default function SchoolTabs({
 }*/
 import { useState } from "react";
 import { School } from "@/app/_type/type";
-
 import SchoolOverviewTab from "./SchoolOverviewTab";
 import SchoolAchievementsTab from "./SchoolAchievementsTab";
 import SchoolEventsTab from "./SchoolEventsTab";
+import { useSchoolStore } from "@/context/useSchoolStore";
+
+
 
 const tabs = ["Overview", "Achievements", "Events"];
 

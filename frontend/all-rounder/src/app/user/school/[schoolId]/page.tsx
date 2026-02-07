@@ -1,14 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { useStudentStore } from "@/context/useStudentStore";
 import { useTeacherStore } from "@/context/useTeacherStore";
-import { School, Student, Teacher } from "@/app/_type/type";
-
 import SchoolHeader from "./SchoolHeader";
 import SchoolTabs from "./SchoolTabs";
+
+
+
 
 export default function SchoolProfilePage() {
   const { schoolId } = useParams<{ schoolId: string }>();
