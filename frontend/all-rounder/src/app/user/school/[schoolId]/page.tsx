@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useParams } from "next/navigation";
@@ -7,12 +9,8 @@ import { useTeacherStore } from "@/context/useTeacherStore";
 import SchoolHeader from "./SchoolHeader";
 import SchoolTabs from "./SchoolTabs";
 
-
-
-
 export default function SchoolProfilePage() {
   const { schoolId } = useParams<{ schoolId: string }>();
-
 
   const { getSchoolById } = useSchoolStore();
   const { students: allStudents } = useStudentStore();
@@ -20,35 +18,20 @@ export default function SchoolProfilePage() {
 
   const school = getSchoolById(schoolId as string);
 
-  const students = allStudents.filter(
-    (s) => s.schoolId === schoolId
-  );
-
-  const teachers = allTeachers.filter(
-    (t) => t.schoolId === schoolId
-  );
-
-
   if (!school) {
     return (
-      <div className="bg-[#F6F5FF] min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF]">
         <p className="text-gray-500">School not found</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#F6F5FF] min-h-screen">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF] p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         <SchoolHeader school={school} />
-        <SchoolTabs
-          school={school}
-          students={students}
-          teachers={teachers}
-        />
+        <SchoolTabs school={school} />
       </div>
     </div>
   );
-
-
 }

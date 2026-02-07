@@ -1,5 +1,4 @@
 
-
 import { Student, Teacher } from "@/app/_type/type";
 
 

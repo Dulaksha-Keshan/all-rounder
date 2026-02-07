@@ -70,28 +70,106 @@ function StatCard({
     </div>
   );
 }*/
+// import { School } from "@/app/_type/type";
+
+// export default function SchoolOverviewTab({
+//   school,
+// }: {
+//   school: School;
+// }) {
+//   return (
+//     <div className="space-y-6 mt-6">
+//       {/* ABOUT */}
+//       <div className="bg-white rounded-xl shadow-sm p-6">
+//         <h2 className="text-lg font-semibold text-gray-900 mb-2">
+//           About School
+//         </h2>
+//         <p className="text-sm text-gray-600">
+//           {school.name} is located in {school.location} and supports
+//           students through the All-Rounder platform.
+//         </p>
+//       </div>
+
+//       {/* STATS (placeholder for now) */}
+//       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+//         <StatCard label="Students" value={0} />
+//         <StatCard label="Teachers" value={0} />
+//         <StatCard label="Events" value={0} />
+//         <StatCard label="Achievements" value={0} />
+//       </div>
+//     </div>
+//   );
+// }
+
+// function StatCard({
+//   label,
+//   value,
+// }: {
+//   label: string;
+//   value: number;
+// }) {
+//   return (
+//     <div className="bg-white rounded-xl border border-indigo-100 shadow-md p-6 text-center">
+//       <p className="text-2xl font-semibold text-indigo-600">{value}</p>
+//       <p className="text-sm text-gray-500 mt-1">{label}</p>
+//     </div>
+//   );
+// }
+
+// import { School } from "@/app/_type/type";
+
+// export default function SchoolOverviewTab({ school }: { school: School }) {
+//   return (
+//     <div className="space-y-6 mt-6">
+//       {/* ABOUT */}
+//       <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+//         <h2 className="text-xl font-bold text-[#34365C] mb-2">
+//           About School
+//         </h2>
+//         <p className="text-sm text-gray-600 leading-relaxed">
+//           {school.name} is located in {school.location} and supports students
+//           through the All-Rounder platform.
+//         </p>
+//       </div>
+
+//       {/* STATS */}
+//       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+//         <StatCard label="Students" value={0} />
+//         <StatCard label="Teachers" value={0} />
+//         <StatCard label="Events" value={0} />
+//         <StatCard label="Achievements" value={0} />
+//       </div>
+//     </div>
+//   );
+// }
+
+// function StatCard({ label, value }: { label: string; value: number }) {
+//   return (
+//     <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+//       <p className="text-3xl font-bold text-[#8387CC]">{value}</p>
+//       <p className="text-sm text-gray-600 mt-1">{label}</p>
+//     </div>
+//   );
+// }
+
 import { School } from "@/app/_type/type";
 
-export default function SchoolOverviewTab({
-  school,
-}: {
-  school: School;
-}) {
+export default function SchoolOverviewTab({ school }: { school: School }) {
   return (
     <div className="space-y-6 mt-6">
-      {/* ABOUT */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">
+      {/* About */}
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+        <h2 className="text-xl font-bold text-[#34365C] mb-2">
           About School
         </h2>
-        <p className="text-sm text-gray-600">
-          {school.name} is located in {school.location} and supports
-          students through the All-Rounder platform.
+        <p className="text-sm text-gray-600 leading-relaxed">
+          {school.name} is located in {school.location} and supports students
+          through the All-Rounder platform.
         </p>
       </div>
 
-      {/* STATS (placeholder for now) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Students" value={0} />
         <StatCard label="Teachers" value={0} />
         <StatCard label="Events" value={0} />
@@ -101,18 +179,11 @@ export default function SchoolOverviewTab({
   );
 }
 
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-white rounded-xl border border-indigo-100 shadow-md p-6 text-center">
-      <p className="text-2xl font-semibold text-indigo-600">{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{label}</p>
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+      <p className="text-3xl font-bold text-[#8387CC]">{value}</p>
+      <p className="text-sm text-gray-600 mt-1">{label}</p>
     </div>
   );
 }
-
