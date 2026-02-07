@@ -13,7 +13,7 @@ export default function FaqSection({
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-6">
+    <div className="bg-[#F3EEFF] rounded-2xl shadow-sm p-6">
       <h3 className="text-3xl font-semibold text-primary-dark mb-4">
         {title}
       </h3>

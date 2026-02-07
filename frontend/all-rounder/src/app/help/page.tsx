@@ -224,7 +224,7 @@ export default function HelpPage() {
         })}
       </div>
       {/* STILL NEED HELP SECTION */}
-<section className="max-w-4xl mx-auto mt-16 rounded-2xl gradient-purple-blue p-8 text-white shadow-lg">
+<section className="max-w-4xl mx-auto mt-16 rounded-2xl bg-[#CEB0E8] p-8 text-white shadow-lg">
   <h2 className="text-5xl font-semibold text-center mb-2">
     Still Need Help?
   </h2>
