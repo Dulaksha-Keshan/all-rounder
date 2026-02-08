@@ -1,4 +1,4 @@
-All-Rounder
+# All-Rounder
 ![Project Status](https://img.shields.io/badge/status-in%20development-blue) ![Tech Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20Node.js-success)
 
 Welcome to the official repository for **All-Rounder**. This project is a web-based platform dedicated to empowering Sri Lankan students by providing a central, verified, and accessible space to showcase their extracurricular achievements. Our mission is to bridge the urban-rural opportunity gap and ensure every student's talent is visible.
@@ -28,3 +28,6 @@ In the current Sri Lankan education system, a student's potential is often judge
 - **🤝 Resource & Donation Requests:** A transparent way for under-resourced schools to request specific items (e.g., sports equipment, lab tools) from donors.
 - **🤖 AI-Powered Tools:** An integrated AI model to help users generate event descriptions and posts in Sinhala, lowering the barrier for non-technical users.
 
+#  All-Rounder Backend System
+
+[Backend System Documentation](./backend/README.md)
