@@ -151,7 +151,7 @@ export default function Navbar({
             <div className="relative h-10 sm:h-12 lg:h-15 w-auto">
               {/* Using a rough aspect ratio based on typical logo dims, but letting css control height */}
               <NextImage
-                src="/logo.png"
+                src="/icons/logo.png"
                 alt="All-Rounder Logo"
                 width={200}
                 height={60}
@@ -230,7 +230,7 @@ export default function Navbar({
               className="p-2 rounded-md hover:bg-[var(--secondary-light-lavender)]"
             >
               <NextImage
-                src={mobileMenuOpen ? "/images/close.jpeg" : "/images/menu.png"}
+                src={mobileMenuOpen ? "/icons/close.jpeg" : "/icons/menu.png"}
                 alt="Menu"
                 width={24}
                 height={24}
