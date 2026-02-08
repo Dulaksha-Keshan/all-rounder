@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (!show2FA) {
       setShow2FA(true);
     } else {
-      router.push("/dashboard");
+      router.push("/home");
     }
   };
 
@@ -163,9 +163,9 @@ export default function LoginPage() {
 
             {/* Forgot Password */}
             <div className="mt-4 text-center">
-              <button className="text-sm text-blue-500 hover:underline">
+              <Link href="/login/forgot-password" className="text-sm text-blue-500 hover:underline">
                 Forgot your password?
-              </button>
+              </Link>
             </div>
 
             {/* Sign Up Links */}
