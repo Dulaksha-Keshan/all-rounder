@@ -1,5 +1,7 @@
+"use client";
+
 import BigCalendar from "./BigCalender";
-import { Events } from "@/app/events/_data/events";
+import { useEventStore } from "@/context/useEventStore";
 
 interface BigCalendarContainerProps {
   schoolId?: string;
@@ -7,16 +9,17 @@ interface BigCalendarContainerProps {
   type?: "School" | "Organization";
 }
 
-const BigCalendarContainer = async ({ 
-  schoolId, 
-  organizerId, 
-  type = "School" 
+const BigCalendarContainer = ({
+  schoolId,
+  organizerId,
+  type = "School"
 }: BigCalendarContainerProps) => {
+  const { events } = useEventStore();
   // Determine which ID to use
   const id = schoolId || organizerId;
-  
+
   // Filter events based on type
-  const filteredEvents = Events.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     if (!id) return false;
     return event.organizerId === id && event.organizerType === type;
   });

@@ -8,7 +8,8 @@ import Table from "@/app/dashboard/_components/Table";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 import GoBackButton from "@/components/GoBackButton";
-import { Students, Schools } from "@/app/_data/data";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
@@ -27,15 +28,18 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
         : 1;
     const search = searchParams.get("search")?.toLowerCase() || "";
 
+    const { students } = useStudentStore();
+    const { getSchoolById } = useSchoolStore();
+
     // Find the school - show 404 if not found
-    const school = Schools.find((s) => s.id === schoolId);
+    const school = getSchoolById(schoolId);
 
     if (!school) {
         notFound();
     }
 
     // ------------- FILTER BY SCHOOL ID -------------
-    let filteredStudents = Students.filter(
+    let filteredStudents = students.filter(
         (student) => student.schoolId === schoolId
     );
 

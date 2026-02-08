@@ -1,42 +1,46 @@
-// app/dashboard/page.tsx
-import { redirect } from "next/navigation";
+"use client";
 
-async function getCurrentUser() {
-  // Example mock – replace with NextAuth / custom auth
-  return {
-    role: "SCHOOL", // ORGANIZATION | SCHOOL | STUDENT | TEACHER
-    orgId: "org_1",
-    schoolId: "school_1",
-    studentId: "student_1",
-    teacherId: "teacher_1",
-  };
-}
+import { useUserStore } from "@/context/useUserStore";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default async function DashboardPage() {
-  const user = await getCurrentUser();
+export default function DashboardPage() {
+    const { userRole, currentUser } = useUserStore();
+    const router = useRouter();
 
-  if (!user) {
-    redirect("/login");
-  }
+    useEffect(() => {
+        // If no user is logged in, redirect to home
+        if (!currentUser) {
+            router.push("/home");
+            return;
+        }
 
-  switch (user.role) {
-    case "ORGANIZATION":
-      if (!user.orgId) redirect("/unauthorized");
-      redirect(`/dashboard/orgs/${user.orgId}`);
+        switch (userRole) {
+            case "Student":
+                // Students might not have a dashboard, send to home or profile
+                router.push("/home");
+                break;
+            case "Teacher":
+                router.push("/home");
+                break;
+            case "School":
+                // Based on structure: /dashboard/schools/[schoolId]
+                router.push(`/dashboard/schools/${currentUser.id}`);
+                break;
+            case "Organization":
+                router.push(`/dashboard/orgs/${currentUser.id}`);
+                break;
+            default:
+                router.push("/home");
+        }
+    }, [userRole, currentUser, router]);
 
-    case "SCHOOL":
-      if (!user.schoolId) redirect("/unauthorized");
-      redirect(`/dashboard/schools/${user.schoolId}`);
-
-    case "STUDENT":
-      if (!user.studentId) redirect("/dashboard/students");
-      redirect(`/dashboard/students/${user.studentId}`);
-
-    case "TEACHER":
-      if (!user.teacherId) redirect("/dashboard/teachers");
-      redirect(`/dashboard/teachers/${user.teacherId}`);
-
-    default:
-      redirect("/unauthorized");
-  }
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-[var(--page-bg)]">
+            <div className="animate-pulse flex flex-col items-center">
+                <div className="h-12 w-12 bg-gray-200 rounded-full mb-4"></div>
+                <div className="h-4 w-48 bg-gray-200 rounded"></div>
+            </div>
+        </div>
+    );
 }

@@ -2,11 +2,13 @@
 
 import { useState, use } from 'react';
 import NextImage from 'next/image';
-import { Teachers, Schools } from '@/app/_data/data';
-import { Events } from '@/app/events/_data/events';
 import { notFound } from 'next/navigation';
+import { useTeacherStore } from '@/context/useTeacherStore';
+import { useSchoolStore } from '@/context/useSchoolStore';
+import { useEventStore } from '@/context/useEventStore';
 import GoBackButton from '@/components/GoBackButton';
 import { useHomeStore } from '@/context/useHomeStore';
+import { useUserStore } from '@/context/useUserStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import ChangePassword from '../../_components/ChangePassword';
@@ -21,15 +23,29 @@ interface TeacherProfileProps {
 export default function TeacherProfile({ params }: TeacherProfileProps) {
   const { id } = use(params);
 
+  // Helper function for consistent date formatting
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Get data from stores
+  const { getTeacherById } = useTeacherStore();
+  const { getSchoolById } = useSchoolStore();
+  const { getEventById } = useEventStore();
+
   // Find the teacher by ID
-  const teacher = Teachers.find(t => t.id === Number(id));
+  const teacher = getTeacherById(Number(id));
 
   if (!teacher) {
     notFound();
   }
 
   // Get school name
-  const school = Schools.find(s => s.id === teacher.schoolId);
+  const school = getSchoolById(teacher.schoolId);
   const schoolName = school?.name || 'Unknown School';
 
   // TODO: Get this from your auth system
@@ -38,19 +54,26 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const loggedInUserType = "teacher"; // Replace with actual auth
 
   // Check if viewing own profile
+  // Check if viewing own profile
   const isOwnProfile = loggedInUserId === teacher.id && loggedInUserType === "teacher";
+
+  const { currentUser, updateProfile } = useUserStore();
 
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [teacherData, setTeacherData] = useState(teacher);
-  const [editData, setEditData] = useState({ ...teacher });
+
+  // Use persistent currentUser if it's the logged-in user, otherwise use static data
+  const initialData = (isOwnProfile && currentUser) ? (currentUser as typeof teacher) : teacher;
+  const [teacherData, setTeacherData] = useState(initialData);
+  const [editData, setEditData] = useState({ ...initialData });
+
   const { drafts, deleteDraft } = useHomeStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
 
   // Get full event details for registered events
   const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
-    const event = Events.find(e => e.id === Number(reg.eventId));
+    const event = getEventById(Number(reg.eventId));
     return {
       ...reg,
       eventDetails: event
@@ -58,7 +81,10 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   }) || [];
 
   const handleSave = () => {
-    setTeacherData(editData);
+    if (isOwnProfile) {
+      updateProfile(editData);
+      setTeacherData(editData);
+    }
     setIsEditing(false);
     alert('Changes saved successfully!');
   };
@@ -68,12 +94,37 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     setIsEditing(false);
   };
 
+  const {
+    following,
+    followRequests,
+    sentRequests,
+    followUser,
+    unfollowUser,
+    sendFollowRequest,
+    cancelFollowRequest
+  } = useUserStore();
+
+  const isFollowing = following.includes(teacher.id);
+  const isRequested = sentRequests.includes(teacher.id);
+
+  const handleFollowAction = () => {
+    if (isFollowing) {
+      unfollowUser(teacher.id);
+    } else if (isRequested) {
+      cancelFollowRequest(teacher.id);
+    } else {
+      // For now, assume public profiles for simplicity, or toggle based on logic
+      followUser(teacher.id);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--page-bg)] p-6 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="mb-4">
           <GoBackButton variant="solid" />
         </div>
+
         {/* Header */}
         <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 mb-6 border border-[var(--gray-200)]">
           <div className="flex justify-between items-start">
@@ -87,13 +138,25 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               />
               <div>
                 <h1 className="text-3xl font-bold text-[var(--text-main)]">{teacherData.name}</h1>
-                <p className="text-[var(--text-muted)] mt-1 font-medium">{teacherData.email}</p>
-                <p className="text-sm text-[var(--gray-400)] mt-1">{schoolName}</p>
+                <div className="mt-1 space-y-1">
+                  <p className="text-[var(--text-muted)] font-medium">{teacherData.email}</p>
+                  <p className="text-sm text-[var(--gray-400)]">{schoolName}</p>
+                </div>
+
+                {/* Social Stats */}
+                <div className="flex items-center gap-4 text-sm font-medium mt-3">
+                  <div className="text-[var(--text-main)]">
+                    <span className="font-bold text-[var(--primary-purple)]">85</span> Followers
+                  </div>
+                  <div className="text-[var(--text-main)]">
+                    <span className="font-bold text-[var(--primary-purple)]">12</span> Following
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Edit buttons - only show if viewing own profile */}
-            {isOwnProfile && (
+            {isOwnProfile ? (
               <div className="flex gap-2">
                 {!isEditing ? (
                   <button
@@ -118,6 +181,20 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                     </button>
                   </>
                 )}
+              </div>
+            ) : (
+              <div className="mt-2">
+                <button
+                  onClick={handleFollowAction}
+                  className={`px-6 py-2 rounded-lg font-bold transition-all ${isFollowing
+                    ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600 border border-gray-200'
+                    : isRequested
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                      : 'bg-[var(--primary-blue)] text-white hover:shadow-lg'
+                    }`}
+                >
+                  {isFollowing ? 'Unfollow' : isRequested ? 'Requested' : 'Follow'}
+                </button>
               </div>
             )}
           </div>
@@ -226,11 +303,11 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                           {reg.eventDetails?.title || `Event #${reg.eventId}`}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          Registered on {new Date(reg.registeredAt).toLocaleDateString()}
+                          Registered on {formatDate(reg.registeredAt)}
                         </p>
                         {reg.eventDetails && (
                           <p className="text-xs text-gray-500 mt-1">
-                            {new Date(reg.eventDetails.date).toLocaleDateString()} • {reg.eventDetails.location}
+                            {formatDate(reg.eventDetails.date)} • {reg.eventDetails.location}
                           </p>
                         )}
                       </div>
@@ -390,7 +467,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                             {reg.eventDetails?.title || `Event #${reg.eventId}`}
                           </h4>
                           <p className="text-xs text-gray-500 mt-1">
-                            Registered: {new Date(reg.registeredAt).toLocaleDateString()}
+                            Registered: {formatDate(reg.registeredAt)}
                           </p>
                         </div>
                         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">

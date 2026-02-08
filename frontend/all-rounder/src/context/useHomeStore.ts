@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PostType } from '../app/home/_components/PostCard';
+import { PostType, Comment } from '../app/home/_components/PostCard';
 import { INITIAL_POSTS } from '../app/home/constants';
 
 interface HomeState {
@@ -18,6 +18,7 @@ interface HomeState {
     saveDraft: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
     deletePost: (id: number) => void;
     deleteDraft: (id: number) => void;
+    editPost: (id: number, newContent: string) => void;
     likePost: (id: number) => void;
     commentPost: (id: number, text: string) => void;
     updateStats: (key: keyof HomeState['stats'], value: number) => void;
@@ -44,11 +45,10 @@ export const useHomeStore = create<HomeState>()(
                     },
                     time: "Just now",
                     content,
-                    likes: 0,
-                    comments: 0,
+                    likes: [],
+                    comments: [],
                     media
                 };
-                // Update stats: contribution + 1
                 return {
                     posts: [newPost, ...state.posts],
                     stats: { ...state.stats, contributions: state.stats.contributions + 1 }
@@ -63,8 +63,8 @@ export const useHomeStore = create<HomeState>()(
                     },
                     time: "Draft",
                     content,
-                    likes: 0,
-                    comments: 0,
+                    likes: [],
+                    comments: [],
                     media
                 };
                 return {
@@ -77,13 +77,30 @@ export const useHomeStore = create<HomeState>()(
             deleteDraft: (id) => set((state) => ({
                 drafts: state.drafts.filter(d => d.id !== id)
             })),
+            editPost: (id, newContent) => set((state) => ({
+                posts: state.posts.map(p =>
+                    p.id === id ? { ...p, content: newContent } : p
+                )
+            })),
             likePost: (id) => set((state) => ({
                 posts: state.posts.map(p => {
                     if (p.id === id) {
+                        const isLiked = p.isLiked;
+                        // Defensive check: ensure likes is an array (handles migration edge cases)
+                        let newLikes = Array.isArray(p.likes) ? [...p.likes] : [];
+
+                        if (isLiked) {
+                            // Remove like (simulated user ID 1)
+                            newLikes = newLikes.filter(l => l.userId !== 1);
+                        } else {
+                            // Add like
+                            newLikes.push({ userId: 1, name: "You" });
+                        }
+
                         return {
                             ...p,
-                            likes: p.isLiked ? p.likes - 1 : p.likes + 1,
-                            isLiked: !p.isLiked
+                            likes: newLikes,
+                            isLiked: !isLiked
                         };
                     }
                     return p;
@@ -92,7 +109,13 @@ export const useHomeStore = create<HomeState>()(
             commentPost: (id, text) => set((state) => ({
                 posts: state.posts.map(p => {
                     if (p.id === id) {
-                        return { ...p, comments: p.comments + 1 };
+                        const newComment: Comment = {
+                            id: Date.now(),
+                            author: { name: "You", role: "Student" },
+                            text: text,
+                            timestamp: "Just now"
+                        };
+                        return { ...p, comments: [...(Array.isArray(p.comments) ? p.comments : []), newComment] };
                     }
                     return p;
                 })
@@ -102,7 +125,7 @@ export const useHomeStore = create<HomeState>()(
             })),
         }),
         {
-            name: 'home-storage', // name of the item in the storage (must be unique)
+            name: 'home-storage-v2', // Versioned to clear old incompatible data
         }
     )
 );

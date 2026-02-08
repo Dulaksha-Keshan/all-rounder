@@ -1,25 +1,29 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Schools, Students, Teachers } from "@/app/_data/data";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useTeacherStore } from "@/context/useTeacherStore";
 import { School, Student, Teacher } from "@/app/_type/type";
 import SchoolHeader from "./SchoolHeader";
 import SchoolTabs from "./SchoolTabs";
-import Footer from "@/app/_components/Footer";
+
 
 
 export default function SchoolProfilePage() {
   const { schoolId } = useParams();
 
-  const school: School | undefined = Schools.find(
-    (s) => s.id === schoolId
-  );
+  const { getSchoolById } = useSchoolStore();
+  const { students: allStudents } = useStudentStore();
+  const { teachers: allTeachers } = useTeacherStore();
 
-  const students: Student[] = Students.filter(
+  const school = getSchoolById(schoolId as string);
+
+  const students = allStudents.filter(
     (s) => s.schoolId === schoolId
   );
 
-  const teachers: Teacher[] = Teachers.filter(
+  const teachers = allTeachers.filter(
     (t) => t.schoolId === schoolId
   );
 
@@ -27,17 +31,17 @@ export default function SchoolProfilePage() {
     return <p className="p-6 text-gray-500">School not found</p>;
   }
 
- return (
-  <div className="bg-[#F6F5FF] min-h-screen">
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-      <SchoolHeader school={school} />
-      <SchoolTabs
-        school={school}
-        students={students}
-        teachers={teachers}
-      />
+  return (
+    <div className="bg-[#F6F5FF] min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        <SchoolHeader school={school} />
+        <SchoolTabs
+          school={school}
+          students={students}
+          teachers={teachers}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
 
 }
