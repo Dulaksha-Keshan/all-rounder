@@ -123,11 +123,11 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        await Verification.create({
-          userId: user.uid,
-          userType: "ADMIN",
-          verificationMethod: "DOCUMENT_AI",
-        });
+        /*       await Verification.create({
+                 userId: user.uid,
+                 userType: "ADMIN",
+                 verificationMethod: "DOCUMENT_AI",
+               }); */
         break;
 
       default:
@@ -288,6 +288,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     const uid = req.headers["x-user-uid"] as string;
     const userType = req.headers["x-user-type"] as string;
 
+
     if (!uid || !userType) {
       res.status(400).json({
         message: "x-user-uid and x-user-type headers are required",
@@ -348,6 +349,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
           where: { uid },
           data: updateData,
         });
+
         break;
 
       case "ADMIN":

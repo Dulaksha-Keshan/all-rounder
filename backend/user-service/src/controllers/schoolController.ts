@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { createUser } from "./userController.js";
 
+import { UserType } from "@prisma/client";
+
 import { prisma } from "../prisma.js";
 
 
@@ -33,7 +35,7 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
     const adminReq = {
       body: {
         ...admin,
-        userType: prisma.UserType.SCHOOL_ADMIN,
+        userType: UserType.SCHOOL_ADMIN,
         school_id: createdSchool.school_id,
       },
     } as Request;
@@ -178,16 +180,16 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
 
 export const getSchoolTeachers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { schoolId } = req.params;
+    const { id } = req.params;
 
-    if (!schoolId) {
+    if (!id) {
       res.status(400).json({ message: "schoolId is required" });
       return;
     }
 
     const teachers = await prisma.teacher.findMany({
       where: {
-        school_id: Number(schoolId),
+        school_id: Number(id),
       },
       select: {
         teacher_id: true,
@@ -212,14 +214,14 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
 
 export const getSchoolStatistics = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { schoolId } = req.params;
+    const { id } = req.params;
 
-    if (!schoolId) {
+    if (!id) {
       res.status(400).json({ message: "schoolId is required" });
       return;
     }
 
-    const id = Number(schoolId);
+    const n_id = Number(id);
 
     const [
       studentCount,
@@ -228,22 +230,22 @@ export const getSchoolStatistics = async (req: Request, res: Response): Promise<
       skillsCount,
     ] = await Promise.all([
       prisma.student.count({
-        where: { school_id: id },
+        where: { school_id: n_id },
       }),
 
       prisma.teacher.count({
-        where: { school_id: id },
+        where: { school_id: n_id },
       }),
 
       prisma.admin.count({
-        where: { school_id: id },
+        where: { school_id: n_id },
       }),
 
       prisma.skill.count({
         where: {
           students: {
             some: {
-              school_id: id,
+              school_id: n_id,
             },
           },
         },
