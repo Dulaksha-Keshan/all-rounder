@@ -1,13 +1,16 @@
-"use client"; 
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Mail, Lock, Calendar, School, Phone } from "lucide-react";
+import { User, Mail, Lock, Calendar, School, Phone, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-
 
 export default function StudentSignup() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: "",
@@ -31,20 +34,33 @@ export default function StudentSignup() {
     teacherName: "",
   });
 
+  const updateField = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Password validation for step 2
+    if (
+      currentStep === 2 &&
+      formData.password &&
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    setPasswordError("");
+
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit form (replace alert with actual submission logic)
+      // Submit form logic
       alert("Student account created! Awaiting teacher verification.");
-      // For Next.js, use router.push if using `useRouter`, or just link manually:
       window.location.href = "/login";
     }
-  };
-
-  const updateField = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
   };
 
   return (
@@ -52,20 +68,18 @@ export default function StudentSignup() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          {/* Sticky Header - same as the login */}       
           <div className="max-w-md mx-auto">
-            {/* Icon */}
             <div className="text-center mb-8">
               <div className="text-6xl mb-4 flex justify-center">
                 <Image
                   src="/icons/logoForPages.png"
                   alt="Login Icon"
                   width={80}
-                  height={80}      
+                  height={80}
                 />
               </div>
             </div>
-          </div> 
+          </div>
           <h1 className="text-[#34365C] mb-2">Student Registration</h1>
           <p className="text-gray-600">Create your talent portfolio account</p>
         </div>
@@ -198,7 +212,7 @@ export default function StudentSignup() {
               </div>
             )}
 
-            {/* Step 2: Academic Information */}
+            {/* Step 2: Academic & Password Information */}
             {currentStep === 2 && (
               <div className="space-y-4">
                 <h3 className="text-[#34365C] mb-4">Academic Information</h3>
@@ -252,24 +266,55 @@ export default function StudentSignup() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={formData.password}
-                        onChange={(e) => updateField("password", e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                        onChange={(e) => {
+                          updateField("password", e.target.value);
+                          if (formData.confirmPassword && e.target.value !== formData.confirmPassword) {
+                            setPasswordError("Passwords do not match");
+                          } else {
+                            setPasswordError("");
+                          }
+                        }}
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm mb-2 text-[#34365C]">Confirm Password *</label>
-                    <input
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => updateField("confirmPassword", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={(e) => {
+                          updateField("confirmPassword", e.target.value);
+                          if (formData.password && e.target.value !== formData.password) {
+                            setPasswordError("Passwords do not match");
+                          } else {
+                            setPasswordError("");
+                          }
+                        }}
+                        className="w-full pr-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
                   </div>
                 </div>
               </div>
@@ -279,7 +324,7 @@ export default function StudentSignup() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <h3 className="text-[#34365C] mb-4">Teacher Verification</h3>
-                
+
                 <div className="p-4 bg-[#F8F8FF] border border-[#DCD0FF] rounded-lg mb-4">
                   <p className="text-sm text-gray-700">
                     To complete your registration, a verified teacher from your school must approve your account.

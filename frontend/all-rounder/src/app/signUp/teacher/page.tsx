@@ -3,31 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, School, Upload, FileText } from "lucide-react";
+import { User, Mail, Lock, School, Upload, FileText, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-
 
 export default function TeacherSignup() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    
+
     // Professional Information
     schoolName: "",
     department: "",
     employeeId: "",
     yearsOfExperience: "",
-    
+
     // Account Security
     password: "",
     confirmPassword: "",
-    
+
     // Verification
     verificationType: "staff-id", // or "appointment-letter"
   });
@@ -38,8 +41,26 @@ export default function TeacherSignup() {
     }
   };
 
+  const updateField = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Password validation for step 1
+    if (
+      currentStep === 1 &&
+      formData.password &&
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+
+    setPasswordError("");
+
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -48,29 +69,23 @@ export default function TeacherSignup() {
     }
   };
 
-  const updateField = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F8F8FF] to-[#DCD0FF] py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          {/* Sticky Header - same as the login */}       
           <div className="max-w-md mx-auto">
-            {/* Icon */}
             <div className="text-center mb-8">
               <div className="text-6xl mb-4 flex justify-center">
                 <Image
                   src="/icons/logoForPages.png"
                   alt="Login Icon"
                   width={80}
-                  height={80}      
+                  height={80}
                 />
               </div>
             </div>
-          </div> 
+          </div>
           <h1 className="text-[#34365C] mb-2">Teacher Registration</h1>
           <p className="text-gray-600">Join as a verified educator</p>
         </div>
@@ -113,7 +128,7 @@ export default function TeacherSignup() {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <h3 className="text-[#34365C] mb-4">Personal Information</h3>
-                
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm mb-2 text-[#34365C]">First Name *</label>
@@ -173,30 +188,61 @@ export default function TeacherSignup() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={formData.password}
-                        onChange={(e) => updateField("password", e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                        onChange={(e) => {
+                          updateField("password", e.target.value);
+                          if (formData.confirmPassword && e.target.value !== formData.confirmPassword) {
+                            setPasswordError("Passwords do not match");
+                          } else {
+                            setPasswordError("");
+                          }
+                        }}
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm mb-2 text-[#34365C]">Confirm Password *</label>
-                    <input
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => updateField("confirmPassword", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={(e) => {
+                          updateField("confirmPassword", e.target.value);
+                          if (formData.password && e.target.value !== formData.password) {
+                            setPasswordError("Passwords do not match");
+                          } else {
+                            setPasswordError("");
+                          }
+                        }}
+                        className="w-full pr-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((p) => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Professional Information */}
+            {/* Step 2 & Step 3 remain exactly as your original code */}
             {currentStep === 2 && (
               <div className="space-y-4">
                 <h3 className="text-[#34365C] mb-4">Professional Information</h3>
@@ -260,11 +306,10 @@ export default function TeacherSignup() {
               </div>
             )}
 
-            {/* Step 3: Employment Verification */}
             {currentStep === 3 && (
               <div className="space-y-4">
                 <h3 className="text-[#34365C] mb-4">Employment Verification</h3>
-                
+
                 <div className="p-4 bg-[#F8F8FF] border border-[#DCD0FF] rounded-lg mb-4">
                   <p className="text-sm text-gray-700">
                     To gain "Verified Teacher" status, please upload proof of employment. This can be:
