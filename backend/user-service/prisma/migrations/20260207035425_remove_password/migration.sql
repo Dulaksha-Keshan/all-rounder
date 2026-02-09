@@ -1,0 +1,16 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `password` on the `Admin` table. All the data in the column will be lost.
+  - You are about to drop the column `password` on the `Student` table. All the data in the column will be lost.
+  - You are about to drop the column `password` on the `Teacher` table. All the data in the column will be lost.
+
+*/
+-- AlterTable
+ALTER TABLE "Admin" DROP COLUMN "password";
+
+-- AlterTable
+ALTER TABLE "Student" DROP COLUMN "password";
+
+-- AlterTable
+ALTER TABLE "Teacher" DROP COLUMN "password";

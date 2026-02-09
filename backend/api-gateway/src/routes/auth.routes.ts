@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role, schoolId, organizationId } = req.body;
+    const { email, password, name, role, schoolId, organizationId, verificationOption, dateOfBirth } = req.body;
 
     if (!email || !password || !name || !role) {
       res.status(400).json({
@@ -49,11 +49,17 @@ router.post('/register', async (req: Request, res: Response) => {
       const userServiceResponse = await axios.post(
         `${process.env.USER_SERVICE_URL}/api/users`,
         {
+          uid: firebaseUser.uid,            // <-- REQUIRED: User Service needs 'uid'
           email,
           name,
-          role,
-          ...(schoolId && { schoolId }),
-          ...(organizationId && { organizationId })
+          date_of_birth: new Date(dateOfBirth),
+          userType: role,                   // <-- MAPPING: 'role' -> 'userType'
+          school_id: parseInt(schoolId),              // <-- MAPPING: 'schoolId' -> 'school_id'
+          organization_id: organizationId,  // <-- MAPPING: 'organizationId' -> 'organization_id'
+
+          // <-- REQUIRED: User Service logic fails if this is missing.
+          // We default to "DOCUMENT" if the frontend didn't send it.
+          verificationOption: verificationOption || "DOCUMENT"
         }
       );
 
@@ -208,8 +214,8 @@ router.get('/me', async (req: Request, res: Response) => {
   try {
     const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/${req.user!.uid}`, {
       headers: {
-        "X-User-Id": req.user!.uid,
-        "X-User-Role": req.user!.role
+        "x-user-id": req.user!.uid,
+        "x-user-role": req.user!.role
       }
     });
 
@@ -223,7 +229,7 @@ router.get('/me', async (req: Request, res: Response) => {
       message: error.message
     })
   }
-})
+});
 
 
 //Logout

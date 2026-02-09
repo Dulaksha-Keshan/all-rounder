@@ -19,14 +19,11 @@ datasource db {
 // ==========================================
 
 model Student {
-  // Independent ID (Primary Key)
-  student_id  Int    @id @default(autoincrement())
-  firebase_id String
+  uid String @id @unique
 
   // Profile Fields (Formerly in User)
   name            String
   email           String   @unique
-  password        String
   date_of_birth   DateTime
   contact_number  String?
   profile_picture String?
@@ -45,21 +42,18 @@ model Student {
 }
 
 model Teacher {
-  // Independent ID (Primary Key)
-  teacher_id  Int    @id @default(autoincrement())
-  firebase_id String
+  uid String @id @unique
 
   // Profile Fields
   name            String
   email           String   @unique
-  password        String
   date_of_birth   DateTime
   contact_number  String?
   profile_picture String?
 
   // Teacher Specifics
-  subject     String
-  designation String
+  subject     String?
+  designation String?
   // staff_id is often used as a visible ID, distinct from the database PK
   staff_id    String?
   created_at  DateTime @default(now())
@@ -71,14 +65,11 @@ model Teacher {
 }
 
 model Admin {
-  // Independent ID (Primary Key)
-  admin_id    Int    @id @default(autoincrement())
-  firebase_id String
+  uid String @id @unique
 
   // Profile Fields
   name            String
   email           String   @unique
-  password        String
   adminType       UserType
   date_of_birth   DateTime
   contact_number  String?

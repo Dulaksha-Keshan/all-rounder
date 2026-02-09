@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const verificationSchema = new mongoose.Schema(
   {
     userId: {
-      type: Number,
+      type: String,
       required: true,
     },
 

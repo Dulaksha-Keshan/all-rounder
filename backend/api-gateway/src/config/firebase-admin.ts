@@ -88,6 +88,7 @@ export const firebaseAuth = {
         emailVerified: false
       })
     } catch (error: any) {
+      console.error("Firebase Raw Error:", error);
       if (error.code === 'auth/email-already-exists') {
         throw new Error('Email already exists');
       }

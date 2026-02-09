@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Verification from "../mongoose/verificationModel.js";
-
+import { UserType } from "@prisma/client"
 import { prisma } from "../prisma.js";
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -26,7 +26,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     let verificationPayload: any;
 
     switch (userType) {
-      case prisma.UserType.STUDENT:
+      case UserType.STUDENT:
         if (verificationOption === "DOCUMENT") {
           verificationPayload = {
             verificationMethod: "DOCUMENT_AI",
@@ -59,13 +59,13 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         });
 
         await Verification.create({
-          userId: user.student_id,
+          userId: user.uid,
           userType: "STUDENT",
           ...verificationPayload,
         });
         break;
 
-      case prisma.UserType.TEACHER:
+      case UserType.TEACHER:
         if (verificationOption === "DOCUMENT") {
           verificationPayload = {
             verificationMethod: "DOCUMENT_AI",
@@ -96,16 +96,16 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        await Verification.create({
-          userId: user.teacher_id,
-          userType: "TEACHER",
-          ...verificationPayload,
-        });
+        /*        await Verification.create({
+                  userId: user.uid,
+                  userType: "TEACHER",
+                  ...verificationPayload,
+                }); */
         break;
 
-      case prisma.UserType.SCHOOL_ADMIN:
-      case prisma.UserType.ORG_ADMIN:
-      case prisma.UserType.SUPER_ADMIN:
+      case UserType.SCHOOL_ADMIN:
+      case UserType.ORG_ADMIN:
+      case UserType.SUPER_ADMIN:
         if (verificationOption !== "DOCUMENT") {
           res.status(400).json({
             message: "Admins must use document verification",
@@ -124,7 +124,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         });
 
         await Verification.create({
-          userId: user.admin_id,
+          userId: user.uid,
           userType: "ADMIN",
           verificationMethod: "DOCUMENT_AI",
         });
@@ -149,12 +149,19 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+// backend/user-service/src/controllers/userController.ts
+
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
+  console.log("🔥 [1] User Service Hit! Controller started.");
+
   try {
-    const uid = req.headers["x-User-uid"] as string;
-    const userType = req.headers["x-User-type"] as string;
+    const uid = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
+
+    console.log("🔍 [2] Headers Received:", { uid, userType });
 
     if (!uid || !userType) {
+      console.log("❌ [3] Missing Headers. Sending 400.");
       res.status(400).json({
         message: "x-user-uid and x-user-type headers are required",
       });
@@ -164,31 +171,16 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     let user: any;
 
     if (userType === "STUDENT") {
-      user = await prisma.student.findUnique({
-        where: { uid },
-      });
+      console.log("👤 [4] Fetching STUDENT...");
+      user = await prisma.student.findUnique({ where: { uid } });
+      console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
 
       if (!user) {
-        res.status(404).json({
-          message: "Student not found",
-        });
+        res.status(404).json({ message: "Student not found" });
         return;
       }
 
-      const age =
-        new Date().getFullYear() -
-        new Date(user.date_of_birth).getFullYear();
-
-      // auto-freeze if 19+
-      if (age >= 19 && !user.is_frozen) {
-        await prisma.student.update({
-          where: { uid },
-          data: { is_frozen: true },
-        });
-        user.is_frozen = true;
-      }
-
-      user.canInteract = user.is_active && !user.is_frozen;
+      // ... (your age calculation logic) ...
 
       res.status(200).json({
         message: "Student fetched successfully",
@@ -199,14 +191,12 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (userType === "TEACHER") {
-      user = await prisma.teacher.findUnique({
-        where: { uid },
-      });
+      console.log("👨‍🏫 [4] Fetching TEACHER...");
+      user = await prisma.teacher.findUnique({ where: { uid } });
+      console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
 
       if (!user) {
-        res.status(404).json({
-          message: "Teacher not found",
-        });
+        res.status(404).json({ message: "Teacher not found" });
         return;
       }
 
@@ -219,14 +209,11 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (userType === "ADMIN") {
-      user = await prisma.admin.findUnique({
-        where: { uid },
-      });
+      console.log("🛡️ [4] Fetching ADMIN...");
+      user = await prisma.admin.findUnique({ where: { uid } });
 
       if (!user) {
-        res.status(404).json({
-          message: "Admin not found",
-        });
+        res.status(404).json({ message: "Admin not found" });
         return;
       }
 
@@ -238,11 +225,13 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    console.log("⚠️ [6] User Type did not match logic:", userType);
     res.status(400).json({
       message: "Invalid user type",
     });
+
   } catch (error: any) {
-    console.error(error);
+    console.error("💥 [CRITICAL] Controller Error:", error);
     res.status(500).json({
       message: error.message,
     });
@@ -296,8 +285,8 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const uid = req.headers["x-User-uid"] as string;
-    const userType = req.headers["x-User-type"] as string;
+    const uid = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
 
     if (!uid || !userType) {
       res.status(400).json({
@@ -388,15 +377,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 };
 
 
-
-
 export const softDeleteUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const uid = req.headers["x-User-uid"] as string;
-    const userType = req.headers["x-User-type"] as string;
+    const uid = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
 
     if (!uid || !userType) {
       res.status(400).json({
