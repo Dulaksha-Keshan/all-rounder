@@ -2,7 +2,8 @@
 
 /* ===== RESET & BASE STYLES ===== */
 /* Prevent white flash during page transitions */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -92,22 +93,18 @@ html, body {
   --grad-primary-start: #8387cc;
   --grad-primary-mid: #6f73c8;
   --grad-primary-end: #4169e1;
-  
+
   /* Card Backgrounds */
   --card-bg-light: #ffffff;
   --card-bg-gradient-light: linear-gradient(to bottom right, #f8f8ff, #e9e5ff, #dcd0ff);
-  
+
   /* Glow Effects */
   --glow-light: rgba(131, 135, 204, 0.2);
 }
 
 /* ===== DARK MODE VARIABLES ===== */
 .dark {
-<<<<<<< HEAD
-  /* Primary Colors (Dark) */
-=======
   /* Keep branding colors but ensure they work well on dark */
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
   --primary-dark-purple: #34365C;
   --primary-purple: #8387CC;
   --primary-blue: #4169E1;
@@ -127,23 +124,6 @@ html, body {
   --accent-purple-text: #E0E7FF;
   --accent-purple-darker: #C7D2FE;
 
-<<<<<<< HEAD
-  /* Neutral Colors (Dark) */
-  --white: #111827;
-  --black: #F9FAFB;
-  --gray-50: #1F2937;
-  --gray-100: #374151;
-  --gray-200: #4B5563;
-  --gray-300: #6B7280;
-  --gray-600: #E5E7EB;
-  --gray-700: #F9FAFB;
-
-  /* Functional Backgrounds (Dark) */
-  --page-bg: #0F172A;
-  --card-bg: #1E293B;
-  --text-main: #FFFFFF;
-  --text-muted: #D1D5DB;
-=======
   --white: #1F2937;
   /* Gray-800 - Cards/Containers */
   --black: #F3F4F6;
@@ -173,30 +153,59 @@ html, body {
   /* Gray-100 */
   --text-muted: #9CA3AF;
   /* Gray-400 */
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 }
 
 /* ===== UTILITY CLASSES ===== */
 /* Background Utilities */
-.bg-primary-dark { background-color: var(--primary-dark-purple); }
-.bg-primary-purple { background-color: var(--primary-purple); }
-.bg-primary-blue { background-color: var(--primary-blue); }
-.bg-secondary-lavender { background-color: var(--secondary-light-lavender); }
-.bg-page-bg { background-color: var(--page-bg); }
-.bg-card { background-color: var(--card-bg); }
+.bg-primary-dark {
+  background-color: var(--primary-dark-purple);
+}
+
+.bg-primary-purple {
+  background-color: var(--primary-purple);
+}
+
+.bg-primary-blue {
+  background-color: var(--primary-blue);
+}
+
+.bg-secondary-lavender {
+  background-color: var(--secondary-light-lavender);
+}
+
+.bg-page-bg {
+  background-color: var(--page-bg);
+}
+
+.bg-card {
+  background-color: var(--card-bg);
+}
 
 /* Text Utilities */
-.text-primary-dark { color: var(--primary-dark-purple); }
-.text-primary-purple { color: var(--primary-purple); }
-.text-accent-purple { color: var(--accent-purple-text); }
-.text-main { color: var(--text-main); }
-.text-muted { color: var(--text-muted); }
-.text-accent { color: var(--accent-purple-text); }
+.text-primary-dark {
+  color: var(--primary-dark-purple);
+}
 
-<<<<<<< HEAD
-/* Border Utilities */
-.border-secondary-lavender { border-color: var(--secondary-light-lavender); }
-=======
+.text-primary-purple {
+  color: var(--primary-purple);
+}
+
+.text-accent-purple {
+  color: var(--accent-purple-text);
+}
+
+.text-main {
+  color: var(--text-main);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-accent {
+  color: var(--accent-purple-text);
+}
+
 .bg-primary-blue {
   background-color: var(--primary-blue);
 }
@@ -225,7 +234,6 @@ html, body {
 .border-secondary-lavender {
   border-color: var(--secondary-light-lavender);
 }
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 
 /* Gradient Utilities */
 .gradient-purple-blue {
@@ -249,8 +257,13 @@ html, body {
 }
 
 /* Card Styles */
-.bg-card { background: var(--card-bg-light); }
-.bg-card-gradient-light { background: var(--card-bg-gradient-light); }
+.bg-card {
+  background: var(--card-bg-light);
+}
+
+.bg-card-gradient-light {
+  background: var(--card-bg-gradient-light);
+}
 
 /* ===== INTERACTIVE STATES ===== */
 /* Hover Transitions */
@@ -276,11 +289,25 @@ html, body {
 }
 
 /* ===== DARK MODE OVERRIDES ===== */
-.dark .bg-page-bg { background-color: var(--page-bg); }
-.dark .bg-card { background-color: var(--card-bg); }
-.dark .text-main { color: var(--text-main); }
-.dark .text-muted { color: var(--text-muted); }
-.dark .text-accent { color: var(--accent-purple-text); }
+.dark .bg-page-bg {
+  background-color: var(--page-bg);
+}
+
+.dark .bg-card {
+  background-color: var(--card-bg);
+}
+
+.dark .text-main {
+  color: var(--text-main);
+}
+
+.dark .text-muted {
+  color: var(--text-muted);
+}
+
+.dark .text-accent {
+  color: var(--accent-purple-text);
+}
 
 /* Navbar-specific dark mode improvements */
 .dark .hover\:bg-\[\#DCD0FF\]:hover {
