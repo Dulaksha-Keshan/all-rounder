@@ -8,7 +8,8 @@ import Table from "@/app/dashboard/_components/Table";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 import GoBackButton from "@/components/GoBackButton";
-import { Teachers, Schools } from "@/app/_data/data";
+import { useTeacherStore } from "@/context/useTeacherStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
 import { Teacher } from "@/app/_type/type";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -28,15 +29,18 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
         : 1;
     const search = searchParams.get("search")?.toLowerCase() || "";
 
+    const { teachers } = useTeacherStore();
+    const { getSchoolById } = useSchoolStore();
+
     // Find the school - show 404 if not found
-    const school = Schools.find((s) => s.id === schoolId);
+    const school = getSchoolById(schoolId);
 
     if (!school) {
         notFound();
     }
 
     // ------------- FILTER BY SCHOOL ID -------------
-    let filteredTeachers = Teachers.filter(
+    let filteredTeachers = teachers.filter(
         (teacher) => teacher.schoolId === schoolId
     );
 

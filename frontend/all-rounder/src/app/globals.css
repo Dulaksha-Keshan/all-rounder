@@ -1,20 +1,14 @@
 @import "tailwindcss";
 
+/* ===== RESET & BASE STYLES ===== */
 /* Prevent white flash during page transitions */
-html {
+html, body {
   margin: 0;
   padding: 0;
   height: 100%;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  /* background-color: #34365C; Add this */
-}
-
-/* Root Color Variables */
+/* ===== COLOR VARIABLES ===== */
 :root {
   /* Primary Colors */
   --primary-dark-purple: #34365C;
@@ -27,6 +21,45 @@ body {
   --secondary-purple-100: #e9d5ff;
   --secondary-purple-light: #CEB0E8;
   --contact-bg: #F8F8FF;
+
+  /* Rich Text Editor Custom Styles */
+  .rich-text-editor .ql-container {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    font-size: 0.875rem;
+    /* text-sm */
+    font-family: inherit;
+  }
+
+  .rich-text-editor .ql-toolbar {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    border-color: #e5e7eb;
+    background-color: #f9fafb;
+  }
+
+  .rich-text-editor .ql-container.ql-snow {
+    border-color: #e5e7eb;
+  }
+
+  .rich-text-editor .ql-editor {
+    min-height: 100px;
+  }
+
+  .rich-text-editor .ql-editor.ql-blank::before {
+    color: #9ca3af;
+    font-style: normal;
+  }
+
+  .rich-text-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+  }
+
+  .rich-text-content ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+  }
 
   /* Accent Colors */
   --accent-purple-text: #505485;
@@ -54,25 +87,49 @@ body {
   --green-500: #10B981;
   --purple-500: #A855F7;
   --pink-50: #FDF2F8;
+
+  /* Gradient Colors */
+  --grad-primary-start: #8387cc;
+  --grad-primary-mid: #6f73c8;
+  --grad-primary-end: #4169e1;
+  
+  /* Card Backgrounds */
+  --card-bg-light: #ffffff;
+  --card-bg-gradient-light: linear-gradient(to bottom right, #f8f8ff, #e9e5ff, #dcd0ff);
+  
+  /* Glow Effects */
+  --glow-light: rgba(131, 135, 204, 0.2);
 }
 
-/* Dark Mode Variables */
+/* ===== DARK MODE VARIABLES ===== */
 .dark {
+<<<<<<< HEAD
+  /* Primary Colors (Dark) */
+=======
+  /* Keep branding colors but ensure they work well on dark */
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
   --primary-dark-purple: #34365C;
   --primary-purple: #8387CC;
   --primary-blue: #4169E1;
 
+  /* Secondary Colors (Dark) */
   --secondary-light-lavender: #DCD0FF;
-  --secondary-pale-lavender: #F8F8FF;
-  --secondary-purple-100: #e9d5ff;
-  --secondary-purple-light: #CEB0E8;
-  --contact-bg: #111827;
+  --secondary-pale-lavender: #1F2937;
+  /* Was F8F8FF (white-ish), now Gray-800 for contrast areas */
+  --secondary-purple-100: #3730a3;
+  /* Was e9d5ff (light), now dark indigo */
+  --secondary-purple-light: #6366f1;
+  /* Was CEB0E8, now indigo-500 */
+  --contact-bg: #1F2937;
+  /* Gray-800 */
 
+  /* Accent Colors (Dark) */
   --accent-purple-text: #E0E7FF;
   --accent-purple-darker: #C7D2FE;
 
+<<<<<<< HEAD
+  /* Neutral Colors (Dark) */
   --white: #111827;
-  /* Dark background color for cards/elements that were white */
   --black: #F9FAFB;
   --gray-50: #1F2937;
   --gray-100: #374151;
@@ -81,21 +138,65 @@ body {
   --gray-600: #E5E7EB;
   --gray-700: #F9FAFB;
 
+  /* Functional Backgrounds (Dark) */
   --page-bg: #0F172A;
   --card-bg: #1E293B;
   --text-main: #FFFFFF;
   --text-muted: #D1D5DB;
+=======
+  --white: #1F2937;
+  /* Gray-800 - Cards/Containers */
+  --black: #F3F4F6;
+  /* Gray-100 - Main Text */
+
+  /* Grays adapted for dark mode */
+  --gray-50: #111827;
+  /* Gray-900 */
+  --gray-100: #1F2937;
+  /* Gray-800 */
+  --gray-200: #374151;
+  /* Gray-700 */
+  --gray-300: #4B5563;
+  /* Gray-600 */
+  --gray-600: #D1D5DB;
+  /* Gray-300 (Text) */
+  --gray-700: #E5E7EB;
+  /* Gray-200 (Text) */
+
+  /* The "Too Dark" fix - Using a rich deep purple/slate instead of pure black/slate-900 */
+  --page-bg: #0F121F;
+  /* A rich dark midnight blue/purple - lighter/richer than pure black */
+  --card-bg: #1A1D2E;
+  /* Slightly lighter version for cards */
+
+  --text-main: #F3F4F6;
+  /* Gray-100 */
+  --text-muted: #9CA3AF;
+  /* Gray-400 */
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 }
 
-/* Utility Classes for Quick Use */
-.bg-primary-dark {
-  background-color: var(--primary-dark-purple);
-}
+/* ===== UTILITY CLASSES ===== */
+/* Background Utilities */
+.bg-primary-dark { background-color: var(--primary-dark-purple); }
+.bg-primary-purple { background-color: var(--primary-purple); }
+.bg-primary-blue { background-color: var(--primary-blue); }
+.bg-secondary-lavender { background-color: var(--secondary-light-lavender); }
+.bg-page-bg { background-color: var(--page-bg); }
+.bg-card { background-color: var(--card-bg); }
 
-.bg-primary-purple {
-  background-color: var(--primary-purple);
-}
+/* Text Utilities */
+.text-primary-dark { color: var(--primary-dark-purple); }
+.text-primary-purple { color: var(--primary-purple); }
+.text-accent-purple { color: var(--accent-purple-text); }
+.text-main { color: var(--text-main); }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--accent-purple-text); }
 
+<<<<<<< HEAD
+/* Border Utilities */
+.border-secondary-lavender { border-color: var(--secondary-light-lavender); }
+=======
 .bg-primary-blue {
   background-color: var(--primary-blue);
 }
@@ -106,6 +207,11 @@ body {
 
 .text-primary-dark {
   color: var(--primary-dark-purple);
+}
+
+/* Fix for invisible text in dark mode: Override text-primary-dark to be light when in .dark */
+.dark .text-primary-dark {
+  color: var(--secondary-light-lavender);
 }
 
 .text-primary-purple {
@@ -119,6 +225,7 @@ body {
 .border-secondary-lavender {
   border-color: var(--secondary-light-lavender);
 }
+>>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 
 /* Gradient Utilities */
 .gradient-purple-blue {
@@ -127,4 +234,86 @@ body {
 
 .gradient-lavender-pale {
   background: linear-gradient(to bottom right, var(--secondary-light-lavender), var(--secondary-pale-lavender));
+}
+
+.bg-primary-gradient {
+  background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+}
+
+.bg-card-gradient {
+  background: linear-gradient(135deg, var(--secondary-light-lavender), var(--primary-purple));
+}
+
+.bg-primary-gradient-linear {
+  background: linear-gradient(to right, var(--grad-primary-start), var(--grad-primary-mid), var(--grad-primary-end));
+}
+
+/* Card Styles */
+.bg-card { background: var(--card-bg-light); }
+.bg-card-gradient-light { background: var(--card-bg-gradient-light); }
+
+/* ===== INTERACTIVE STATES ===== */
+/* Hover Transitions */
+.hover-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Button Hover States */
+.btn-hover {
+  transition: background-color 0.2s ease;
+}
+
+.btn-hover:hover {
+  background-color: var(--hover-bg, rgba(220, 208, 255, 0.2));
+}
+
+.text-hover:hover {
+  color: var(--hover-color, var(--primary-purple));
+}
+
+.bg-primary-gradient-hover:hover {
+  background: linear-gradient(to right, var(--grad-primary-mid), var(--grad-primary-end), var(--grad-primary-start));
+}
+
+/* ===== DARK MODE OVERRIDES ===== */
+.dark .bg-page-bg { background-color: var(--page-bg); }
+.dark .bg-card { background-color: var(--card-bg); }
+.dark .text-main { color: var(--text-main); }
+.dark .text-muted { color: var(--text-muted); }
+.dark .text-accent { color: var(--accent-purple-text); }
+
+/* Navbar-specific dark mode improvements */
+.dark .hover\:bg-\[\#DCD0FF\]:hover {
+  background-color: var(--secondary-light-lavender);
+  opacity: 0.2;
+}
+
+.dark .hover\:bg-purple-900:hover {
+  background-color: rgba(76, 29, 149, 0.2);
+}
+
+
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure all transitions are smooth */
+html {
+  transition: background-color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease;
+}
+
+/* Improve dark mode gradients */
+.dark .bg-gradient-to-br {
+  transition: background-image 0.3s ease;
+}
+
+/* Smooth theme switching */
+.dark .transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }

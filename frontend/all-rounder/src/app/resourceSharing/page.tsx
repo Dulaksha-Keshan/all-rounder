@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Package,
   Search,
@@ -10,6 +10,9 @@ import {
   Clock,
   CheckCircle,
   Bell,
+  Sparkles,
+  TrendingUp,
+  Gift,
 } from "lucide-react";
 
 export default function ResourceSharing() {
@@ -17,6 +20,26 @@ export default function ResourceSharing() {
     "requests" | "myRequests" | "donations"
   >("requests");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check if dark mode is enabled
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+
+    // Observe class changes on html element
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const resourceRequests = [
     {
@@ -92,129 +115,161 @@ export default function ResourceSharing() {
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case "high":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
       case "medium":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
       case "low":
-        return "bg-green-100 text-green-700";
+        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300";
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F8FF] py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="relative min-h-screen overflow-hidden bg-page-bg transition-colors duration-300">
+      {/* Decorative Background */}
+      <div className={`absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-[#8387CC]/30 to-[#4169E1]/30 ${isDarkMode ? 'dark:opacity-20' : ''} blur-3xl rounded-full transition-opacity duration-300`} />
+      <div className={`absolute top-1/3 -right-40 w-96 h-96 bg-gradient-to-br from-[#DCD0FF]/40 to-[#8387CC]/30 ${isDarkMode ? 'dark:opacity-20' : ''} blur-3xl rounded-full transition-opacity duration-300`} />
+
+      <div className="relative max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-[#34365C] mb-2 text-3xl font-semibold">
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#8387CC]/20 to-[#4169E1]/20 dark:from-[#8387CC]/10 dark:to-[#4169E1]/10 text-[#4169E1] dark:text-[#8387CC] mb-4 transition-colors duration-300">
+            <Sparkles className="w-4 h-4" />
+            Community Resource Sharing
+          </div>
+          <h1 className="text-4xl font-bold text-main mb-2 transition-colors duration-300">
             Resource Sharing Hub
           </h1>
-          <p className="text-gray-600">
-            Connect schools with donors to fulfill resource needs
+          <p className="text-muted max-w-2xl transition-colors duration-300">
+            Connect schools with donors to fulfill resource needs with transparent, impact-driven sharing
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {["requests", "myRequests", "donations"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as any)}
-              className={`px-6 py-3 rounded-lg transition ${
-                activeTab === tab
-                  ? "bg-[#8387CC] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {tab === "requests"
-                ? "Resource Requests"
-                : tab === "myRequests"
-                ? "My Requests"
-                : "My Donations"}
-            </button>
-          ))}
+        {/* Tabs with gradient */}
+        <div className="flex gap-3 mb-10 flex-wrap">
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+              activeTab === "requests"
+                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
+                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
+            }`}
+          >
+            Resource Requests
+          </button>
+          <button
+            onClick={() => setActiveTab("myRequests")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+              activeTab === "myRequests"
+                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
+                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
+            }`}
+          >
+            My Requests
+          </button>
+          <button
+            onClick={() => setActiveTab("donations")}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+              activeTab === "donations"
+                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
+                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
+            }`}
+          >
+            My Donations
+          </button>
+
+          <button className="ml-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg hover:scale-[1.02] transition-transform duration-300 flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            New Request
+          </button>
         </div>
 
-        {/* Search */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        {/* Search & Filters */}
+        <div className="bg-card dark:bg-card rounded-2xl shadow-lg p-6 mb-8 transition-colors duration-300">
           <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[250px] relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search resource requests..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#8387CC]"
-              />
+            <div className="flex-1 min-w-[250px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted transition-colors duration-300" />
+                <input
+                  type="text"
+                  placeholder="Search resource requests..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300"
+                />
+              </div>
             </div>
-            <button className="px-6 py-2 bg-[#4169E1] text-white rounded-lg hover:bg-[#3557c1] flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              New Request
-            </button>
+            <select className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300">
+              <option>All Categories</option>
+              <option>Sports Equipment</option>
+              <option>Art Materials</option>
+              <option>Books</option>
+              <option>Technology</option>
+              <option>Musical Instruments</option>
+            </select>
+            <select className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300">
+              <option>All Urgency Levels</option>
+              <option>High Priority</option>
+              <option>Medium Priority</option>
+              <option>Low Priority</option>
+            </select>
           </div>
         </div>
 
-        {/* Requests */}
+        {/* Resource Requests Tab */}
         {activeTab === "requests" && (
           <div className="grid lg:grid-cols-2 gap-6">
             {resourceRequests.map((request) => (
-              <div
-                key={request.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
-              >
-                <div className="flex justify-between mb-4">
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 bg-[#DCD0FF] rounded-lg flex items-center justify-center">
-                      <Package className="w-6 h-6 text-[#8387CC]" />
-                    </div>
-                    <div>
-                      <h3 className="text-[#34365C] font-medium">
-                        {request.item}
-                      </h3>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <School className="w-4 h-4" />
-                        {request.school}
+              <div key={request.id} className="group relative bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] dark:from-card dark:via-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#8387CC]/10 to-[#4169E1]/10 dark:from-[#8387CC]/5 dark:to-[#4169E1]/5" />
+                
+                <div className="relative p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#DCD0FF] to-[#8387CC] dark:from-[#505485] dark:to-[#34365C] flex items-center justify-center flex-shrink-0 shadow-md">
+                        <Package className="w-6 h-6 text-white transition-colors duration-300" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-main mb-1 transition-colors duration-300">{request.item}</h3>
+                        <div className="flex items-center gap-2 text-sm text-muted transition-colors duration-300">
+                          <School className="w-4 h-4" />
+                          {request.school}
+                        </div>
                       </div>
                     </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getUrgencyColor(request.urgency)} transition-colors duration-300`}>
+                      {request.urgency} Priority
+                    </span>
                   </div>
-                  <span
-                    className={`flex items-center px-3 py-3 rounded-full text-xs capitalize ${getUrgencyColor(
-                      request.urgency
-                    )}`}
-                  >
-                    {request.urgency} Priority
-                  </span>
-                </div>
 
-                <p className="text-sm text-gray-700 mb-4">
-                  {request.description}
-                </p>
+                  <p className="text-sm text-muted mb-4 transition-colors duration-300">{request.description}</p>
 
-                <div className="flex gap-4 text-sm text-gray-600 mb-4">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {request.location}
+                  <div className="flex items-center gap-4 text-sm mb-4">
+                    <div className="flex items-center gap-1 text-muted transition-colors duration-300">
+                      <MapPin className="w-4 h-4" />
+                      {request.location}
+                    </div>
+                    <div className="flex items-center gap-1 text-muted transition-colors duration-300">
+                      <Package className="w-4 h-4" />
+                      {request.quantity}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Package className="w-4 h-4" />
-                    {request.quantity}
-                  </div>
-                </div>
 
-                <div className="flex justify-between border-t pt-4">
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="w-4 h-4" />
-                    Deadline: {request.deadline}
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-[#F8F8FF] rounded-lg text-sm">
-                      Details
-                    </button>
-                    <button className="px-4 py-2 bg-[#4169E1] text-white rounded-lg text-sm">
-                      Contribute
-                    </button>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-1 text-xs text-muted transition-colors duration-300">
+                      <Clock className="w-4 h-4" />
+                      Deadline: {request.deadline}
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="px-4 py-2 bg-[#F8F8FF] dark:bg-gray-100/10 text-main rounded-lg hover:bg-[#DCD0FF] dark:hover:bg-[#505485]/30 transition-all duration-300 text-sm">
+                        Details
+                      </button>
+                      <button className="px-4 py-2 bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white rounded-lg hover:scale-[1.05] transition-all duration-300 text-sm">
+                        Contribute
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -222,41 +277,89 @@ export default function ResourceSharing() {
           </div>
         )}
 
-        {/* Donations */}
+        {/* My Requests Tab */}
+        {activeTab === "myRequests" && (
+          <div className="bg-card dark:bg-card rounded-2xl shadow-lg p-8 transition-colors duration-300">
+            <div className="text-center py-12">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#DCD0FF] to-[#8387CC] dark:from-[#505485] dark:to-[#34365C] flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Gift className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-main mb-2 transition-colors duration-300">No Active Requests</h3>
+              <p className="text-muted mb-6 transition-colors duration-300">You haven't created any resource requests yet</p>
+              <button className="px-6 py-3 bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white rounded-lg hover:scale-[1.05] transition-transform duration-300 flex items-center gap-2 mx-auto">
+                <Plus className="w-5 h-5" />
+                Create Your First Request
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* My Donations Tab */}
         {activeTab === "donations" && (
           <div className="space-y-4">
             {myDonations.map((donation) => (
-              <div
-                key={donation.id}
-                className="bg-white rounded-lg shadow-md p-6 flex justify-between"
-              >
-                <div className="flex gap-4">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+              <div key={donation.id} className="group bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] dark:from-card dark:via-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
+                      donation.status === "Delivered" 
+                        ? "bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30" 
+                        : "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30"
+                    }`}>
+                      <CheckCircle className={`w-6 h-6 ${
+                        donation.status === "Delivered" 
+                          ? "text-green-600 dark:text-green-400" 
+                          : "text-blue-600 dark:text-blue-400"
+                      }`} />
+                    </div>
+                    <div>
+                      <h4 className="text-main font-medium transition-colors duration-300">{donation.item}</h4>
+                      <p className="text-sm text-muted transition-colors duration-300">To: {donation.recipient}</p>
+                      <p className="text-xs text-muted mt-1 transition-colors duration-300">{donation.date}</p>
+                    </div>
+                  </div>
                   <div>
-                    <h4 className="text-[#34365C]">{donation.item}</h4>
-                    <p className="text-sm text-gray-600">
-                      To: {donation.recipient}
-                    </p>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      donation.status === "Delivered" 
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" 
+                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                    } transition-colors duration-300`}>
+                      {donation.status}
+                    </span>
                   </div>
                 </div>
-                <span className="text-sm">{donation.status}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Notification */}
-        <div className="mt-8 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white rounded-lg p-6">
-          <div className="flex gap-4">
-            <Bell className="w-6 h-6" />
+        {/* Notification Banner with gradient */}
+        <div className="mt-8 bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] rounded-2xl shadow-xl p-8 transition-all duration-300">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center flex-shrink-0">
+              <Bell className="w-6 h-6 text-white" />
+            </div>
             <div>
-              <h4 className="font-semibold">Enable Notifications</h4>
-              <p className="text-sm text-[#DCD0FF] mb-4">
-                Get notified when new requests match your interests
+              <h4 className="mb-2 text-white font-semibold">Enable Notifications</h4>
+              <p className="text-sm text-[#DCD0FF] dark:text-[#8387CC]/90 mb-6 transition-colors duration-300">
+                Get automatic notifications when new resource requests match your interests
               </p>
-              <button className="px-6 py-2 bg-white text-[#34365C] rounded-lg">
+              <button className="px-6 py-3 bg-white dark:bg-gray-100 text-[#34365C] dark:text-[#34365C] rounded-lg hover:bg-[#DCD0FF] dark:hover:bg-[#8387CC]/20 transition-all duration-300 text-sm font-medium shadow-md">
                 Enable Notifications
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Banner */}
+        <div className="mt-8 bg-gradient-to-br from-[#F8F8FF] to-[#EEF0FF] dark:from-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg p-6 transition-colors duration-300">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="w-6 h-6 text-[#4169E1] dark:text-[#8387CC] transition-colors duration-300" />
+            <div>
+              <h4 className="text-main font-medium transition-colors duration-300">Recent Impact</h4>
+              <p className="text-sm text-muted transition-colors duration-300">
+                127 resources shared this month • 45 schools supported
+              </p>
             </div>
           </div>
         </div>

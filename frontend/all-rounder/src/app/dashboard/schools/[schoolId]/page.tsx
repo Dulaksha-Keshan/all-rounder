@@ -1,6 +1,9 @@
 
-import { Students, Teachers, Schools } from "@/app/_data/data";
-import { Events } from "@/app/events/_data/events";
+"use client";
+
+import { use } from "react";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import { useEventStore } from "@/context/useEventStore";
 import UserCard from "@/app/dashboard/_components/UserCard";
 import CountChartContainer from "@/app/dashboard/_components/CountChartContainer";
 import BigCalendarContainer from "@/app/dashboard/_components/BigCalendarContainer";
@@ -16,11 +19,13 @@ interface SchoolDashboardProps {
   }>;
 }
 
-export default async function SchoolDashboard({ params }: SchoolDashboardProps) {
-  const { schoolId } = await params;
+export default function SchoolDashboard({ params }: SchoolDashboardProps) {
+  const { schoolId } = use(params);
+  const { getSchoolById } = useSchoolStore();
+  const { events } = useEventStore();
 
   // Find the school to get its name
-  const school = Schools.find((s) => s.id === schoolId);
+  const school = getSchoolById(schoolId);
 
   // If school not found, show 404
   if (!school) {
@@ -28,9 +33,7 @@ export default async function SchoolDashboard({ params }: SchoolDashboardProps) 
   }
 
   // Filter data by schoolId
-  const schoolStudents = Students.filter((s) => s.schoolId === schoolId);
-  const schoolTeachers = Teachers.filter((t) => t.schoolId === schoolId);
-  const schoolEvents = Events.filter(
+  const schoolEvents = events.filter(
     (e) => e.organizerId === schoolId && e.organizerType === "School"
   );
 

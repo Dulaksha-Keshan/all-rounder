@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
+import Link from "next/link";
 
 
 export default function LoginPage() {
@@ -29,7 +28,7 @@ export default function LoginPage() {
     if (!show2FA) {
       setShow2FA(true);
     } else {
-      router.push("/dashboard");
+      router.push("/home");
     }
   };
 
@@ -44,11 +43,6 @@ export default function LoginPage() {
   
   return (
     <>
-      {/* Sticky Header */}
-      {/* <div className="sticky top-0 z-50 bg-[var(--white)]">
-        <Navbar/>
-      </div> */}
-  
       <div className="min-h-screen bg-gradient-to-br from-gray-100 to-purple-100 py-12 px-4">
         <div className="max-w-md mx-auto">
           {/* Header */}
@@ -71,30 +65,6 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-
-              
-              {/* User Type Selection
-              <div>
-                <label className="block text-sm mb-2 text-gray-800">
-                  I am a:
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {userTypes.map((type) => (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setUserType(type.value)}
-                      className={`px-4 py-2 rounded-lg transition ${
-                        userType === type.value
-                          ? `${type.color} text-white`
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
-              </div> */}
 
               {/* Email */}
               <div>
@@ -193,47 +163,19 @@ export default function LoginPage() {
 
             {/* Forgot Password */}
             <div className="mt-4 text-center">
-              <button className="text-sm text-blue-500 hover:underline">
+              <Link href="/login/forgot-password" className="text-sm text-blue-500 hover:underline">
                 Forgot your password?
-              </button>
+              </Link>
             </div>
 
             {/* Sign Up Links */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center mb-3">
-                Don't have an account? <button className="text-sm text-blue-500 hover:underline">
+                Don't have an account? {" "} 
+                <Link href="/signUp" className="text-blue-600 hover:underline">
                 Sign Up
-              </button>
+                </Link>
               </p>
-
-            
-              {/* <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/signup/student"
-                  className="text-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm"
-                >
-                  Student Signup
-                </Link>
-                <Link
-                  href="/signup/teacher"
-                  className="text-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm"
-                >
-                  Teacher Signup
-                </Link>
-                <Link
-                  href="/signup/school"
-                  className="text-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm"
-                >
-                  School Signup
-                </Link>
-                <Link
-                  href="/signup/organization"
-                  className="text-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition text-sm"
-                >
-                  Organization Signup
-                </Link>
-              </div> */}
-
             </div>
           </div>
         </div>

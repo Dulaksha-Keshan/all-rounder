@@ -2,16 +2,15 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Schools } from "@/app/_data/data";
+import { useSchoolStore } from "@/context/useSchoolStore";
 import { School } from "@/app/_type/type";
 
 export default function EditSchoolPage() {
   const { schoolId } = useParams();
   const router = useRouter();
 
-  const school: School | undefined = Schools.find(
-    (s) => s.id === schoolId
-  );
+  const { getSchoolById, updateSchool } = useSchoolStore();
+  const school = getSchoolById(schoolId as string);
 
   if (!school) {
     return <p className="p-6 text-gray-500">School not found</p>;
@@ -24,9 +23,8 @@ export default function EditSchoolPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // 🚧 MOCK SAVE (replace with API later)
-    console.log("Saving school:", {
-      id: schoolId,
+    // ✅ Save to store
+    updateSchool(schoolId as string, {
       name,
       location,
     });

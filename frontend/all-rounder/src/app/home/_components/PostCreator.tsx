@@ -4,6 +4,7 @@ import { Image as ImageIcon, FileText, Video, Send, X } from "lucide-react";
 import Image from "next/image";
 import { useState, useRef } from "react";
 import { useHomeStore } from "@/context/useHomeStore";
+import RichTextEditor from "./RichTextEditor";
 
 interface PostCreatorProps {
     onCreatePost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
@@ -59,12 +60,10 @@ export default function PostCreator({ onCreatePost, userImage }: PostCreatorProp
                 </div>
                 <div className="flex-1">
                     <div className="mb-3">
-                        <textarea
+                        <RichTextEditor
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={setContent}
                             placeholder="Start a post, share your achievements..."
-                            className="w-full bg-[var(--gray-50)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-purple)]/20 resize-none"
-                            rows={2}
                         />
                     </div>
 

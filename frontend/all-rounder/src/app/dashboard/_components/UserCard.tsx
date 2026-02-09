@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
-import { Students, Teachers } from "@/app/_data/data";
+import { useStudentStore } from "@/context/useStudentStore";
+import { useTeacherStore } from "@/context/useTeacherStore";
 
 interface UserCardProps {
   type: "teacher" | "student";
@@ -8,19 +9,21 @@ interface UserCardProps {
 }
 
 const UserCard = ({ type, schoolId }: UserCardProps) => {
+  const { students } = useStudentStore();
+  const { teachers } = useTeacherStore();
   // Count users based on type and schoolId
   let count = 0;
-  
+
   if (type === "student") {
     count = schoolId
-      ? Students.filter((s) => s.schoolId === schoolId).length  // ← Changed
-      : Students.length;
+      ? students.filter((s) => s.schoolId === schoolId).length  // ← Changed
+      : students.length;
   }
-  
+
   if (type === "teacher") {
     count = schoolId
-      ? Teachers.filter((t) => t.schoolId === schoolId).length  // ← Changed
-      : Teachers.length;
+      ? teachers.filter((t) => t.schoolId === schoolId).length  // ← Changed
+      : teachers.length;
   }
 
   // Card background

@@ -2,16 +2,15 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Organizations } from "@/app/_data/data";
+import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { Organization } from "@/app/_type/type";
 
 export default function EditOrganizationPage() {
   const { organizationId } = useParams();
   const router = useRouter();
 
-  const organization: Organization | undefined = Organizations.find(
-    (o) => o.id === organizationId
-  );
+  const { getOrganizationById, updateOrganization } = useOrganizationStore();
+  const organization = getOrganizationById(organizationId as string);
 
   if (!organization) {
     return <p className="p-6 text-gray-500">Organization not found</p>;
@@ -22,7 +21,11 @@ export default function EditOrganizationPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Saving organization", { name, location });
+    // ✅ Save to store
+    updateOrganization(organizationId as string, {
+      name,
+      location,
+    });
     router.push(`/user/organization/${organizationId}`);
   }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { Eye, Trophy, Calendar, Heart } from "lucide-react";
+import { Eye, Trophy, Calendar, Heart, Users, UserPlus } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useUserStore } from "@/context/useUserStore";
 import gsap from "gsap";
 
 interface HomeStatsProps {
@@ -16,13 +17,22 @@ interface HomeStatsProps {
 export default function HomeStats({ stats }: HomeStatsProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const { followers, following } = useUserStore();
+
     const statItems = [
         {
-            label: "Profile Views",
-            value: stats.views.toLocaleString(),
-            icon: Eye,
-            color: "bg-blue-500/10 text-blue-500",
+            label: "Followers",
+            value: followers.length.toString(),
+            icon: Users,
+            color: "bg-purple-100 text-purple-600",
             trend: "up"
+        },
+        {
+            label: "Following",
+            value: following.length.toString(),
+            icon: UserPlus,
+            color: "bg-blue-100 text-blue-600",
+            trend: "neutral"
         },
         {
             label: "Achievements",
@@ -64,7 +74,7 @@ export default function HomeStats({ stats }: HomeStatsProps) {
     }, []);
 
     return (
-        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             {statItems.map((stat, index) => (
                 <div
                     key={index}

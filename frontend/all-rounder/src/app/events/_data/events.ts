@@ -1,4 +1,4 @@
-import { Event } from "@/app/_type/type"
+import { Event } from "@/context/useEventStore"
 
 export const Events: Event[] = [
   {
