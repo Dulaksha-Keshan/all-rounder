@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Teachers } from '@/app/_data/data';
 import { Teacher } from '@/app/_type/type';
+import api from '@/lib/axios';
 
 interface TeacherState {
     teachers: Teacher[];
@@ -30,12 +31,10 @@ export const useTeacherStore = create<TeacherState>()(
             fetchTeachers: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/teachers');
-                    if (!response.ok) throw new Error('Failed to fetch teachers');
-                    const data = await response.json();
-                    set({ teachers: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/teachers');
+                    set({ teachers: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch teachers' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -44,19 +43,12 @@ export const useTeacherStore = create<TeacherState>()(
             addTeacher: async (teacher) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/teachers', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(teacher)
-                    });
-                    if (!response.ok) throw new Error('Failed to add teacher');
-                    const newTeacher = await response.json();
-
+                    const response = await api.post('/teachers', teacher);
                     set((state) => ({
-                        teachers: [...state.teachers, newTeacher]
+                        teachers: [...state.teachers, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add teacher' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -65,21 +57,16 @@ export const useTeacherStore = create<TeacherState>()(
             updateTeacher: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/teachers/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update teacher');
-                    const updated = await response.json();
+                    const response = await api.put(`/teachers/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         teachers: state.teachers.map(t =>
                             t.id === id ? { ...t, ...updated } : t
                         )
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update teacher' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -88,14 +75,13 @@ export const useTeacherStore = create<TeacherState>()(
             deleteTeacher: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/teachers/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete teacher');
+                    await api.delete(`/teachers/${id}`);
 
                     set((state) => ({
                         teachers: state.teachers.filter(t => t.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete teacher' });
                 } finally {
                     set({ isLoading: false });
                 }

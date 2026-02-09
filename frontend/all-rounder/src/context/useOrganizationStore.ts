@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Organization } from '@/app/_type/type';
 import { Organizations } from '@/app/_data/data';
+import api from '@/lib/axios';
 
 interface OrganizationState {
     organizations: Organization[];
@@ -36,12 +37,10 @@ export const useOrganizationStore = create<OrganizationState>()(
             fetchOrganizations: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/organizations');
-                    if (!response.ok) throw new Error('Failed to fetch organizations');
-                    const data = await response.json();
-                    set({ organizations: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/organizations');
+                    set({ organizations: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch organizations' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -50,19 +49,12 @@ export const useOrganizationStore = create<OrganizationState>()(
             addOrganization: async (org) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/organizations', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(org)
-                    });
-                    if (!response.ok) throw new Error('Failed to add organization');
-                    const newOrg = await response.json();
-
+                    const response = await api.post('/organizations', org);
                     set((state) => ({
-                        organizations: [...state.organizations, newOrg]
+                        organizations: [...state.organizations, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add organization' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -71,13 +63,8 @@ export const useOrganizationStore = create<OrganizationState>()(
             updateOrganization: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/organizations/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update organization');
-                    const updated = await response.json();
+                    const response = await api.put(`/organizations/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         organizations: state.organizations.map(o =>
@@ -87,8 +74,8 @@ export const useOrganizationStore = create<OrganizationState>()(
                             ? { ...state.activeOrganization, ...updated }
                             : state.activeOrganization
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update organization' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -97,15 +84,14 @@ export const useOrganizationStore = create<OrganizationState>()(
             deleteOrganization: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/organizations/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete organization');
+                    await api.delete(`/organizations/${id}`);
 
                     set((state) => ({
                         organizations: state.organizations.filter(o => o.id !== id),
                         activeOrganization: state.activeOrganization?.id === id ? null : state.activeOrganization
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete organization' });
                 } finally {
                     set({ isLoading: false });
                 }

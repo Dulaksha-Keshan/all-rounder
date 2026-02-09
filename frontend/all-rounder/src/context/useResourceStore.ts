@@ -3,6 +3,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import api from '@/lib/axios';
+
 export interface Resource {
     id: string;
     title: string;
@@ -47,12 +49,10 @@ export const useResourceStore = create<ResourceState>()(
             fetchResources: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/resources');
-                    if (!response.ok) throw new Error('Failed to fetch resources');
-                    const data = await response.json();
-                    set({ resources: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/resources');
+                    set({ resources: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch resources' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -61,19 +61,12 @@ export const useResourceStore = create<ResourceState>()(
             uploadResource: async (resourceData) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/resources', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(resourceData)
-                    });
-                    if (!response.ok) throw new Error('Failed to upload resource');
-                    const newResource = await response.json();
-
+                    const response = await api.post('/resources', resourceData);
                     set((state) => ({
-                        resources: [newResource, ...state.resources]
+                        resources: [response.data, ...state.resources]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to upload resource' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -82,14 +75,13 @@ export const useResourceStore = create<ResourceState>()(
             deleteResource: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/resources/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete resource');
+                    await api.delete(`/resources/${id}`);
 
                     set((state) => ({
                         resources: state.resources.filter(r => r.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete resource' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -108,10 +100,9 @@ export const useResourceStore = create<ResourceState>()(
                 }));
 
                 try {
-                    const response = await fetch(`/api/resources/${id}/download`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to increment download');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/resources/${id}/download`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to increment download' });
                 }
             },
         }),

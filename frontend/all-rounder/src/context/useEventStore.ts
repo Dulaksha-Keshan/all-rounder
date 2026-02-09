@@ -25,6 +25,7 @@ export interface Event {
 }
 
 import { Events } from '@/app/events/_data/events';
+import api from '@/lib/axios';
 
 interface EventState {
     events: Event[];
@@ -54,12 +55,10 @@ export const useEventStore = create<EventState>()(
             fetchEvents: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/events');
-                    if (!response.ok) throw new Error('Failed to fetch events');
-                    const data = await response.json();
-                    set({ events: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/events');
+                    set({ events: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch events' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -70,19 +69,12 @@ export const useEventStore = create<EventState>()(
             addEvent: async (event) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/events', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(event)
-                    });
-                    if (!response.ok) throw new Error('Failed to create event');
-                    const newEvent = await response.json();
-
+                    const response = await api.post('/events', event);
                     set((state) => ({
-                        events: [...state.events, newEvent]
+                        events: [...state.events, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create event' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -91,13 +83,8 @@ export const useEventStore = create<EventState>()(
             updateEvent: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/events/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update event');
-                    const updated = await response.json();
+                    const response = await api.put(`/events/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         events: state.events.map((e) =>
@@ -107,8 +94,8 @@ export const useEventStore = create<EventState>()(
                             ? { ...state.activeEvent, ...updated }
                             : state.activeEvent
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update event' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -117,15 +104,14 @@ export const useEventStore = create<EventState>()(
             deleteEvent: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete event');
+                    await api.delete(`/events/${id}`);
 
                     set((state) => ({
                         events: state.events.filter((e) => e.id !== id),
                         activeEvent: state.activeEvent?.id === id ? null : state.activeEvent
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete event' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -136,8 +122,7 @@ export const useEventStore = create<EventState>()(
             rsvpEvent: async (eventId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/events/${eventId}/rsvp`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to RSVP');
+                    await api.post(`/events/${eventId}/rsvp`);
 
                     // Optimistic or response-based
                     set((state) => ({
@@ -148,8 +133,8 @@ export const useEventStore = create<EventState>()(
                             return e;
                         })
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to RSVP' });
                 } finally {
                     set({ isLoading: false });
                 }

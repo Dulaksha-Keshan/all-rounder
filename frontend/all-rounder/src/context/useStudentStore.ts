@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Students } from '@/app/_data/data';
 import { Student } from '@/app/_type/type';
+import api from '@/lib/axios';
 
 interface StudentState {
     students: Student[];
@@ -30,12 +31,10 @@ export const useStudentStore = create<StudentState>()(
             fetchStudents: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/students');
-                    if (!response.ok) throw new Error('Failed to fetch students');
-                    const data = await response.json();
-                    set({ students: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/students');
+                    set({ students: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch students' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -44,19 +43,12 @@ export const useStudentStore = create<StudentState>()(
             addStudent: async (student) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/students', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(student)
-                    });
-                    if (!response.ok) throw new Error('Failed to add student');
-                    const newStudent = await response.json();
-
+                    const response = await api.post('/students', student);
                     set((state) => ({
-                        students: [...state.students, newStudent]
+                        students: [...state.students, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add student' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -65,21 +57,16 @@ export const useStudentStore = create<StudentState>()(
             updateStudent: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/students/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update student');
-                    const updated = await response.json();
+                    const response = await api.put(`/students/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         students: state.students.map(s =>
                             s.id === id ? { ...s, ...updated } : s
                         )
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update student' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -88,14 +75,13 @@ export const useStudentStore = create<StudentState>()(
             deleteStudent: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/students/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete student');
+                    await api.delete(`/students/${id}`);
 
                     set((state) => ({
                         students: state.students.filter(s => s.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete student' });
                 } finally {
                     set({ isLoading: false });
                 }

@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Student, Teacher, Organization } from '@/app/_type/type';
+import api from '@/lib/axios';
 
 type UserRole = 'Student' | 'Teacher' | 'Organization' | 'Admin';
 
@@ -96,19 +97,14 @@ export const useUserStore = create<UserState>()(
             updateProfile: async (updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/user/profile', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update profile');
-                    const updatedUser = await response.json();
+                    const response = await api.put('/user/profile', updates);
+                    const updatedUser = response.data;
 
                     set((state) => ({
                         currentUser: state.currentUser ? { ...state.currentUser, ...updatedUser } : null
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update profile' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -123,10 +119,9 @@ export const useUserStore = create<UserState>()(
                     following: [...state.following, userId]
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow/${userId}`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to follow user');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/user/follow/${userId}`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to follow user' });
                     // Revert optimistic update
                     set((state) => ({
                         following: state.following.filter(id => id !== userId)
@@ -140,10 +135,9 @@ export const useUserStore = create<UserState>()(
                     following: state.following.filter(id => id !== userId)
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow/${userId}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to unfollow user');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.delete(`/user/follow/${userId}`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to unfollow user' });
                     // Revert
                     set((state) => ({
                         following: [...state.following, userId]
@@ -156,10 +150,9 @@ export const useUserStore = create<UserState>()(
                     sentRequests: [...state.sentRequests, userId]
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow-request/${userId}`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to send follow request');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/user/follow-request/${userId}`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to send follow request' });
                     set((state) => ({
                         sentRequests: state.sentRequests.filter(id => id !== userId)
                     }));
@@ -171,10 +164,9 @@ export const useUserStore = create<UserState>()(
                     sentRequests: state.sentRequests.filter(id => id !== userId)
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow-request/${userId}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to cancel follow request');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.delete(`/user/follow-request/${userId}`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to cancel follow request' });
                     set((state) => ({
                         sentRequests: [...state.sentRequests, userId]
                     }));
@@ -187,10 +179,9 @@ export const useUserStore = create<UserState>()(
                     followRequests: state.followRequests.filter(id => id !== userId)
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow-request/${userId}/accept`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to accept follow request');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/user/follow-request/${userId}/accept`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to accept follow request' });
                     // Revert logic needed here if robust
                 }
             },
@@ -200,10 +191,9 @@ export const useUserStore = create<UserState>()(
                     followRequests: state.followRequests.filter(id => id !== userId)
                 }));
                 try {
-                    const response = await fetch(`/api/user/follow-request/${userId}/decline`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to decline follow request');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/user/follow-request/${userId}/decline`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to decline follow request' });
                 }
             },
         }),

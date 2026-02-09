@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Skills } from '@/app/_data/skills';
+import api from '@/lib/axios';
 
 export interface Skill {
     id: number;
@@ -41,12 +42,10 @@ export const useSkillStore = create<SkillState>()(
             fetchSkills: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/skills');
-                    if (!response.ok) throw new Error('Failed to fetch skills');
-                    const data = await response.json();
-                    set({ skills: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/skills');
+                    set({ skills: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch skills' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -55,12 +54,10 @@ export const useSkillStore = create<SkillState>()(
             fetchUserSkills: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/user/skills');
-                    if (!response.ok) throw new Error('Failed to fetch user skills');
-                    const data = await response.json();
-                    set({ userSkills: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/user/skills');
+                    set({ userSkills: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch user skills' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -69,12 +66,7 @@ export const useSkillStore = create<SkillState>()(
             addSkillToUser: async (skill) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/user/skills', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ skillId: skill.id })
-                    });
-                    if (!response.ok) throw new Error('Failed to add skill');
+                    await api.post('/user/skills', { skillId: skill.id });
 
                     set((state) => {
                         if (!state.userSkills.find(s => s.id === skill.id)) {
@@ -82,8 +74,8 @@ export const useSkillStore = create<SkillState>()(
                         }
                         return state;
                     });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add skill' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -92,14 +84,13 @@ export const useSkillStore = create<SkillState>()(
             removeSkillFromUser: async (skillId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/user/skills/${skillId}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to remove skill');
+                    await api.delete(`/user/skills/${skillId}`);
 
                     set((state) => ({
                         userSkills: state.userSkills.filter(s => s.id !== skillId)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to remove skill' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -108,19 +99,14 @@ export const useSkillStore = create<SkillState>()(
             createNewSkill: async (skillData) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/skills', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(skillData)
-                    });
-                    if (!response.ok) throw new Error('Failed to create skill');
-                    const newSkill = await response.json();
+                    const response = await api.post('/skills', skillData);
+                    const newSkill = response.data;
 
                     set((state) => ({
                         skills: [...state.skills, newSkill]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create skill' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -135,10 +121,9 @@ export const useSkillStore = create<SkillState>()(
                 }));
 
                 try {
-                    const response = await fetch(`/api/skills/${skillId}/endorse`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to endorse skill');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/skills/${skillId}/endorse`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to endorse skill' });
                 }
             },
 

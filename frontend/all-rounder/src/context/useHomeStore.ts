@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { PostType, Comment } from '../app/home/_components/PostCard';
 import { INITIAL_POSTS } from '../app/home/constants';
+import api from '@/lib/axios';
 
 interface HomeState {
     posts: PostType[];
@@ -46,15 +47,14 @@ export const useHomeStore = create<HomeState>()(
             fetchHomeData: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/home');
-                    if (!response.ok) throw new Error('Failed to fetch home data');
-                    const data = await response.json();
+                    const response = await api.get('/home');
+                    const data = response.data;
                     set({
                         posts: data.posts || [],
                         stats: data.stats || get().stats
                     });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch home data' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -63,20 +63,13 @@ export const useHomeStore = create<HomeState>()(
             createPost: async (content, media) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/posts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content, media })
-                    });
-                    if (!response.ok) throw new Error('Failed to create post');
-                    const newPost = await response.json();
-
+                    const response = await api.post('/posts', { content, media });
                     set((state) => ({
-                        posts: [newPost, ...state.posts],
+                        posts: [response.data, ...state.posts],
                         stats: { ...state.stats, contributions: state.stats.contributions + 1 }
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create post' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -86,19 +79,12 @@ export const useHomeStore = create<HomeState>()(
                 set({ isLoading: true, error: null });
                 try {
                     // Assuming drafts are also saved to backend
-                    const response = await fetch('/api/drafts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content, media })
-                    });
-                    if (!response.ok) throw new Error('Failed to save draft');
-                    const newDraft = await response.json();
-
+                    const response = await api.post('/drafts', { content, media });
                     set((state) => ({
-                        drafts: [newDraft, ...state.drafts]
+                        drafts: [response.data, ...state.drafts]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to save draft' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -107,14 +93,13 @@ export const useHomeStore = create<HomeState>()(
             deletePost: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete post');
+                    await api.delete(`/posts/${id}`);
 
                     set((state) => ({
                         posts: state.posts.filter(p => p.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete post' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -123,14 +108,13 @@ export const useHomeStore = create<HomeState>()(
             deleteDraft: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/drafts/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete draft');
+                    await api.delete(`/drafts/${id}`);
 
                     set((state) => ({
                         drafts: state.drafts.filter(d => d.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete draft' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -139,21 +123,16 @@ export const useHomeStore = create<HomeState>()(
             editPost: async (id, newContent) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/posts/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: newContent })
-                    });
-                    if (!response.ok) throw new Error('Failed to edit post');
-                    const updatedPost = await response.json();
+                    const response = await api.put(`/posts/${id}`, { content: newContent });
+                    const updatedPost = response.data;
 
                     set((state) => ({
                         posts: state.posts.map(p =>
                             p.id === id ? { ...p, ...updatedPost } : p
                         )
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to edit post' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -178,13 +157,9 @@ export const useHomeStore = create<HomeState>()(
                 }));
 
                 try {
-                    const response = await fetch(`/api/posts/${id}/like`, { method: 'POST' });
-                    if (!response.ok) {
-                        throw new Error('Failed to toggle like');
-                        // Revert if needed, but for now simple error logging
-                    }
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/posts/${id}/like`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to toggle like' });
                     // Could revert optimistic update here
                 }
             },
@@ -192,13 +167,8 @@ export const useHomeStore = create<HomeState>()(
             commentPost: async (id, text) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/posts/${id}/comments`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text })
-                    });
-                    if (!response.ok) throw new Error('Failed to post comment');
-                    const newComment = await response.json();
+                    const response = await api.post(`/posts/${id}/comments`, { text });
+                    const newComment = response.data;
 
                     set((state) => ({
                         posts: state.posts.map(p => {
@@ -208,8 +178,8 @@ export const useHomeStore = create<HomeState>()(
                             return p;
                         })
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to post comment' });
                 } finally {
                     set({ isLoading: false });
                 }

@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { School } from '@/app/_type/type';
 import { Schools } from '@/app/_data/data';
+import api from '@/lib/axios';
 
 interface SchoolState {
     schools: School[];
@@ -35,12 +36,10 @@ export const useSchoolStore = create<SchoolState>()(
             fetchSchools: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/schools');
-                    if (!response.ok) throw new Error('Failed to fetch schools');
-                    const data = await response.json();
-                    set({ schools: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/schools');
+                    set({ schools: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch schools' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -49,19 +48,12 @@ export const useSchoolStore = create<SchoolState>()(
             addSchool: async (school) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/schools', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(school)
-                    });
-                    if (!response.ok) throw new Error('Failed to add school');
-                    const newSchool = await response.json();
-
+                    const response = await api.post('/schools', school);
                     set((state) => ({
-                        schools: [...state.schools, newSchool]
+                        schools: [...state.schools, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add school' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -70,13 +62,8 @@ export const useSchoolStore = create<SchoolState>()(
             updateSchool: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/schools/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update school');
-                    const updated = await response.json();
+                    const response = await api.put(`/schools/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         schools: state.schools.map(s =>
@@ -86,8 +73,8 @@ export const useSchoolStore = create<SchoolState>()(
                             ? { ...state.activeSchool, ...updated }
                             : state.activeSchool
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update school' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -96,15 +83,14 @@ export const useSchoolStore = create<SchoolState>()(
             deleteSchool: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/schools/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete school');
+                    await api.delete(`/schools/${id}`);
 
                     set((state) => ({
                         schools: state.schools.filter(s => s.id !== id),
                         activeSchool: state.activeSchool?.id === id ? null : state.activeSchool
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete school' });
                 } finally {
                     set({ isLoading: false });
                 }

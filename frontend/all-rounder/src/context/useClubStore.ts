@@ -3,6 +3,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import api from '@/lib/axios';
+
 export interface Club {
     id: number;
     name: string;
@@ -43,12 +45,10 @@ export const useClubStore = create<ClubState>()(
             fetchClubs: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/clubs');
-                    if (!response.ok) throw new Error('Failed to fetch clubs');
-                    const data = await response.json();
-                    set({ clubs: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/clubs');
+                    set({ clubs: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch clubs' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -57,8 +57,7 @@ export const useClubStore = create<ClubState>()(
             joinClub: async (clubId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/clubs/${clubId}/join`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to join club');
+                    await api.post(`/clubs/${clubId}/join`);
 
                     const club = get().clubs.find(c => c.id === clubId);
                     if (club && !club.isJoined) {
@@ -68,8 +67,8 @@ export const useClubStore = create<ClubState>()(
                             myClubs: [...state.myClubs, updatedClub]
                         }));
                     }
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to join club' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -78,8 +77,7 @@ export const useClubStore = create<ClubState>()(
             leaveClub: async (clubId) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/clubs/${clubId}/leave`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to leave club');
+                    await api.post(`/clubs/${clubId}/leave`);
 
                     set((state) => ({
                         clubs: state.clubs.map(c =>
@@ -87,8 +85,8 @@ export const useClubStore = create<ClubState>()(
                         ),
                         myClubs: state.myClubs.filter(c => c.id !== clubId)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to leave club' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -97,20 +95,13 @@ export const useClubStore = create<ClubState>()(
             createClub: async (clubData) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/clubs', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(clubData)
-                    });
-                    if (!response.ok) throw new Error('Failed to create club');
-                    const newClub = await response.json();
-
+                    const response = await api.post('/clubs', clubData);
                     set((state) => ({
-                        clubs: [...state.clubs, newClub],
-                        myClubs: [...state.myClubs, newClub]
+                        clubs: [...state.clubs, response.data],
+                        myClubs: [...state.myClubs, response.data]
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create club' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -119,20 +110,15 @@ export const useClubStore = create<ClubState>()(
             updateClub: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/clubs/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                    if (!response.ok) throw new Error('Failed to update club');
-                    const updated = await response.json();
+                    const response = await api.put(`/clubs/${id}`, updates);
+                    const updated = response.data;
 
                     set((state) => ({
                         clubs: state.clubs.map(c => c.id === id ? { ...c, ...updated } : c),
                         myClubs: state.myClubs.map(c => c.id === id ? { ...c, ...updated } : c)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update club' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -141,15 +127,14 @@ export const useClubStore = create<ClubState>()(
             deleteClub: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/clubs/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete club');
+                    await api.delete(`/clubs/${id}`);
 
                     set((state) => ({
                         clubs: state.clubs.filter(c => c.id !== id),
                         myClubs: state.myClubs.filter(c => c.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete club' });
                 } finally {
                     set({ isLoading: false });
                 }

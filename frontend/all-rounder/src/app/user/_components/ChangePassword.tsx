@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import api from '@/lib/axios';
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -34,29 +35,17 @@ export default function ChangePassword() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/user/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+      const response = await api.post('/user/change-password', {
+        currentPassword,
+        newPassword,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to change password');
-      }
 
       setSuccess('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }

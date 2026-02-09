@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import api from '@/lib/axios';
 
 // Defining types locally to be self-contained, mirroring PostType usage
 export interface Post {
@@ -48,12 +49,10 @@ export const usePostStore = create<PostState>()(
             fetchPosts: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/posts');
-                    if (!response.ok) throw new Error('Failed to fetch posts');
-                    const data = await response.json();
-                    set({ posts: data });
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    const response = await api.get('/posts');
+                    set({ posts: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch posts' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -64,17 +63,12 @@ export const usePostStore = create<PostState>()(
             createPost: async (postData) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch('/api/posts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(postData)
-                    });
-                    if (!response.ok) throw new Error('Failed to create post');
-                    const newPost = await response.json();
+                    const response = await api.post('/posts', postData);
+                    const newPost = response.data;
 
                     set((state) => ({ posts: [newPost, ...state.posts] }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create post' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -83,14 +77,13 @@ export const usePostStore = create<PostState>()(
             deletePost: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-                    if (!response.ok) throw new Error('Failed to delete post');
+                    await api.delete(`/posts/${id}`);
 
                     set((state) => ({
                         posts: state.posts.filter(p => p.id !== id)
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete post' });
                 } finally {
                     set({ isLoading: false });
                 }
@@ -113,10 +106,9 @@ export const usePostStore = create<PostState>()(
                 }));
 
                 try {
-                    const response = await fetch(`/api/posts/${id}/like`, { method: 'POST' });
-                    if (!response.ok) throw new Error('Failed to like post');
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                    await api.post(`/posts/${id}/like`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to like post' });
                     // Could revert optimistic update
                 }
             },
@@ -124,12 +116,7 @@ export const usePostStore = create<PostState>()(
             commentPost: async (id, text) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await fetch(`/api/posts/${id}/comments`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text })
-                    });
-                    if (!response.ok) throw new Error('Failed to comment post');
+                    await api.post(`/posts/${id}/comments`, { text });
                     // Assuming backend returns updated comment count or the comment itself
 
                     set((state) => ({
@@ -140,8 +127,8 @@ export const usePostStore = create<PostState>()(
                             return p;
                         })
                     }));
-                } catch (error) {
-                    set({ error: (error as Error).message });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to comment post' });
                 } finally {
                     set({ isLoading: false });
                 }
