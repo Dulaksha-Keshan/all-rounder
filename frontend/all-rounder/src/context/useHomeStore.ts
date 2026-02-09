@@ -19,8 +19,8 @@ interface HomeState {
 
     // Async Actions
     fetchHomeData: () => Promise<void>;
-    createPost: (content: string, media?: { type: 'image' | 'video'; url: string; name: string }[]) => Promise<void>; // Corrected media type in implementation
-    saveDraft: (content: string, media?: { type: 'image' | 'video'; url: string; name: string }[]) => Promise<void>;
+    createPost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => Promise<void>;
+    saveDraft: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => Promise<void>;
     deletePost: (id: number) => Promise<void>;
     deleteDraft: (id: number) => Promise<void>;
     editPost: (id: number, newContent: string) => Promise<void>;
