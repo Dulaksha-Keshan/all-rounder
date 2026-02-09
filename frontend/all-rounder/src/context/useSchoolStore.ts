@@ -10,11 +10,14 @@ interface SchoolState {
     activeSchool: School | null;
     isLoading: boolean;
 
+    error: string | null;
+
     // Actions
     setSchools: (schools: School[]) => void;
-    addSchool: (school: School) => void;
-    updateSchool: (id: string, updates: Partial<School>) => void;
-    deleteSchool: (id: string) => void;
+    fetchSchools: () => Promise<void>;
+    addSchool: (school: School) => Promise<void>;
+    updateSchool: (id: string, updates: Partial<School>) => Promise<void>;
+    deleteSchool: (id: string) => Promise<void>;
     setActiveSchool: (school: School | null) => void;
     getSchoolById: (id: string) => School | undefined;
 }
@@ -25,26 +28,87 @@ export const useSchoolStore = create<SchoolState>()(
             schools: Schools, // Initialize with static data
             activeSchool: null,
             isLoading: false,
+            error: null,
 
             setSchools: (schools) => set({ schools }),
 
-            addSchool: (school) => set((state) => ({
-                schools: [...state.schools, school]
-            })),
+            fetchSchools: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await fetch('/api/schools');
+                    if (!response.ok) throw new Error('Failed to fetch schools');
+                    const data = await response.json();
+                    set({ schools: data });
+                } catch (error) {
+                    set({ error: (error as Error).message });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
-            updateSchool: (id, updates) => set((state) => ({
-                schools: state.schools.map(s =>
-                    s.id === id ? { ...s, ...updates } : s
-                ),
-                activeSchool: state.activeSchool?.id === id
-                    ? { ...state.activeSchool, ...updates }
-                    : state.activeSchool
-            })),
+            addSchool: async (school) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await fetch('/api/schools', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(school)
+                    });
+                    if (!response.ok) throw new Error('Failed to add school');
+                    const newSchool = await response.json();
 
-            deleteSchool: (id) => set((state) => ({
-                schools: state.schools.filter(s => s.id !== id),
-                activeSchool: state.activeSchool?.id === id ? null : state.activeSchool
-            })),
+                    set((state) => ({
+                        schools: [...state.schools, newSchool]
+                    }));
+                } catch (error) {
+                    set({ error: (error as Error).message });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            updateSchool: async (id, updates) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await fetch(`/api/schools/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updates)
+                    });
+                    if (!response.ok) throw new Error('Failed to update school');
+                    const updated = await response.json();
+
+                    set((state) => ({
+                        schools: state.schools.map(s =>
+                            s.id === id ? { ...s, ...updated } : s
+                        ),
+                        activeSchool: state.activeSchool?.id === id
+                            ? { ...state.activeSchool, ...updated }
+                            : state.activeSchool
+                    }));
+                } catch (error) {
+                    set({ error: (error as Error).message });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            deleteSchool: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await fetch(`/api/schools/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Failed to delete school');
+
+                    set((state) => ({
+                        schools: state.schools.filter(s => s.id !== id),
+                        activeSchool: state.activeSchool?.id === id ? null : state.activeSchool
+                    }));
+                } catch (error) {
+                    set({ error: (error as Error).message });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
             setActiveSchool: (school) => set({ activeSchool: school }),
 
