@@ -3,6 +3,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import api from '@/lib/axios';
+
 export interface Resource {
     id: string;
     title: string;
@@ -24,12 +26,15 @@ interface ResourceState {
     selectedType: string | 'All';
     isLoading: boolean;
 
+    error: string | null;
+
     // Actions
-    uploadResource: (resource: Omit<Resource, 'id' | 'uploadedAt' | 'downloads'>) => void;
-    deleteResource: (id: string) => void;
+    fetchResources: () => Promise<void>;
+    uploadResource: (resource: Omit<Resource, 'id' | 'uploadedAt' | 'downloads'>) => Promise<void>;
+    deleteResource: (id: string) => Promise<void>;
     setSearchQuery: (query: string) => void;
     filterByType: (type: string) => void;
-    incrementDownload: (id: string) => void;
+    incrementDownload: (id: string) => Promise<void>;
 }
 
 export const useResourceStore = create<ResourceState>()(
@@ -39,30 +44,67 @@ export const useResourceStore = create<ResourceState>()(
             searchQuery: '',
             selectedType: 'All',
             isLoading: false,
+            error: null,
 
-            uploadResource: (resourceData) => set((state) => {
-                const newResource: Resource = {
-                    ...resourceData,
-                    id: Date.now().toString(),
-                    uploadedAt: new Date().toISOString(),
-                    downloads: 0
-                };
-                return { resources: [newResource, ...state.resources] };
-            }),
+            fetchResources: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get('/resources');
+                    set({ resources: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch resources' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
-            deleteResource: (id) => set((state) => ({
-                resources: state.resources.filter(r => r.id !== id)
-            })),
+            uploadResource: async (resourceData) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.post('/resources', resourceData);
+                    set((state) => ({
+                        resources: [response.data, ...state.resources]
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to upload resource' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            deleteResource: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.delete(`/resources/${id}`);
+
+                    set((state) => ({
+                        resources: state.resources.filter(r => r.id !== id)
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete resource' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
             setSearchQuery: (query) => set({ searchQuery: query }),
 
             filterByType: (type) => set({ selectedType: type }),
 
-            incrementDownload: (id) => set((state) => ({
-                resources: state.resources.map(r =>
-                    r.id === id ? { ...r, downloads: r.downloads + 1 } : r
-                )
-            })),
+            incrementDownload: async (id) => {
+                // Optimistic
+                set((state) => ({
+                    resources: state.resources.map(r =>
+                        r.id === id ? { ...r, downloads: r.downloads + 1 } : r
+                    )
+                }));
+
+                try {
+                    await api.post(`/resources/${id}/download`);
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to increment download' });
+                }
+            },
         }),
         {
             name: 'resource-storage',

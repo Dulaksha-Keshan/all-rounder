@@ -90,10 +90,10 @@ export default function MeetOurTeam() {
               className="min-w-full flex justify-center"
             >
               {/* CARD */}
-              <div className="w-[300px] md:w-[500px] h-[300px] bg-[#F3EEFF] border border-[#8387CC]/40 rounded-3xl shadow-lg p-8 flex flex-col items-center text-center">
+              <div className="w-[300px] md:w-[500px] h-[400px] bg-[#F3EEFF] border border-[#8387CC]/40 rounded-3xl shadow-lg p-8 flex flex-col items-center text-center">
 
                 {/* IMAGE */}
-                <div className="relative w-28 h-28 rounded-2xl overflow-hidden mb-6 border border-[#8387CC]/40">
+                <div className="relative w-50 h-50 rounded-2xl overflow-hidden mb-6 border border-[#8387CC]/40">
                   <NextImage
                     src={member.image}
                     alt={member.name}

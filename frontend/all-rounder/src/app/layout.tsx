@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/layout/navibar";
+import {Navbar} from "@/layout/Navbar";
 import Footer from "@/layout/Footer";
 import GoToTopButton from "@/components/GoToTopButton";
 
@@ -29,8 +29,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  isAuthenticated = false,
+  userType,
 }: Readonly<{
   children: React.ReactNode;
+  isAuthenticated? : boolean;
+  userType?: "student" | "teacher" | "school" | "organization";
 }>) {
 
   const websiteSchema = JSON.stringify({
@@ -41,13 +45,29 @@ export default function RootLayout({
     "url": "https://all-rounder.lk"
   });
 
+  //User logging out
+  const handleLogout = () => {
+    // e.g., clear cookies / localStorage / redirect
+    console.log("User logged out");
+    window.location.href = "/login"; // Redirect to login page after logout
+  };
+
+  <Navbar
+    isAuthenticated={isAuthenticated}
+    userType={userType}
+    onLogout={handleLogout}
+  />
+
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        {children}
+        <Navbar isAuthenticated={isAuthenticated} userType={userType} />
+        <main className="pt-24">
+          {children}
+        </main>
         {/* Added the structured data script here */}
         <script
           type="application/ld+json"
