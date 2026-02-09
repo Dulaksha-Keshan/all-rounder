@@ -5,7 +5,7 @@ configDotenv();
 
 const URI = `${process.env.MONGO_URI}`;
 
-async function connectMDB() {
+export async function connectMDB() {
 
   try {
 
@@ -14,10 +14,8 @@ async function connectMDB() {
 
 
   } catch (e) {
-    console.error('Error connecting to the database:', e.message);
-    process.exit(1);
-
-
+    console.error("Error Connecting to MongoDB :" + e)
   }
+
 
 }

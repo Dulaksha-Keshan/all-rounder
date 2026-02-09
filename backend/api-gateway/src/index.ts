@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { getFirebaseAdmin } from './config/firebase-admin.js';
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { verifyToken } from "./middleware/auth.middleware.js";
+import { requireRole, verifyToken } from "./middleware/auth.middleware.js";
 import authRoutes from "./routes/auth.routes.js"
 
 
@@ -29,7 +29,6 @@ try {
 
 //setting cors and helmet for express app
 app.use(helmet());
-app.use(express.json())
 app.use(cors({
   origin: process.env.CORS_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -97,9 +96,6 @@ app.get("/health/services", async (req: Request, res: Response) => {
 })
 
 
-//AUTH ROUTES
-app.use('/api/auth', authRoutes);
-
 
 //Public routes such  public viewing such as donations page as well will have a puclic route for content service 
 app.use('/api/users/public',
@@ -126,7 +122,7 @@ app.use('/api/users/public',
 app.use('/api/users',
   verifyToken,
   createProxyMiddleware({
-    target: "http://localhost:3001",
+    target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
       '^/': '/api/users/'
@@ -156,11 +152,13 @@ app.use('/api/users',
 
 // Schools routes
 app.use('/api/schools',
+  verifyToken,
+  requireRole("SCHOOL_ADMIN", "SUPER_ADMIN"),
   createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-      '^/api/schools': '/api/schools'
+      '^/': '/api/schools/'
     }
   })
 );
@@ -176,11 +174,18 @@ app.use('/api/organizations',
   })
 );
 
-
+//TODO: Use require role and ownership middlewares for new relavnt endpoints 
 
 app.get('/api', (req: Request, res: Response) => {
   res.send('API Gatway is Up and Running!');
 });
+
+
+app.use(express.json())
+
+
+//AUTH ROUTES
+app.use('/api/auth', authRoutes);
 
 
 app.listen(PORT, () => {

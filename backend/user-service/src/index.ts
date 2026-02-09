@@ -6,13 +6,16 @@ import { PrismaClient } from "@prisma/client/extension";
 import userRoutes from "./routes/userRoute.js";
 import schoolRoutes from "./routes/schoolRoute.js";
 import organizationRoutes from "./routes/organizationRoute.js";
-
+import { connectMDB } from "./mongoDb.js";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+
+connectMDB();
+
 
 
 app.use((req, res, next) => {

@@ -24,8 +24,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
 
 
-    //TODO:Check if the roles and enum macthes or not
-    const validRoles = ['STUDENT', 'TEACHER', 'SCHOOL_ADMIN', 'ORG_ADMIN'];
+    const validRoles = ['STUDENT', 'TEACHER', 'SCHOOL_ADMIN', 'ORG_ADMIN', 'SUPER_ADMIN'];
     if (!validRoles.includes(role)) {
       res.status(400).json({
         error: 'Invalid role',
@@ -54,7 +53,7 @@ router.post('/register', async (req: Request, res: Response) => {
           name,
           date_of_birth: new Date(dateOfBirth),
           userType: role,                   // <-- MAPPING: 'role' -> 'userType'
-          school_id: parseInt(schoolId),              // <-- MAPPING: 'schoolId' -> 'school_id'
+          school_id: schoolId ? parseInt(schoolId) : null,              // <-- MAPPING: 'schoolId' -> 'school_id'
           organization_id: organizationId,  // <-- MAPPING: 'organizationId' -> 'organization_id'
 
           // <-- REQUIRED: User Service logic fails if this is missing.
@@ -68,7 +67,6 @@ router.post('/register', async (req: Request, res: Response) => {
       // Set custom claims in Firebase
       const customClaims: any = {
         role,
-        userType: role.replace("_ADMIN", "")
       };
 
       if (schoolId) customClaims.schoolId = schoolId;
@@ -88,11 +86,19 @@ router.post('/register', async (req: Request, res: Response) => {
       });
 
     } catch (dbError: any) {
-
-
       // Rollback for Firebase user if database creation failed
+      if (dbError.response) {
+        console.error("❌ User Service Rejected Request:", dbError.response.data);
+      } else {
+        console.error("❌ Network/Connection Error:", dbError.message);
+      }
+
+      // Rollback
       await firebaseAuth.deleteUser(firebaseUser.uid);
-      throw new Error(`Failed to create user in database: ${dbError.message}`);
+
+      // Pass the *actual* error message to the frontend so you can see it in Postman
+      const actualMessage = dbError.response?.data?.message || dbError.message;
+      throw new Error(actualMessage);
     }
   } catch (error: any) {
     console.error("Registration Error : ", error);

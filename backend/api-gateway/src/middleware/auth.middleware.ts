@@ -51,7 +51,7 @@ export async function verifyToken(req: Request, res: Response, next: NextFunctio
 }
 
 // Role checker 
-export async function requireRole(...allowedRoles: string[]) {
+export function requireRole(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       res.status(401).json({
@@ -77,7 +77,7 @@ export async function requireRole(...allowedRoles: string[]) {
 
 
 // check for owenership if needed for us 
-export async function requireOwenership(userIdParam: string = "userId") {
+export function requireOwenership(userIdParam: string = "userId") {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
@@ -104,7 +104,7 @@ export async function requireOwenership(userIdParam: string = "userId") {
 }
 
 //School acess checker 
-export async function requireSchoolAccess(schoolIdParam: string = "schoolId") {
+export function requireSchoolAccess(schoolIdParam: string = "schoolId") {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
