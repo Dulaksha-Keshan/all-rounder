@@ -13,37 +13,45 @@ export default function HelpCardsGrid({
 }: HelpCardsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <HelpCard
-        title="Student Help"
-        description="Help related to student profiles and achievements."
-        icon="🎓"
-        isActive={activeHelp === "student"}
-        onClick={() => onSelect("student")}
-      />
+      <div style={{ animationDelay: "0.1s" }} className="animate-fade-in-up">
+        <HelpCard
+          title="Student Help"
+          description="Help related to student profiles and achievements."
+          icon="🎓"
+          isActive={activeHelp === "student"}
+          onClick={() => onSelect("student")}
+        />
+      </div>
 
-      <HelpCard
-        title="Teacher Help"
-        description="Guidance for verifying and managing students."
-        icon="👩‍🏫"
-        isActive={activeHelp === "teacher"}
-        onClick={() => onSelect("teacher")}
-      />
+      <div style={{ animationDelay: "0.2s" }} className="animate-fade-in-up">
+        <HelpCard
+          title="Teacher Help"
+          description="Guidance for verifying and managing students."
+          icon="👩‍🏫"
+          isActive={activeHelp === "teacher"}
+          onClick={() => onSelect("teacher")}
+        />
+      </div>
 
-      <HelpCard
-        title="School Admin Help"
-        description="Support for managing school-level operations."
-        icon="🏫"
-        isActive={activeHelp === "admin"}
-        onClick={() => onSelect("admin")}
-      />
+      <div style={{ animationDelay: "0.3s" }} className="animate-fade-in-up">
+        <HelpCard
+          title="School Admin Help"
+          description="Support for managing school-level operations."
+          icon="🏫"
+          isActive={activeHelp === "admin"}
+          onClick={() => onSelect("admin")}
+        />
+      </div>
 
-      <HelpCard
-        title="Resource Sharing Help"
-        description="FAQs about uploading and accessing learning resources."
-        icon="📚"
-        isActive={activeHelp === "resource"}
-        onClick={() => onSelect("resource")}
-      />
+      <div style={{ animationDelay: "0.4s" }} className="animate-fade-in-up">
+        <HelpCard
+          title="Resource Sharing Help"
+          description="FAQs about uploading and accessing learning resources."
+          icon="📚"
+          isActive={activeHelp === "resource"}
+          onClick={() => onSelect("resource")}
+        />
+      </div>
     </div>
   );
 }

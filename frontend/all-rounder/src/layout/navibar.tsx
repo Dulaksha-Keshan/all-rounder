@@ -25,7 +25,9 @@ export default function Navbar({
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const systemPrefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
 
     if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
       setIsDarkMode(true);
@@ -145,13 +147,15 @@ export default function Navbar({
     <nav className="bg-[var(--white)] sticky top-0 z-50 shadow-lg border-b border-[var(--gray-200)] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-
           {/* Logo */}
-          <Link href={isAuthenticated ? "/home" : "/"} className="flex items-center gap-2">
+          <Link
+            href={isAuthenticated ? "/home" : "/"}
+            className="flex items-center gap-2"
+          >
             <div className="relative h-10 sm:h-12 lg:h-15 w-auto">
               {/* Using a rough aspect ratio based on typical logo dims, but letting css control height */}
               <NextImage
-                src="/logo.png"
+                src="/icons/Logo.png"
                 alt="All-Rounder Logo"
                 width={200}
                 height={60}
@@ -170,14 +174,15 @@ export default function Navbar({
                 onClick={(e) => {
                   // Set navigation flag BEFORE Next.js navigation happens
                   if (!link.path.startsWith("/#")) {
-                    sessionStorage.setItem('isNavigating', 'true');
+                    sessionStorage.setItem("isNavigating", "true");
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`px-3 py-2 rounded-md transition ${isActive(link.path)
-                  ? "bg-[var(--primary-purple)] text-white"
-                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
-                  }`}
+                className={`px-3 py-2 rounded-md transition ${
+                  isActive(link.path)
+                    ? "bg-[var(--primary-purple)] text-white"
+                    : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
+                }`}
               >
                 {link.label}
               </Link>
@@ -252,14 +257,15 @@ export default function Navbar({
                 onClick={(e) => {
                   // Set navigation flag BEFORE Next.js navigation happens
                   if (!link.path.startsWith("/#")) {
-                    sessionStorage.setItem('isNavigating', 'true');
+                    sessionStorage.setItem("isNavigating", "true");
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`block px-3 py-2 rounded-md transition ${isActive(link.path)
-                  ? "bg-[var(--primary-purple)] text-white font-bold"
-                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
-                  }`}
+                className={`block px-3 py-2 rounded-md transition ${
+                  isActive(link.path)
+                    ? "bg-[var(--primary-purple)] text-white font-bold"
+                    : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
+                }`}
               >
                 {link.label}
               </Link>
