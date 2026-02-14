@@ -19,8 +19,7 @@ datasource db {
 // ==========================================
 
 model Student {
-  uid String @id @unique
-
+  uid             String   @id @unique
   // Profile Fields (Formerly in User)
   name            String
   email           String   @unique

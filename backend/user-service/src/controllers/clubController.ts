@@ -1,11 +1,44 @@
 import { Request, Response } from "express";
 import Club from "../mongoose/clubModel.js";
+import { UserType } from "@prisma/client";
 
 
 export const getAllClubs = async (req: Request, res: Response): Promise<void> => {
   try {
-    const clubs = await Club.find().sort({ createdAt: -1 }); 
+    const schoolId = req.headers['x-school-id'];
+    if (!schoolId) {
+      res.status(400).json({
+        message: "School Id is required"
+      })
+      return;
+    }
 
+    const clubs = await Club.find({ schoolId: schoolId as string }).sort({ createdAt: -1 });
+    res.status(200).json({
+      message: "Clubs fetched successfully",
+      clubs,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+//FOR SUPER ADMINS USE  by Dulaksha 
+export const getAllClubsForAdmins = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userType = req.headers['x-user-type'];
+    if (userType != UserType.SUPER_ADMIN) {
+      res.status(401).json({
+        message: "Unauthorized Need Super admin access"
+      })
+      return
+    }
+
+    const clubs = await Club.find().sort({ createdAt: -1 });
     res.status(200).json({
       message: "Clubs fetched successfully",
       clubs,
@@ -21,11 +54,17 @@ export const getAllClubs = async (req: Request, res: Response): Promise<void> =>
 export const getClubById = async (req: Request, res: Response): Promise<void> => {
   try {
     const clubId = req.params.id;
+    const schoolId = req.headers['x-school-id'];
 
     if (!clubId) {
       res.status(400).json({
         message: "Club ID is required",
       });
+      return;
+    } else if (!schoolId) {
+      res.status(400).json({
+        message: "School Id is required"
+      })
       return;
     }
 
@@ -37,7 +76,12 @@ export const getClubById = async (req: Request, res: Response): Promise<void> =>
       });
       return;
     }
-
+    if (club.schoolId !== schoolId) {
+      res.status(404).json({
+        message: "No such a Club found in the school",
+      });
+      return;
+    }
     res.status(200).json({
       message: "Club fetched successfully",
       club,
@@ -52,8 +96,8 @@ export const getClubById = async (req: Request, res: Response): Promise<void> =>
 
 export const createClub = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userType = req.headers["x-User-type"] as string;
-    const createdBy = req.headers["x-User-id"] as string;
+    const userType = req.headers["x-user-type"] as string;
+    const createdBy = req.headers["x-user-id"] as string;
 
     if (!userType || !createdBy) {
       res.status(400).json({
@@ -62,9 +106,9 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (userType !== "SUPER_ADMIN") {
+    if (userType !== UserType.SUPER_ADMIN && userType !== UserType.SCHOOL_ADMIN) {
       res.status(403).json({
-        message: "Only SUPER_ADMIN can create clubs",
+        message: "Only Admins can create clubs",
       });
       return;
     }
@@ -74,6 +118,7 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
       description,
       category,
       logoUrl,
+      schoolId,
       schoolName,
       foundedYear,
       teacherInCharge,
@@ -101,6 +146,7 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
       description,
       category,
       logoUrl,
+      schoolId,
       schoolName,
       foundedYear,
       teacherInCharge,
@@ -124,6 +170,15 @@ export const updateClub = async (req: Request, res: Response): Promise<void> => 
   try {
     const clubId = req.params.id;
     const updateData = { ...req.body };
+    const schoolId = req.headers['x-school-id']
+
+
+    if (!schoolId) {
+      res.status(400).json({
+        message: "School ID is required",
+      });
+      return;
+    }
 
     if (!clubId) {
       res.status(400).json({
@@ -132,12 +187,12 @@ export const updateClub = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    delete updateData.createdBy; 
-    delete updateData._id;       
+    delete updateData.createdBy;
+    delete updateData._id;
 
     const updatedClub = await Club.findByIdAndUpdate(clubId, updateData, {
-      new: true, 
-      runValidators: true, 
+      new: true,
+      runValidators: true,
     });
 
     if (!updatedClub) {

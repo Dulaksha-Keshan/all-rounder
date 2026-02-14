@@ -238,25 +238,25 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-/*export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
+export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
   try {
     //uid should come from frontend using firebase frontend client
-    const {uid} = req.params;
+    const { uid } = req.params;
 
     if (!uid) {
-      res.status(400).json({message: "Firebase UID is required"});
+      res.status(400).json({ message: "Firebase UID is required" });
       return;
     }
 
     let user: any;
     let userType: string;
 
-     user = await prisma.student.findUnique({ where: { firebaseUID: uid } }); // this should be student id cus we are removing the firebase uid
+    user = await prisma.student.findUnique({ where: { uid: uid as string } });
     if (user) {
-      userType = "STUDENT";
+      userType = UserType.STUDENT;
       const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
       if (age >= 19 && !user.is_frozen) {
-        await prisma.student.update({ where: { student_id: user.student_id }, data: { is_frozen: true } });
+        await prisma.student.update({ where: { uid: user.uid }, data: { is_frozen: true } });
         user.is_frozen = true;
       }
       user.canInteract = user.is_active && !user.is_frozen;
@@ -264,24 +264,24 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    user = await prisma.teacher.findUnique({where:{firebaseUID: uid}});
+    user = await prisma.teacher.findUnique({ where: { uid: uid as string } });
     if (user) {
-      res.json({userType: "TEACHER", user});
+      res.json({ userType: UserType.TEACHER, user });
       return;
     }
 
-    user = await prisma.admin.findUnique({where: {firebaseUID: uid}});
+    user = await prisma.admin.findUnique({ where: { uid: uid as string } });
     if (user) {
-      res.json({userType: user.adminType, user});
-      return;
+      res.json({ userType: user.adminType, user });
+      return
     }
-
     res.status(404).json({ message: "User not found" });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
-};*/
+};
+
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -437,3 +437,4 @@ export const softDeleteUser = async (
   }
 };
 
+//TODO: Social actions 

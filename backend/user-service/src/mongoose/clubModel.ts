@@ -19,6 +19,10 @@ const clubSchema = new mongoose.Schema(
     logoUrl: {
       type: String,
     },
+    schoolId: {
+      type: String,
+      required: true,
+    },
     schoolName: {
       type: String,
       required: true,
