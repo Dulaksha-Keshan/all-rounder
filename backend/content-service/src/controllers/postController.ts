@@ -214,13 +214,20 @@ export const deletePost = async (req: Request, res: Response): Promise<void> => 
 // To fetch a mix of posts for the home screen
 export const getFeed = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Basic feed: return latest posts
-    // In a real app, this would involve complex logic, filtering by following, etc.
-    const posts = await Post.find()
+    // Basic feed: return latest public posts that are not deleted
+    const posts = await Post.find({ isDeleted: false, visibility: "public" })
       .sort({ createdAt: -1 })
       .limit(20);
-    res.status(200).json(posts);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching feed", error });
+
+    res.status(200).json({
+      message: "Feed fetched successfully",
+      posts,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error fetching feed",
+      error: error.message,
+    });
   }
 };
