@@ -69,7 +69,7 @@ export const getClubById = async (req: Request, res: Response): Promise<void> =>
     }
 
     const club = await Club.findById(clubId);
-
+    //Optionally we can do a find({clubId:clubId,schoolId : schoolId}) reson i didnt do it cause felt likr it would be slower on the query 
     if (!club) {
       res.status(404).json({
         message: "Club not found",

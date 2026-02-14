@@ -40,9 +40,8 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
     organizers: {
-      type: [String],
+      type: String,
       required: true,
-      default: []
     },
     eligibility: {
       type: String,
