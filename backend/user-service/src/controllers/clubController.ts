@@ -255,7 +255,7 @@ export const deleteClub = async (req: Request, res: Response): Promise<void> => 
 export const joinClub = async (req: Request, res: Response): Promise<void> => {
   try {
     const clubId = req.params.id;
-    const uid = req.headers["x-user-id"] as string;
+    const uid = req.headers["x-user-uid"] as string;
     const userType = req.headers["x-user-type"] as string;
     const schoolId = req.headers["x-school-id"] as string;
 
@@ -266,7 +266,7 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
 
     if (!uid || !userType || !schoolId) {
       res.status(400).json({
-        message: "x-user-id, x-user-type and x-school-id headers are required",
+        message: "x-user-uid, x-user-type and x-school-id headers are required",
       });
       return;
     }
@@ -325,7 +325,7 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
 export const leaveClub = async (req: Request, res: Response): Promise<void> => {
   try {
     const clubId = req.params.id;
-    const userId = req.headers["x-user-id"] as string;
+    const userId = req.headers["x-user-uid"] as string;
     const userType = req.headers["x-user-type"] as string;
 
     if (!clubId) {
@@ -335,7 +335,7 @@ export const leaveClub = async (req: Request, res: Response): Promise<void> => {
 
     if (!userId || !userType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
@@ -373,3 +373,43 @@ export const leaveClub = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+export const getMembers = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+
+    if (!clubId) {
+      res.status(400).json({
+        message: "Club ID is required",
+      });
+      return;
+    }
+
+    const club = await Club.findById(clubId)//.select("members name");
+
+    if (!club) {
+      res.status(404).json({
+        message: "Club not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Members fetched successfully",
+      clubName: club.name,
+      totalMembers: club.members.length,
+      members: club.members,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+//prisma athule club id string array ekak and get the clubs of a specific member functionality
+//getUsersClubs
