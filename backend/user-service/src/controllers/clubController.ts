@@ -166,6 +166,8 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
     });
   }
 };
+
+
 export const updateClub = async (req: Request, res: Response): Promise<void> => {
   try {
     const clubId = req.params.id;
@@ -240,6 +242,77 @@ export const deleteClub = async (req: Request, res: Response): Promise<void> => 
       message: "Club deleted successfully",
       club: deletedClub,
     });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const joinClub = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+    const uid = req.headers["x-user-id"] as string;
+    const userType = req.headers["x-user-type"] as string;
+    const schoolId = req.headers["x-school-id"] as string;
+
+    if (!clubId) {
+      res.status(400).json({ message: "Club ID is required" });
+      return;
+    }
+
+    if (!uid || !userType || !schoolId) {
+      res.status(400).json({
+        message: "x-user-id, x-user-type and x-school-id headers are required",
+      });
+      return;
+    }
+
+    const club = await Club.findById(clubId);
+
+    if (!club || club.isDeleted) {
+      res.status(404).json({ message: "Club not found" });
+      return;
+    }
+
+    if (club.schoolId !== schoolId) {
+      res.status(403).json({
+        message: "You are not allowed to join this club",
+      });
+      return;
+    }
+
+    
+
+    // Check if already member
+    const alreadyMember = club.members?.some(
+      (member: any) => member.uid === uid
+    );
+
+    if (alreadyMember) {
+      res.status(409).json({
+        message: "User already joined this club",
+      });
+      return;
+    }
+
+    // Add member
+    club.members.push({
+      uid,
+      userType,
+      joinedAt: new Date(),
+    });
+
+    await club.save();
+
+    res.status(200).json({
+      message: "Joined club successfully",
+      club,
+    });
+
   } catch (error: any) {
     console.error(error);
     res.status(500).json({
