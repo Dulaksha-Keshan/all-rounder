@@ -1,11 +1,11 @@
 import express from "express";
 import dotenv from "dotenv";
-import { PrismaClient } from "@prisma/client/extension";
 
 //route imports
 import userRoutes from "./routes/userRoute.js";
 import schoolRoutes from "./routes/schoolRoute.js";
 import organizationRoutes from "./routes/organizationRoute.js";
+import eventHostsRoutes from "./routes/eventHostsRoutes.js"
 import { connectMDB } from "./mongoDb.js";
 
 dotenv.config();
@@ -32,8 +32,9 @@ app.get('/health', (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/organizations", organizationRoutes);
+app.use("api/event-hots", eventHostsRoutes)
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

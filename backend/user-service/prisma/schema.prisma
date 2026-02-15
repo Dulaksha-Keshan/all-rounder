@@ -36,7 +36,7 @@ model Student {
   updated_at DateTime @updatedAt
 
   // Relationships
-  school_id Int
+  school_id String
   school    School @relation(fields: [school_id], references: [school_id])
 
   skills Skill[]
@@ -62,7 +62,7 @@ model Teacher {
   updated_at  DateTime @updatedAt
 
   // Relationships
-  school_id Int
+  school_id String
   school    School @relation(fields: [school_id], references: [school_id])
 }
 
@@ -84,9 +84,9 @@ model Admin {
   updated_at DateTime @updatedAt
 
   // Relationships
-  school_id       Int?
+  school_id       String?
   school          School?       @relation(fields: [school_id], references: [school_id])
-  organization_id Int?
+  organization_id String?
   organization    Organization? @relation(fields: [organization_id], references: [organization_id])
 }
 
@@ -95,7 +95,7 @@ model Admin {
 // ==========================================
 
 model School {
-  school_id      Int      @id @default(autoincrement())
+  school_id      String   @id @default(uuid())
   name           String
   address        String
   district       String
@@ -108,17 +108,19 @@ model School {
   updated_at     DateTime @updatedAt
 
   // School now relates to these 3 independent tables separately
-  students Student[]
-  teachers Teacher[]
-  admins   Admin[]
+  students   Student[]
+  teachers   Teacher[]
+  admins     Admin[]
+  eventHosts EventHost[]
 }
 
 model Organization {
-  organization_id   Int     @id @default(autoincrement())
+  organization_id   String      @id @default(uuid())
   organization_name String
   contact_person    String
   website           String?
   admins            Admin[]
+  eventHosts        EventHost[]
 }
 
 // ==========================================
@@ -130,6 +132,36 @@ model Skill {
   skill_name String
   category   String
   students   Student[]
+}
+
+model EventHost {
+  id       String   @id @default(uuid())
+  eventId  String // mongo ObjectId stored as string
+  hostType HostType // SCHOOL or ORGANIZATION
+
+  // One of these will be null depending on hostType
+  schoolId       String?
+  organizationId String?
+
+  isPrimaryHost Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relations to existing models
+  school       School?       @relation(fields: [schoolId], references: [school_id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [organization_id], onDelete: Cascade)
+
+  // Prevent duplicate host mappings for same event
+  @@unique([eventId, schoolId])
+  @@unique([eventId, organizationId])
+  @@index([eventId])
+  @@index([schoolId])
+  @@index([organizationId])
+  @@map("event_hosts")
+}
+
+enum HostType {
+  SCHOOL
+  ORGANIZATION
 }
 
 enum UserType {

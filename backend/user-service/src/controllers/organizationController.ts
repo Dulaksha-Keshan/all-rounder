@@ -3,7 +3,7 @@ import Verification from "../mongoose/verificationModel.js";
 import { createUser } from "./userController.js";
 
 import { prisma } from "../prisma.js";
-
+//TODO: assess these 
 export const listOrganizations = async (req: Request, res: Response): Promise<void> => {
   try {
     const organizations = await prisma.organization.findMany({
@@ -43,11 +43,11 @@ export const getOrganizationById = async (
     }
 
     const organization = await prisma.organization.findUnique({
-      where: { organization_id: Number(id) },
+      where: { organization_id: id as string },
       include: {
         admins: {
           select: {
-            admin_id: true,
+            uid: true,
             name: true,
             email: true,
             adminType: true,
@@ -143,13 +143,13 @@ export const updateOrganization = async (
 
     //check whether admin exists and belongs to this organization
     const admin = await prisma.admin.findUnique({
-      where: { admin_id: Number(adminId) },
+      where: { uid: adminId },
     });
 
     if (
       !admin ||
       admin.adminType !== "ORG_ADMIN" ||
-      admin.organization_id !== Number(id)
+      admin.organization_id !== id
     ) {
       res.status(403).json({ message: "Unauthorized to update this organization" });
       return;
@@ -161,7 +161,7 @@ export const updateOrganization = async (
     delete updateData.updated_at;
 
     const updatedOrganization = await prisma.organization.update({
-      where: { organization_id: Number(id) },
+      where: { organization_id: id },
       data: updateData,
     });
 

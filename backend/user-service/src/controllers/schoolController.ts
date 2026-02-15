@@ -92,7 +92,7 @@ export const getSchoolById = async (req: Request, res: Response): Promise<void> 
     }
 
     const school = await prisma.school.findUnique({
-      where: { school_id: Number(id) },
+      where: { school_id: id },
       select: {
         school_id: true,
         name: true,
@@ -134,7 +134,7 @@ export const updateSchool = async (req: Request, res: Response): Promise<void> =
     if (web_link) updateData.web_link = web_link;
 
     const updatedSchool = await prisma.school.update({
-      where: { school_id: Number(id) },
+      where: { school_id: id },
       data: updateData,
     });
 
@@ -158,9 +158,9 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
     }
 
     const students = await prisma.student.findMany({
-      where: { school_id: Number(id) },
+      where: { school_id: id },
       select: {
-        student_id: true,
+        uid: true,
         name: true,
         profile_picture: true,
         about: true,
@@ -168,7 +168,7 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
     });
 
     res.status(200).json({
-      schoolId: Number(id),
+      schoolId: id,
       totalStudents: students.length,
       students,
     });
@@ -189,10 +189,10 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
 
     const teachers = await prisma.teacher.findMany({
       where: {
-        school_id: Number(id),
+        school_id: id,
       },
       select: {
-        teacher_id: true,
+        uid: true,
         name: true,
         subject: true,
         designation: true,
@@ -221,8 +221,6 @@ export const getSchoolStatistics = async (req: Request, res: Response): Promise<
       return;
     }
 
-    const n_id = Number(id);
-
     const [
       studentCount,
       teacherCount,
@@ -230,22 +228,22 @@ export const getSchoolStatistics = async (req: Request, res: Response): Promise<
       skillsCount,
     ] = await Promise.all([
       prisma.student.count({
-        where: { school_id: n_id },
+        where: { school_id: id },
       }),
 
       prisma.teacher.count({
-        where: { school_id: n_id },
+        where: { school_id: id },
       }),
 
       prisma.admin.count({
-        where: { school_id: n_id },
+        where: { school_id: id },
       }),
 
       prisma.skill.count({
         where: {
           students: {
             some: {
-              school_id: n_id,
+              school_id: id,
             },
           },
         },

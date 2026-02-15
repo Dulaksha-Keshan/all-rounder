@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../prisma.js";
 
 // Create host mapping (called by Content Service)
 export const createEventHost = async (req: Request, res: Response): Promise<void> => {
@@ -40,13 +38,13 @@ export const getEventHosts = async (req: Request, res: Response): Promise<void> 
     const { eventId } = req.params;
 
     const hosts = await prisma.eventHost.findMany({
-      where: { eventId },
+      where: { eventId: eventId as string },
       include: {
         school: {
-          select: { id: true, name: true }
+          select: { school_id: true, name: true }
         },
         organization: {
-          select: { id: true, name: true }
+          select: { organization_id: true, organization_name: true }
         },
       },
     });
@@ -63,7 +61,7 @@ export const getSchoolEventIds = async (req: Request, res: Response): Promise<vo
     const { schoolId } = req.params;
 
     const eventHosts = await prisma.eventHost.findMany({
-      where: { schoolId },
+      where: { schoolId: schoolId as string },
       select: { eventId: true, isPrimaryHost: true },
       orderBy: { createdAt: "desc" },
     });
@@ -83,7 +81,7 @@ export const getOrganizationEventIds = async (req: Request, res: Response): Prom
     const { orgId } = req.params;
 
     const eventHosts = await prisma.eventHost.findMany({
-      where: { organizationId: orgId },
+      where: { organizationId: orgId as string },
       select: { eventId: true, isPrimaryHost: true },
       orderBy: { createdAt: "desc" },
     });
@@ -102,7 +100,7 @@ export const deleteEventHosts = async (req: Request, res: Response): Promise<voi
     const { eventId } = req.params;
 
     await prisma.eventHost.deleteMany({
-      where: { eventId },
+      where: { eventId: eventId as string },
     });
 
     res.json({ message: "Event host mappings deleted" });
