@@ -18,7 +18,9 @@ app.use("/api/events", eventRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/resources", resourceRoutes);
 
-
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP', service: 'User Service' });
+});
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
@@ -35,7 +37,7 @@ mongoose
     process.exit(1);
   });
 
-const PORT = process.env.PORT || 5003;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
   console.log(`Content service running on port ${PORT}`);

@@ -92,7 +92,7 @@ export const getSchoolById = async (req: Request, res: Response): Promise<void> 
     }
 
     const school = await prisma.school.findUnique({
-      where: { school_id: id },
+      where: { school_id: id as string },
       select: {
         school_id: true,
         name: true,
@@ -134,7 +134,7 @@ export const updateSchool = async (req: Request, res: Response): Promise<void> =
     if (web_link) updateData.web_link = web_link;
 
     const updatedSchool = await prisma.school.update({
-      where: { school_id: id },
+      where: { school_id: id as string },
       data: updateData,
     });
 
@@ -158,7 +158,7 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
     }
 
     const students = await prisma.student.findMany({
-      where: { school_id: id },
+      where: { school_id: id as string },
       select: {
         uid: true,
         name: true,
@@ -189,7 +189,7 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
 
     const teachers = await prisma.teacher.findMany({
       where: {
-        school_id: id,
+        school_id: id as string,
       },
       select: {
         uid: true,
@@ -228,22 +228,22 @@ export const getSchoolStatistics = async (req: Request, res: Response): Promise<
       skillsCount,
     ] = await Promise.all([
       prisma.student.count({
-        where: { school_id: id },
+        where: { school_id: id as string },
       }),
 
       prisma.teacher.count({
-        where: { school_id: id },
+        where: { school_id: id as string },
       }),
 
       prisma.admin.count({
-        where: { school_id: id },
+        where: { school_id: id as string },
       }),
 
       prisma.skill.count({
         where: {
           students: {
             some: {
-              school_id: id,
+              school_id: id as string,
             },
           },
         },

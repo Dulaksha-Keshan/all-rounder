@@ -1,27 +1,127 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Event from "../mongoose/eventModel.js";
+import axios from 'axios';
 
-export const createEvent = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+//export const createEvent = async (
+//  req: Request,
+//  res: Response,
+//): Promise<void> => {
+//  try {
+//    console.log("All headers:", req.headers);
+//
+//    const creatorId = req.headers["x-user-id"] as string;
+//
+//    const schoolId = req.headers["x-school-id"] as string;
+//    const orgId = req.headers["x-organization-id"] as string;
+//    console.log("creatorId:", creatorId);
+//    if (!creatorId) {
+//      res.status(400).json({
+//        message: "x-user-id header is required",
+//      });
+//      return;
+//    }
+//
+//    if (!schoolId && !orgId) {
+//      res.status(400).json({
+//        message: "Invalid School ID OR Organization ID",
+//      });
+//      return;
+//    }
+//
+//    const {
+//      title,
+//      description,
+//      category,
+//      eventType,
+//      startDate,
+//      endDate,
+//      location,
+//      organizer,
+//      eligibility,
+//      registrationUrl,
+//      isOnline,
+//      visibility,
+//    } = req.body;
+//
+//    if (
+//      !title ||
+//      !description ||
+//      !(schoolId && orgId) ||
+//      !category ||
+//      !eventType ||
+//      !startDate ||
+//      !endDate ||
+//      !location ||
+//      !organizer ||
+//      !eligibility
+//    ) {
+//      res.status(400).json({
+//        message: "Missing required event fields",
+//      });
+//      return;
+//    }
+//
+//    if (new Date(startDate) > new Date(endDate)) {
+//      res.status(400).json({
+//        message: "Start date cannot be after end date",
+//      });
+//      return;
+//    }
+//
+//    const event = await Event.create({
+//      title,
+//      description,
+//      category,
+//      eventType,
+//      startDate,
+//      endDate,
+//      location,
+//      organizer,
+//      eligibility,
+//      registrationUrl,
+//      isOnline,
+//      visibility,
+//      createdBy: creatorId,
+//    });
+//
+//    res.status(201).json({
+//      message: "Event created successfully",
+//      event,
+//    });
+//  } catch (error) {
+//    console.error(error);
+//    res.status(500).json({
+//      message: "Internal server error",
+//    });
+//  }
+//};
+
+
+//HELPER FUNCTION
+//common use case would be user sees an event and user sees details and click on the event hosts like school or organization to see details 
+async function fetchHostDetails(hostId: string, hostType: string) {
   try {
-    console.log("All headers:", req.headers);
+    const endpoint = hostType === "school"
+      ? `${process.env.USER_SERVICE_URL}/api/schools/${hostId}`
+      : `${process.env.USER_SERVICE_URL}/api/organizations/${hostId}`;
 
-    const creatorId = req.headers["x-user-id"] as string;
-console.log("creatorId:", creatorId);
+    const response = await axios.get(endpoint);
+    return response.data;
+  } catch {
+    return null; // Don't fail if User Service is slow
+  }
+}
+
+
+export const createEvent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const creatorId = req.headers["x-user-id"] as string;    // Firebase UID ✅
+    const schoolId = req.headers["x-school-id"] as string;
+
+    const orgId = req.headers["x-organization-id"] as string;
     if (!creatorId) {
-      res.status(400).json({
-        message: "x-user-id header is required",
-      });
-      return;
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(creatorId)) {
-      res.status(400).json({
-        message: "Invalid creator ID",
-      });
+      res.status(400).json({ message: "x-user-id header is required" });
       return;
     }
 
@@ -38,29 +138,18 @@ console.log("creatorId:", creatorId);
       registrationUrl,
       isOnline,
       visibility,
+      hosts,   // ← ADD THIS to destructuring
     } = req.body;
 
-    if (
-      !title ||
-      !description ||
-      !category ||
-      !eventType ||
-      !startDate ||
-      !endDate ||
-      !location ||
-      !organizer ||
-      !eligibility
-    ) {
-      res.status(400).json({
-        message: "Missing required event fields",
-      });
+    // Validation (keep as is)
+    if (!title || !description || !category || !eventType ||
+      !startDate || !endDate || !location || !organizer || !eligibility || (!schoolId && !orgId)) {
+      res.status(400).json({ message: "Missing required event fields" });
       return;
     }
 
     if (new Date(startDate) > new Date(endDate)) {
-      res.status(400).json({
-        message: "Start date cannot be after end date",
-      });
+      res.status(400).json({ message: "Start date cannot be after end date" });
       return;
     }
 
@@ -78,17 +167,70 @@ console.log("creatorId:", creatorId);
       isOnline,
       visibility,
       createdBy: creatorId,
+      hosts: hosts || [],
     });
+
+    // This is the event host mapping step
+    if (hosts && hosts.length > 0) {
+      for (const host of hosts) {
+        try {
+          await axios.post(
+            `${process.env.USER_SERVICE_URL}/api/event-hosts`,
+            {
+              eventId: event._id.toString(),  // MongoDB ObjectId as string
+              hostType: host.hostType.toUpperCase(), // "SCHOOL" or "ORGANIZATION"
+              schoolId: host.hostType === "school" ? host.hostId : null,
+              organizationId: host.hostType === "organization" ? host.hostId : null,
+              isPrimaryHost: host.isPrimary || false,
+            }
+          );
+        } catch (err) {
+          // Log but don't fail the whole request
+          console.error("Failed to register host mapping:", err);
+        }
+      }
+    } else if (schoolId) {
+      // If no explicit hosts provided just school as the main host
+      try {
+        await axios.post(
+          `${process.env.USER_SERVICE_URL}/api/event-hosts`,
+          {
+            eventId: event._id.toString(),
+            hostType: "SCHOOL",
+            schoolId: schoolId,
+            organizationId: null,
+            isPrimaryHost: true,
+          }
+        );
+      } catch (err) {
+        console.error("Failed to register default host mapping:", err);
+      }
+    } else if (orgId) {
+      // If no explicit hosts provided just org as the main host
+      try {
+        await axios.post(
+          `${process.env.USER_SERVICE_URL}/api/event-hosts`,
+          {
+            eventId: event._id.toString(),
+            hostType: "ORGANIZATION",
+            schoolId: null,
+            organizationId: orgId,
+            isPrimaryHost: true,
+          }
+        );
+      } catch (err) {
+        console.error("Failed to register default host mapping:", err);
+      }
+    }
 
     res.status(201).json({
       message: "Event created successfully",
       event,
     });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -100,7 +242,7 @@ export const getAllEvents = async (
   try {
     const events = await Event.find({ isDeleted: false })
       .sort({ startDate: 1 })
-      //.populate("createdBy", "name email"); because this gives error since it cannot find User
+    //.populate("createdBy", "name email"); because this gives error since it cannot find User
 
     res.status(200).json({
       success: true,
@@ -116,41 +258,84 @@ export const getAllEvents = async (
   }
 };
 
-export const getEventById = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+//export const getEventById = async (
+//  req: Request,
+//  res: Response,
+//): Promise<void> => {
+//  try {
+//    const eventId = req.params.id as string;
+//
+//    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+//      res.status(400).json({
+//        message: "Invalid event ID",
+//      });
+//      return;
+//    }
+//
+//    const event = await Event.findOne({
+//      _id: eventId,
+//      isDeleted: false
+//    });
+//
+//    if (!event) {
+//      res.status(404).json({
+//        message: "Event not found",
+//      });
+//      return;
+//    }
+//
+//    res.status(200).json({
+//      event,
+//    });
+//  } catch (error) {
+//    console.error(error);
+//    res.status(500).json({
+//      message: "Internal server error",
+//    });
+//  }
+//};
+
+export const getEventById = async (req: Request, res: Response): Promise<void> => {
   try {
     const eventId = req.params.id as string;
 
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
-      res.status(400).json({
-        message: "Invalid event ID",
-      });
+      res.status(400).json({ message: "Invalid event ID" });
       return;
     }
 
-    const event = await Event.findOne({
-  _id: eventId,
-  isDeleted: false});
+    const event = await Event.findOne({ _id: eventId, isDeleted: false });
 
     if (!event) {
-      res.status(404).json({
-        message: "Event not found",
-      });
+      res.status(404).json({ message: "Event not found" });
       return;
+    }
+
+    //  Optionally enrich with fresh host details from User Service
+    // hosts[] already has hostName from creation (denormalized)
+    // but we can fetch fresh data for the detail view
+    //TODO: finsih the later part 
+    let hostDetails = null;
+    try {
+      const response = await axios.get(
+        `${process.env.USER_SERVICE_URL}/api/event-hosts/${eventId}`
+      );
+      hostDetails = response.data;
+    } catch {
+      // Fall back to stored host data in MongoDB
     }
 
     res.status(200).json({
       event,
+      hostDetails: hostDetails || event.hosts, // Use fresh or stored
     });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 export const updateEvent = async (
@@ -168,10 +353,10 @@ export const updateEvent = async (
     }
 
     const updatedEvent = await Event.findOneAndUpdate(
-  { _id: eventId, isDeleted: false },
-  req.body,
-  { new: true, runValidators: true }
-);
+      { _id: eventId, isDeleted: false },
+      req.body,
+      { new: true, runValidators: true }
+    );
 
     if (!updatedEvent) {
       res.status(404).json({
@@ -236,7 +421,7 @@ export const rsvpToEvent = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-    // Current Event model does not support attendees list.
-    // This feature requires schema update or separate RSVP model.
-    res.status(501).json({ message: "RSVP feature not implemented yet (requires model update)" });
+  // Current Event model does not support attendees list.
+  // This feature requires schema update or separate RSVP model.
+  res.status(501).json({ message: "RSVP feature not implemented yet (requires model update)" });
 };

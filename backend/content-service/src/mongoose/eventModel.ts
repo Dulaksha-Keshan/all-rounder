@@ -1,5 +1,27 @@
 import mongoose from "mongoose";
 
+
+const HostSchema = new mongoose.Schema({
+  hostType: {
+    type: String,
+    enum: ["school", "organization"],
+    required: true,
+  },
+  hostId: {
+    type: String,    // firebase UUID for school or a org
+    required: true,
+  },
+  hostName: {
+    type: String,    // Denormalized - stored at time of creation
+    required: true,
+  },
+  isPrimary: {
+    type: Boolean,
+    default: false,
+  },
+}, { _id: false });
+
+
 const eventSchema = new mongoose.Schema(
   {
     title: {
@@ -42,6 +64,9 @@ const eventSchema = new mongoose.Schema(
     organizer: {
       type: String,
       required: true,
+    },
+    hosts: {
+      type: [HostSchema],
     },
     eligibility: {
       type: String,
