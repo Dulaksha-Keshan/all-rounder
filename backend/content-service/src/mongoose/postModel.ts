@@ -14,7 +14,7 @@ const postSchema = new mongoose.Schema(
     category: {
       type: String, // e.g., "achievement", "participation", "competition", "project"
       required: true,
-    },
+    }, // methanin ekak ain karann
     postType: {
       type: String,
       enum: ["achievement", "participation", "event", "project"], 
@@ -36,9 +36,16 @@ const postSchema = new mongoose.Schema(
       },
     ],
     student: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+      type: String,
       required: true, // posts are always tied to a student
+    }, // required ain krla organization and school, and students dann
+    school: {
+      type: String,
+      required: true, 
+    },
+    organization: {
+      type: String,
+      required: true, 
     },
     likes: [
       {
