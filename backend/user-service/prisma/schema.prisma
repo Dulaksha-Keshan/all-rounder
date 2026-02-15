@@ -40,6 +40,7 @@ model Student {
   school    School @relation(fields: [school_id], references: [school_id])
 
   skills Skill[]
+  clubIds String[] @default([])
 }
 
 model Teacher {
@@ -64,6 +65,8 @@ model Teacher {
   // Relationships
   school_id String
   school    School @relation(fields: [school_id], references: [school_id])
+
+  clubIds String[] @default([])
 }
 
 model Admin {
