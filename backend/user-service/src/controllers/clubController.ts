@@ -320,3 +320,56 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+
+export const leaveClub = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clubId = req.params.id;
+    const userId = req.headers["x-user-id"] as string;
+    const userType = req.headers["x-user-type"] as string;
+
+    if (!clubId) {
+      res.status(400).json({ message: "Club ID is required" });
+      return;
+    }
+
+    if (!userId || !userType) {
+      res.status(400).json({
+        message: "x-user-id and x-user-type headers are required",
+      });
+      return;
+    }
+
+    const club = await Club.findById(clubId);
+
+    if (!club) {
+      res.status(404).json({ message: "Club not found" });
+      return;
+    }
+
+    const isMember = club.members?.some(
+      (member: any) => member.uid === userId
+    );
+
+    if (!isMember) {
+      res.status(409).json({
+        message: "User is not a member of this club",
+      });
+      return;
+    }
+
+    club.members.pull({ uid: userId });
+
+    await club.save();
+
+    res.status(200).json({
+      message: "Left club successfully",
+      club,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
