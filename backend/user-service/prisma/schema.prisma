@@ -121,6 +121,8 @@ model Organization {
   website           String?
   admins            Admin[]
   eventHosts        EventHost[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 // ==========================================
