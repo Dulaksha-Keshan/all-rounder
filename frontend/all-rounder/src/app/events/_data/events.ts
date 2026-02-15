@@ -2,7 +2,7 @@ import { Event } from "@/context/useEventStore"
 
 export const Events: Event[] = [
   {
-    id: 1,
+    id: "1",
     title: "Inquiro'25 - Inter School Quiz Competition",
     description:
       "They say the answers lie in plain sight, waiting for those who see what others overlook.",
@@ -35,7 +35,7 @@ This is an excellent opportunity for students to test their knowledge against pe
 
   },
   {
-    id: 2,
+    id: "2",
     title: "Ciencias'25 All Island InterSchool Debate Competition",
     description:
       "Sri Lanka's interschool debating tournament organized by a Science Society.",
@@ -68,7 +68,7 @@ This competition offers a unique platform for young debaters to voice their opin
 
   },
   {
-    id: 3,
+    id: "3",
     title: "Synapse'25 - Inter-school Graphic Design Competition",
     description:
       "Design what lies beyond—from future tech and space mysteries to sustainable solutions.",
@@ -101,7 +101,7 @@ This competition celebrates creativity, technical skill, and the ability to comm
 
   },
   {
-    id: 4,
+    id: "4",
     title: "Talentraa AI-Powered Full-Stack Engineering Masterclass",
     description:
       "Transform beginners into industry-ready developers in just 2.5 months, building real projects with AI.",
@@ -133,7 +133,7 @@ Throughout the course, students will build multiple real-world projects includin
     organizerType: "School"
   },
   {
-    id: 5,
+    id: "5",
     title: "Nalanda College Science Society Competitions",
     description:
       "6 inter-school competitions including Science Quiz, Short Film, Photography, Presentation, Graphic Design, and Report Contest.",
@@ -183,7 +183,7 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
 
   },
   {
-    id: 6,
+    id: "6",
     title: "විශ්වාභියාත්‍රා'26 - Inter-School Quiz, Graphic and Presentation Competition",
     description:
       'Celebrating bright young minds with quizzes, graphic, and presentation competitions by Bandaranayake College Gampaha.',
@@ -191,7 +191,7 @@ Each competition has its own timeline, judging criteria, and prizes. Participant
 
 **Quiz Competition**: A comprehensive general knowledge quiz covering history, geography, current affairs, science, technology, arts, and culture. Teams will compete in preliminary and final rounds.
 
-**Graphic Design Competition**: Participants create original digital artwork based on provided themes. Designs should demonstrate creativity, technical proficiency, and aesthetic appeal.
+**Graphic Design Competition**: Participants create original digital artwork based on themes. Designs should demonstrate creativity, technical proficiency, and aesthetic appeal.
 
 **Presentation Competition**: Students deliver presentations on assigned topics, showcasing their research abilities, communication skills, and stage presence. Topics range from social issues to scientific innovations.
 
@@ -220,4 +220,4 @@ This competition promotes holistic development by testing different skill sets�
     organizerType: "School",
 
   },
-]
+];

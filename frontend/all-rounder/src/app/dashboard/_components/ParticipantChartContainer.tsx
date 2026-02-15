@@ -18,7 +18,7 @@ const ParticipantsChartContainer = () => {
       if (
         student.registeredEvents?.some((registration) => {
           const event = events.find(
-            (e) => e.id === Number(registration.eventId)
+            (e) => e.id === registration.eventId
           );
           if (!event) return false;
 

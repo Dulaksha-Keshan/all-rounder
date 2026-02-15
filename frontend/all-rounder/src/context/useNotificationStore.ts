@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
 
 export interface Notification {
-    id: number;
+    id: string; // Changed to string
     title: string;
     message: string;
     type: 'info' | 'success' | 'warning' | 'error';
@@ -23,9 +23,9 @@ interface NotificationState {
     // Actions
     fetchNotifications: () => Promise<void>;
     addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => Promise<void>;
-    markAsRead: (id: number) => Promise<void>;
+    markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
-    deleteNotification: (id: number) => Promise<void>;
+    deleteNotification: (id: string) => Promise<void>;
     clearAll: () => Promise<void>;
 }
 

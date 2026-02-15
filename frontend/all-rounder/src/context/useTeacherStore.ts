@@ -14,9 +14,9 @@ interface TeacherState {
     // Actions
     fetchTeachers: () => Promise<void>;
     addTeacher: (teacher: Teacher) => Promise<void>;
-    updateTeacher: (id: number, updates: Partial<Teacher>) => Promise<void>;
-    deleteTeacher: (id: number) => Promise<void>;
-    getTeacherById: (id: number) => Teacher | undefined;
+    updateTeacher: (id: string, updates: Partial<Teacher>) => Promise<void>;
+    deleteTeacher: (id: string) => Promise<void>;
+    getTeacherById: (id: string) => Teacher | undefined;
     searchTeachers: (query: string) => Teacher[];
 }
 
@@ -87,7 +87,7 @@ export const useTeacherStore = create<TeacherState>()(
                 }
             },
 
-            getTeacherById: (id: number) => {
+            getTeacherById: (id: string) => {
                 return get().teachers.find(t => t.id === id);
             },
 

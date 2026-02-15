@@ -33,8 +33,8 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const { getSchoolById } = useSchoolStore();
   const { getEventById } = useEventStore();
 
-  // Find the student by ID
-  const student = getStudentById(Number(id));
+  // Find the student by ID - ID is now a string from the URL
+  const student = getStudentById(id);
 
   if (!student) {
     notFound();
@@ -45,7 +45,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const schoolName = school?.name || 'Unknown School';
 
   // TODO: Get this from your auth system
-  const loggedInUserId = 1; // Replace with actual auth
+  const loggedInUserId = "1"; // Replace with actual auth
   const loggedInUserType = "student"; // Replace with actual auth
 
   // Check if viewing own profile
@@ -76,7 +76,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
   // Get full event details for registered events
   const registeredEventsWithDetails = studentData.registeredEvents?.map(reg => {
-    const event = getEventById(Number(reg.eventId));
+    const event = getEventById(reg.eventId); // No Number() conversion needed
     return {
       ...reg,
       eventDetails: event

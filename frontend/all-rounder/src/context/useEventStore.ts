@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware';
 export type OrganizerType = "School" | "Organization";
 
 export interface Event {
-    id: number;
+    id: string; // Changed to string
     title: string;
     description: string;
     fullDescription?: string;
@@ -37,11 +37,11 @@ interface EventState {
     setEvents: (events: Event[]) => void;
     fetchEvents: () => Promise<void>;
     addEvent: (event: Event) => Promise<void>;
-    updateEvent: (id: number, updates: Partial<Event>) => Promise<void>;
-    deleteEvent: (id: number) => Promise<void>;
+    updateEvent: (id: string, updates: Partial<Event>) => Promise<void>;
+    deleteEvent: (id: string) => Promise<void>;
     setActiveEvent: (event: Event | null) => void;
-    rsvpEvent: (eventId: number) => Promise<void>;
-    getEventById: (id: number) => Event | undefined;
+    rsvpEvent: (eventId: string) => Promise<void>;
+    getEventById: (id: string) => Event | undefined;
 }
 
 export const useEventStore = create<EventState>()(
@@ -140,7 +140,7 @@ export const useEventStore = create<EventState>()(
                 }
             },
 
-            getEventById: (id: number) => {
+            getEventById: (id: string) => {
                 return get().events.find(e => e.id === id);
             },
         }),

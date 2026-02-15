@@ -10,7 +10,7 @@ import GoBackButton from '@/components/GoBackButton';
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const eventId = Number(params.id);
+  const eventId = params.id as string;
 
   const event = Events.find(e => e.id === eventId);
 

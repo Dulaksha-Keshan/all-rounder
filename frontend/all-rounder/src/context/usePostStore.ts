@@ -6,7 +6,7 @@ import api from '@/lib/axios';
 
 // Defining types locally to be self-contained, mirroring PostType usage
 export interface Post {
-    id: number;
+    id: string; // Changed to string
     author: {
         name: string;
         role: string;
@@ -33,9 +33,9 @@ interface PostState {
     // Actions
     fetchPosts: () => Promise<void>;
     createPost: (post: Omit<Post, 'id' | 'likes' | 'comments' | 'time'>) => Promise<void>;
-    deletePost: (id: number) => Promise<void>;
-    likePost: (id: number) => Promise<void>;
-    commentPost: (id: number, text: string) => Promise<void>;
+    deletePost: (id: string) => Promise<void>;
+    likePost: (id: string) => Promise<void>;
+    commentPost: (id: string, text: string) => Promise<void>;
     setPosts: (posts: Post[]) => void;
 }
 

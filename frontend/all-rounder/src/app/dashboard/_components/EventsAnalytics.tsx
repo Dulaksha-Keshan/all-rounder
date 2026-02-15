@@ -79,13 +79,13 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   const eventStats = filteredEvents.map((event) => {
     const studentParticipants = filteredStudents.filter((student) =>
       student.registeredEvents?.some(
-        (registration) => Number(registration.eventId) === event.id
+        (registration) => registration.eventId === event.id
       )
     );
 
     const teacherParticipants = filteredTeachers.filter((teacher) =>
       teacher.registeredEvents?.some(
-        (registration) => Number(registration.eventId) === event.id
+        (registration) => registration.eventId === event.id
       )
     );
 

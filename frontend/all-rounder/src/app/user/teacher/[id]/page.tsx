@@ -33,12 +33,13 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   };
 
   // Get data from stores
+  // Get data from stores
   const { getTeacherById } = useTeacherStore();
   const { getSchoolById } = useSchoolStore();
   const { getEventById } = useEventStore();
 
   // Find the teacher by ID
-  const teacher = getTeacherById(Number(id));
+  const teacher = getTeacherById(id);
 
   if (!teacher) {
     notFound();
@@ -50,7 +51,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // TODO: Get this from your auth system
   // For now, assuming logged-in user is teacher with ID 1
-  const loggedInUserId = 1; // Replace with actual auth
+  const loggedInUserId = "1"; // Replace with actual auth
   const loggedInUserType = "teacher"; // Replace with actual auth
 
   // Check if viewing own profile
@@ -73,7 +74,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // Get full event details for registered events
   const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
-    const event = getEventById(Number(reg.eventId));
+    const event = getEventById(reg.eventId);
     return {
       ...reg,
       eventDetails: event
@@ -130,7 +131,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
               <NextImage
-                src={teacherData.photoUrl}
+                src={teacherData.photoUrl || '/default-avatar.png'}
                 alt={teacherData.name}
                 width={96}
                 height={96}

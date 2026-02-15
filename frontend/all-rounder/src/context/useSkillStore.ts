@@ -6,7 +6,7 @@ import { Skills } from '@/app/_data/skills';
 import api from '@/lib/axios';
 
 export interface Skill {
-    id: number;
+    id: string; // Changed to string
     name: string;
     category: string;
     level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
@@ -24,9 +24,9 @@ interface SkillState {
     fetchSkills: () => Promise<void>;
     fetchUserSkills: () => Promise<void>;
     addSkillToUser: (skill: Skill) => Promise<void>;
-    removeSkillFromUser: (skillId: number) => Promise<void>;
+    removeSkillFromUser: (skillId: string) => Promise<void>;
     createNewSkill: (skill: Omit<Skill, 'id' | 'endorsements'>) => Promise<void>; // Admin/System action
-    endorseSkill: (skillId: number) => Promise<void>;
+    endorseSkill: (skillId: string) => Promise<void>;
     setSearchQuery: (query: string) => void;
 }
 

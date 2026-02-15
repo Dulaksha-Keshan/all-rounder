@@ -6,7 +6,7 @@ import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
 
 export interface Club {
-    id: number;
+    id: string; // Changed to string
     name: string;
     description: string;
     logoUrl?: string;
@@ -25,11 +25,11 @@ interface ClubState {
     // Actions
     setClubs: (clubs: Club[]) => void;
     fetchClubs: () => Promise<void>;
-    joinClub: (clubId: number) => Promise<void>;
-    leaveClub: (clubId: number) => Promise<void>;
+    joinClub: (clubId: string) => Promise<void>;
+    leaveClub: (clubId: string) => Promise<void>;
     createClub: (club: Omit<Club, 'id' | 'membersCount' | 'isJoined'>) => Promise<void>;
-    updateClub: (id: number, updates: Partial<Club>) => Promise<void>;
-    deleteClub: (id: number) => Promise<void>;
+    updateClub: (id: string, updates: Partial<Club>) => Promise<void>;
+    deleteClub: (id: string) => Promise<void>;
 }
 
 export const useClubStore = create<ClubState>()(

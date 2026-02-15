@@ -14,9 +14,9 @@ interface StudentState {
     // Actions
     fetchStudents: () => Promise<void>;
     addStudent: (student: Student) => Promise<void>;
-    updateStudent: (id: number, updates: Partial<Student>) => Promise<void>;
-    deleteStudent: (id: number) => Promise<void>;
-    getStudentById: (id: number) => Student | undefined;
+    updateStudent: (id: string, updates: Partial<Student>) => Promise<void>;
+    deleteStudent: (id: string) => Promise<void>;
+    getStudentById: (id: string) => Student | undefined;
     searchStudents: (query: string) => Student[];
 }
 
@@ -87,7 +87,7 @@ export const useStudentStore = create<StudentState>()(
                 }
             },
 
-            getStudentById: (id: number) => {
+            getStudentById: (id: string) => {
                 return get().students.find(s => s.id === id);
             },
 
