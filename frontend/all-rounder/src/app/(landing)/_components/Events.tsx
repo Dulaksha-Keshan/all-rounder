@@ -221,7 +221,7 @@ export function EventDetails() {
                     <Calendar className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Date</div>
                     <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
-                      {new Date(currentEvent.startDate).toLocaleDateString()}
+                      {new Date(currentEvent.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                     </div>
                   </div>
 
@@ -230,7 +230,7 @@ export function EventDetails() {
                     <Clock className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Time</div>
                     <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
-                      {currentEvent.time || new Date(currentEvent.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {currentEvent.time || new Date(currentEvent.startDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
 
