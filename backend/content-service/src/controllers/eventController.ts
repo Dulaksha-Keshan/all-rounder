@@ -116,14 +116,11 @@ async function fetchHostDetails(hostId: string, hostType: string) {
 
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
   try {
-    const creatorId = req.headers["x-user-id"] as string;    // Firebase UID ✅
+    const creatorId = req.headers["x-user-uid"] as string;    // Firebase UID ✅
     const schoolId = req.headers["x-school-id"] as string;
+    const orgId = req.headers["x-organization-id"] as string; // methana school id and organization id wenama ganne nathuwa creator id ek map karamud
 
-    const orgId = req.headers["x-organization-id"] as string;
-    if (!creatorId) {
-      res.status(400).json({ message: "x-user-id header is required" });
-      return;
-    }
+    
 
     const {
       title,
@@ -148,18 +145,48 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    if (new Date(startDate) > new Date(endDate)) {
-      res.status(400).json({ message: "Start date cannot be after end date" });
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      res.status(400).json({ message: "Invalid date format" });
       return;
     }
+
+    if (start > end) {
+      res.status(400).json({
+        message: "Start date cannot be after end date",
+      });
+      return;
+    }
+
+    if (hosts && Array.isArray(hosts)) {
+      for (const host of hosts) {
+        if (!host.hostType || !host.hostId || !host.hostName) {
+          res.status(400).json({
+            message: "Invalid host structure",
+          });
+          return;
+        }
+
+        if (!["school", "organization"].includes(host.hostType)) {
+          res.status(400).json({
+            message: "Host type must be school or organization",
+          });
+          return;
+        }
+      }
+    }
+
 
     const event = await Event.create({
       title,
       description,
       category,
       eventType,
-      startDate,
-      endDate,
+      startDate : start,
+      endDate: end,
       location,
       organizer,
       eligibility,
@@ -170,8 +197,10 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       hosts: hosts || [],
     });
 
+    let hostMappingSuccessCount = 0;
+
     // This is the event host mapping step
-    if (hosts && hosts.length > 0) {
+    if (hosts && hosts.length > 1) {
       for (const host of hosts) {
         try {
           await axios.post(
@@ -184,43 +213,34 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
               isPrimaryHost: host.isPrimary || false,
             }
           );
+          hostMappingSuccessCount++;
         } catch (err) {
           // Log but don't fail the whole request
           console.error("Failed to register host mapping:", err);
         }
       }
-    } else if (schoolId) {
-      // If no explicit hosts provided just school as the main host
+    } else {
+      // Default host mapping if no hosts provided
       try {
-        await axios.post(
-          `${process.env.USER_SERVICE_URL}/api/event-hosts`,
-          {
-            eventId: event._id.toString(),
-            hostType: "SCHOOL",
-            schoolId: schoolId,
-            organizationId: null,
-            isPrimaryHost: true,
-          }
-        );
+        await axios.post(`${process.env.USER_SERVICE_URL}/api/event-hosts`, {
+          eventId: event._id.toString(),
+          hostType: schoolId ? "SCHOOL" : "ORGANIZATION",
+          schoolId: schoolId || null,
+          organizationId: orgId || null,
+          isPrimaryHost: true,
+        });
+        hostMappingSuccessCount++;
       } catch (err) {
-        console.error("Failed to register default host mapping:", err);
+        console.error("Default host mapping failed:", err);
       }
-    } else if (orgId) {
-      // If no explicit hosts provided just org as the main host
-      try {
-        await axios.post(
-          `${process.env.USER_SERVICE_URL}/api/event-hosts`,
-          {
-            eventId: event._id.toString(),
-            hostType: "ORGANIZATION",
-            schoolId: null,
-            organizationId: orgId,
-            isPrimaryHost: true,
-          }
-        );
-      } catch (err) {
-        console.error("Failed to register default host mapping:", err);
-      }
+    }
+
+    if (hostMappingSuccessCount === 0) {
+      await Event.findByIdAndDelete(event._id);
+      res.status(500).json({
+        message: "Event creation failed due to host registration error",
+      });
+      return;
     }
 
     res.status(201).json({
