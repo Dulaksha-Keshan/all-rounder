@@ -4,24 +4,38 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 export type OrganizerType = "School" | "Organization";
 
+export interface Host {
+    hostType: "school" | "organization";
+    hostId: string;
+    hostName: string;
+    isPrimary: boolean;
+}
+
 export interface Event {
-    id: string; // Changed to string
+    id: string;
     title: string;
     description: string;
-    fullDescription?: string;
-    date: string;
-    deadline?: string;
+    category: string;
+    eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
+    startDate: string; // ISO date string
+    endDate: string;   // ISO date string
     location: string;
-    imageUrl: string;
-    categories?: string[];
+    organizer: string; // Name or ID string from schema
+    hosts?: Host[];
+    eligibility: string;
+    registrationUrl?: string;
+    isOnline: boolean;
+    visibility: "public" | "private";
+    createdBy: string; // User ID
+    isDeleted?: boolean;
+
+    // UI/Legacy fields (kept for compatibility or derived)
+    imageUrl?: string;
     status?: "Registered" | "Open";
-    requirements?: string[];
-    prizes?: string[];
-    contactEmail?: string;
-    time?: string;
-    organizerId: string;
-    organizerType: OrganizerType;
-    isMajor?: boolean;
+    requirements?: string[]; // Not in schema, keeping for UI
+    prizes?: string[]; // Not in schema, keeping for UI
+    contactEmail?: string; // Not in schema, keeping for UI
+    time?: string; // Derived from startDate
 }
 
 import { Events } from '@/app/events/_data/events';

@@ -6,22 +6,32 @@ import api from '@/lib/axios';
 
 // Defining types locally to be self-contained, mirroring PostType usage
 export interface Post {
-    id: string; // Changed to string
-    author: {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    postType: "achievement" | "participation" | "event" | "project";
+    visibility: "public" | "private";
+    attachments?: string[]; // URLs
+    tags?: string[];
+    student: string; // Student ID
+    school: string; // School ID
+    organization: string; // Organization ID
+    likes: string[]; // Array of Student IDs
+    comments: {
+        student: string; // Student ID
+        comment: string;
+        createdAt: string;
+    }[];
+    isDeleted?: boolean;
+
+    // Legacy/UI mappings
+    time?: string; // Derived from createdAt
+    author?: { // Derived from student/school/org info
         name: string;
         role: string;
         image?: string;
     };
-    time: string;
-    content: string;
-    likes: number;
-    comments: number;
-    isLiked?: boolean;
-    media?: {
-        type: 'image' | 'video' | 'doc';
-        url: string;
-        name: string;
-    }[];
 }
 
 interface PostState {
@@ -94,12 +104,13 @@ export const usePostStore = create<PostState>()(
                 set((state) => ({
                     posts: state.posts.map(p => {
                         if (p.id === id) {
-                            const isLiked = !p.isLiked;
-                            return {
-                                ...p,
-                                isLiked,
-                                likes: isLiked ? p.likes + 1 : Math.max(0, p.likes - 1)
-                            };
+                            // This is a simplified optimistic update. 
+                            // In reality, we'd need the current user's ID to add/remove from the array.
+                            // For now, we'll assume the backend handles the actual toggling and return state as is or fetch updated.
+                            // Or simpler: just don't do optimistic update for the array content without user ID, 
+                            // just wait for re-fetch or assume success if needed.
+                            // Let's rely on re-fetching or simple toggle if we had user ID.
+                            return p;
                         }
                         return p;
                     })
@@ -107,22 +118,28 @@ export const usePostStore = create<PostState>()(
 
                 try {
                     await api.post(`/posts/${id}/like`);
+                    // Ideally fetch updated post here
+                    const response = await api.get(`/posts/${id}`);
+                    set((state) => ({
+                        posts: state.posts.map(p => p.id === id ? response.data : p)
+                    }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to like post' });
-                    // Could revert optimistic update
                 }
             },
 
             commentPost: async (id, text) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.post(`/posts/${id}/comments`, { text });
-                    // Assuming backend returns updated comment count or the comment itself
+                    const response = await api.post(`/posts/${id}/comments`, { text });
+                    // Backend should return the new comment or updated post
+                    // Assuming it returns the updated post for simplicity
+                    const updatedPost = response.data; // or fetch if needed
 
                     set((state) => ({
                         posts: state.posts.map(p => {
                             if (p.id === id) {
-                                return { ...p, comments: p.comments + 1 };
+                                return updatedPost; // Replace with updated post from backend
                             }
                             return p;
                         })

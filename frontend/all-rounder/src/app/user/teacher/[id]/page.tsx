@@ -308,7 +308,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                         </p>
                         {reg.eventDetails && (
                           <p className="text-xs text-gray-500 mt-1">
-                            {formatDate(reg.eventDetails.date)} • {reg.eventDetails.location}
+                            {formatDate(reg.eventDetails.startDate)} • {reg.eventDetails.location}
                           </p>
                         )}
                       </div>

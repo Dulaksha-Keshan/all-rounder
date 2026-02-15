@@ -103,14 +103,16 @@ export default function EventDetailPage() {
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center">
           <div className="flex gap-2 mb-6 flex-wrap justify-center">
-            {event.categories?.slice(0, 4).map((cat, idx) => (
-              <span
-                key={idx}
-                className="px-4 py-2 bg-white/20 backdrop-blur-md text-white text-sm rounded-full font-medium border border-white/30"
-              >
-                {cat}
-              </span>
-            ))}
+            <span
+              className="px-4 py-2 bg-white/20 backdrop-blur-md text-white text-sm rounded-full font-medium border border-white/30"
+            >
+              {event.category}
+            </span>
+            <span
+              className="px-4 py-2 bg-white/20 backdrop-blur-md text-white text-sm rounded-full font-medium border border-white/30"
+            >
+              {event.eventType}
+            </span>
           </div>
 
           <h1
@@ -155,7 +157,7 @@ export default function EventDetailPage() {
 
             <div className="bg-purple-50 rounded-2xl p-10 shadow-md border-2 border-[#DCD0FF]">
               <div className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-                {event.fullDescription || event.description}
+                {event.description}
               </div>
             </div>
           </div>
@@ -174,19 +176,19 @@ export default function EventDetailPage() {
                     <Calendar className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Event Date</p>
-                    <p className="font-semibold text-[#34365C]">{event.date}</p>
+                    <p className="text-sm text-gray-600 mb-1">Start Date</p>
+                    <p className="font-semibold text-[#34365C]">{new Date(event.startDate).toLocaleDateString()}</p>
                   </div>
                 </div>
 
-                {event.deadline && (
+                {event.endDate && (
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-[#8387CC] flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Registration Deadline</p>
-                      <p className="font-semibold text-[#34365C]">{event.deadline}</p>
+                      <p className="text-sm text-gray-600 mb-1">End Date</p>
+                      <p className="font-semibold text-[#34365C]">{new Date(event.endDate).toLocaleDateString()}</p>
                     </div>
                   </div>
                 )}
