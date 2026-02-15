@@ -322,7 +322,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                           </p>
                           {reg.eventDetails && (
                             <p className="text-xs text-gray-600 mt-2">
-                              {formatDate(reg.eventDetails.date)} • {reg.eventDetails.location}
+                              {formatDate(reg.eventDetails.startDate)} • {reg.eventDetails.location}
                             </p>
                           )}
                         </div>

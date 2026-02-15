@@ -37,7 +37,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden bg-[#F8F8FF]">
           <Image
-            src={event.imageUrl}
+            src={event.imageUrl || '/images/hero-1.jpg'}
             alt={event.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -49,7 +49,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="px-3 py-1 bg-[var(--secondary-pale-lavender)] text-[var(--primary-purple)] text-xs font-bold rounded-lg border border-[var(--secondary-light-lavender)]">
-                {event.categories?.[0] || 'Event'}
+                {event.category || 'Event'}
               </span>
               <div className="flex items-center gap-1.5 text-[var(--gray-400)] text-xs font-medium">
                 <Clock size={14} />
@@ -72,7 +72,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
                 </div>
                 <div>
                   <p className="text-[10px] text-[var(--gray-400)] uppercase font-bold tracking-wider">Date</p>
-                  <p className="text-sm font-semibold">{event.date}</p>
+                  <p className="text-sm font-semibold">{new Date(event.startDate).toLocaleDateString()}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-[var(--gray-600)]">

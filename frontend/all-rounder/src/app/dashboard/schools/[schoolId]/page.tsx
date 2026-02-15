@@ -34,7 +34,7 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
 
   // Filter data by schoolId
   const schoolEvents = events.filter(
-    (e) => e.organizerId === schoolId && e.organizerType === "School"
+    (e) => e.hosts?.some(h => h.hostId === schoolId && h.hostType === "school")
   );
 
   return (

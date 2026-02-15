@@ -9,11 +9,26 @@ export interface Club {
     id: string; // Changed to string
     name: string;
     description: string;
+    category: string;
     logoUrl?: string;
-    schoolId?: string;
+    schoolId: string;
+    schoolName: string;
+    foundedYear?: number;
+    teacherInCharge?: {
+        name: string;
+        email?: string;
+        contacts?: string;
+    };
+    socialLinks?: {
+        facebook?: string;
+        instagram?: string;
+        linkedin?: string;
+    };
+    visibility: "public" | "private";
     membersCount: number;
     isJoined?: boolean;
     tags?: string[];
+    createdAt?: string;
 }
 
 interface ClubState {

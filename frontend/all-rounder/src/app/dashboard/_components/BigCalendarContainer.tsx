@@ -21,14 +21,17 @@ const BigCalendarContainer = ({
   // Filter events based on type
   const filteredEvents = events.filter((event) => {
     if (!id) return false;
-    return event.organizerId === id && event.organizerType === type;
+    // Map props type to host type (lowercase)
+    const targetHostType = type === "School" ? "school" : "organization";
+    // Check hosts array
+    return event.hosts?.some(h => h.hostId === id && h.hostType === targetHostType);
   });
 
   const data = filteredEvents.map((event) => ({
     title: event.title,
-    start: new Date(event.date),
-    end: new Date(event.date),
-    time: event.time,
+    start: new Date(event.startDate),
+    end: new Date(event.endDate || event.startDate),
+    time: event.time || new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     location: event.location,
   }));
 

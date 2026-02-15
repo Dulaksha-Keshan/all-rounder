@@ -22,7 +22,7 @@ const ParticipantsChartContainer = () => {
           );
           if (!event) return false;
 
-          const eventDate = new Date(event.date);
+          const eventDate = new Date(event.startDate);
           const eventDay = eventDate.getDay(); // 0 = Sunday
           const dayIndex = daysOfWeek.indexOf(day); // 0 = Monday
 

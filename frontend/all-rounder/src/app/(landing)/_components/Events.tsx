@@ -176,7 +176,7 @@ export function EventDetails() {
               {/* Image with parallax effect on hover */}
               <div className="overflow-hidden relative h-[250px] sm:h-[350px] lg:h-[400px]">
                 <Image
-                  src={currentEvent.imageUrl}
+                  src={currentEvent.imageUrl || '/images/hero-1.jpg'} // Fallback image
                   alt={currentEvent.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
@@ -220,14 +220,18 @@ export function EventDetails() {
                   <div className="event-info-item text-center">
                     <Calendar className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Date</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.date}</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
+                      {new Date(currentEvent.startDate).toLocaleDateString()}
+                    </div>
                   </div>
 
                   {/* Time */}
                   <div className="event-info-item text-center">
                     <Clock className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Time</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.time}</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
+                      {currentEvent.time || new Date(currentEvent.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
 
                   {/* Location */}

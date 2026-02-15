@@ -37,7 +37,7 @@ export default function OrgDashboard({ params }: OrgDashboardProps) {
 
   // Filter events by organization
   const orgEvents = events.filter(
-    (e) => e.organizerId === orgId && e.organizerType === "Organization"
+    (e) => e.hosts?.some(h => h.hostId === orgId && h.hostType === "organization")
   );
 
   console.log("Organization events:", orgEvents.length);

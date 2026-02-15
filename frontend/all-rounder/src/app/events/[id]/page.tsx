@@ -88,7 +88,7 @@ export default function EventDetailPage() {
       <div className="relative h-screen w-full overflow-hidden">
         <div className="absolute inset-0">
           <NextImage
-            src={event.imageUrl}
+            src={event.imageUrl || '/images/hero-1.jpg'}
             alt={event.title}
             fill
             priority

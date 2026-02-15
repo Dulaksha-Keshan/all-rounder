@@ -16,12 +16,10 @@ export default function UpcomingEvents() {
         const now = new Date();
         const futureEvents = events
             .filter(event => {
-                const eventDate = new Date(event.date); // Assuming format allows date parsing, otherwise need robust parsing
-                // Since date formatting might be "Dec 5, 2025", JS Date constructor usually handles it.
-                // If logic fails, we fallback to showing all or handle better.
-                return new Date(event.date) >= now;
+                const eventDate = new Date(event.startDate);
+                return eventDate >= now;
             })
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
             .slice(0, 3); // Take top 3
 
         // Map to display format if needed, or use directly
@@ -62,9 +60,11 @@ export default function UpcomingEvents() {
                                 <h3 className="font-bold text-[var(--text-main)] text-sm line-clamp-1">
                                     {event.title}
                                 </h3>
-                                <p className="text-xs text-[var(--text-muted)] font-medium mt-1">{event.date}</p>
+                                <p className="text-xs text-[var(--text-muted)] font-medium mt-1">
+                                    {new Date(event.startDate).toLocaleDateString()}
+                                </p>
                                 <span className="inline-block text-[10px] px-2 py-0.5 rounded-full mt-2 font-bold bg-[var(--primary-blue)]/10 text-[var(--primary-blue)]">
-                                    {event.categories?.[0] || 'Event'}
+                                    {event.category || 'Event'}
                                 </span>
                             </div>
                         </div>

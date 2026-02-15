@@ -48,7 +48,8 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   // Filter events based on organizer ID and type
   const filteredEvents = events.filter((event) => {
     if (organizerId) {
-      return event.organizerId === organizerId && event.organizerType === type;
+      const targetHostType = type === "School" ? "school" : "organization";
+      return event.hosts?.some(h => h.hostId === organizerId && h.hostType === targetHostType);
     }
     return true;
   });
@@ -99,7 +100,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
     return {
       id: event.id,
       title: event.title,
-      date: event.date,
+      date: event.startDate,
       students: studentParticipants.length,
       teachers: teacherParticipants.length,
       total: studentParticipants.length + teacherParticipants.length,
