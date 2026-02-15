@@ -217,36 +217,57 @@ export const updateClub = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-//do we need a soft delete or a hard delete here
 
-export const deleteClub = async (req: Request, res: Response): Promise<void> => {
+export const deleteClub = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const clubId = req.params.id;
+    const uid = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
 
     if (!clubId) {
+      res.status(400).json({ message: "Club ID is required" });
+      return;
+    }
+
+    if (!uid || !userType) {
       res.status(400).json({
-        message: "Club ID is required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
 
-    const deletedClub = await Club.findByIdAndDelete(clubId);
+    const club = await Club.findById(clubId);
 
-    if (!deletedClub) {
-      res.status(404).json({
-        message: "Club not found",
+    if (!club) {
+      res.status(404).json({ message: "Club not found" });
+      return;
+    }
+
+    if (club.isDeleted) {
+      res.status(409).json({ message: "Club already deleted" });
+      return;
+    }
+
+    if (club.createdBy.toString() !== uid) {
+      res.status(403).json({
+        message: "You are not authorized to delete this club",
       });
       return;
     }
+
+    club.isDeleted = true;
+    await club.save();
 
     res.status(200).json({
-      message: "Club deleted successfully",
-      club: deletedClub,
+      message: "Club deleted successfully (soft delete)",
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("Delete Club Error:", error);
     res.status(500).json({
-      message: error.message,
+      message: "Internal server error",
     });
   }
 };
@@ -445,8 +466,7 @@ export const getMembers = async (
   }
 };
 
-//prisma athule club id string array ekak and get the clubs of a specific member functionality
-//getUsersClubs
+
 
 export const getUserClubs = async (
   req: Request,
