@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import Club from "../mongoose/clubModel.js";
 import { UserType } from "@prisma/client";
-
-
+import { prisma } from "../prisma.js";
+import mongoose
+ from "mongoose";
 export const getAllClubs = async (req: Request, res: Response): Promise<void> => {
   try {
     const schoolId = req.headers['x-school-id'];
@@ -285,8 +286,6 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    
-
     // Check if already member
     const alreadyMember = club.members?.some(
       (member: any) => member.uid === uid
@@ -307,6 +306,20 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
     });
 
     await club.save();
+
+    if (userType === "STUDENT") {
+      await prisma.student.update({
+        where: { uid },
+        data: {
+          clubIds: { push: clubId } 
+        }
+      });
+    } else if (userType === "TEACHER") {
+      await prisma.teacher.update({
+        where: { uid },
+        data: { clubIds: { push: clubId } }
+      });
+    }
 
     res.status(200).json({
       message: "Joined club successfully",
@@ -362,6 +375,27 @@ export const leaveClub = async (req: Request, res: Response): Promise<void> => {
 
     await club.save();
 
+    if (userType === "STUDENT") {
+  const student = await prisma.student.findUnique({
+    where: { uid: userId },
+  });
+
+  if (!student) {
+    res.status(404).json({ message: "Student not found" });
+    return;
+  }
+
+  await prisma.student.update({
+    where: { uid: userId },
+    data: {
+      clubIds: {
+        set: student.clubIds.filter((id: string) => id !== clubId),
+      },
+    },
+  });
+}
+
+
     res.status(200).json({
       message: "Left club successfully",
       club,
@@ -413,3 +447,85 @@ export const getMembers = async (
 
 //prisma athule club id string array ekak and get the clubs of a specific member functionality
 //getUsersClubs
+
+export const getUserClubs = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const uid = req.headers["x-user-id"] as string;
+    const userType = req.headers["x-user-type"] as string;
+
+    if (!uid || !userType) {
+      res.status(400).json({
+        message: "x-user-id and x-user-type headers are required",
+      });
+      return;
+    }
+
+    if (!["STUDENT", "TEACHER"].includes(userType)) {
+      res.status(403).json({
+        message: "Only students and teachers have clubs",
+      });
+      return;
+    }
+
+    let clubIds: string[] = [];
+
+    if (userType === "STUDENT") {
+      const student = await prisma.student.findUnique({
+        where: { uid },
+        select: { clubIds: true },
+      });
+
+      if (!student) {
+        res.status(404).json({ message: "Student not found" });
+        return;
+      }
+
+      clubIds = student.clubIds;
+    }
+
+    if (userType === "TEACHER") {
+      const teacher = await prisma.teacher.findUnique({
+        where: { uid },
+        select: { clubIds: true },
+      });
+
+      if (!teacher) {
+        res.status(404).json({ message: "Teacher not found" });
+        return;
+      }
+
+      clubIds = teacher.clubIds;
+    }
+
+    if (!clubIds || clubIds.length === 0) {
+      res.status(200).json({
+        message: "User is not part of any clubs",
+        clubs: [],
+      });
+      return;
+    }
+
+    const validObjectIds = clubIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
+    const clubs = await Club.find({
+      _id: { $in: validObjectIds },
+      isDeleted: false,
+    });
+
+    res.status(200).json({
+      message: "User clubs fetched successfully",
+      count: clubs.length,
+      clubs, // dont send the whole club details
+    });
+  } catch (error: any) {
+    console.error("Get User Clubs Error:", error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
