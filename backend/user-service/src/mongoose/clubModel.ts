@@ -30,11 +30,12 @@ const clubSchema = new mongoose.Schema(
     foundedYear: {
       type: Number,
     },
-    members: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
+   members:  [
+    {
+      uid: { type: String, required: true },
+      userType: { type: String, required: true },
+      joinedAt: { type: Date, default: Date.now }
+    }
     ],
     admins: [
       {
@@ -60,6 +61,10 @@ const clubSchema = new mongoose.Schema(
       type: String,
       enum: ["public", "private"],
       default: "public",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
