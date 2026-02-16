@@ -10,9 +10,9 @@ import {
 const router = Router();
 
 router.post("/", createUser);
-router.get("/:id", getUserById);
+router.get("/", getUserById);
 router.get("/firebase/:uid", getUserByFirebaseUID)
-router.patch("/:id", updateUser);
-router.delete("/:id", softDeleteUser);
+router.patch("/", updateUser);
+router.delete("/", softDeleteUser);
 
 export default router;

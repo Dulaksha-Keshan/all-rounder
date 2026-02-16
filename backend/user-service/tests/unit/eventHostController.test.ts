@@ -1,9 +1,8 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { Request, Response } from 'express';
 
-// --- 1. DEFINE MOCKS FIRST ---
 
-// Mock Prisma
+// Mocking Prisma
 jest.unstable_mockModule('../../src/prisma.js', () => ({
   prisma: {
     eventHost: {
@@ -14,7 +13,7 @@ jest.unstable_mockModule('../../src/prisma.js', () => ({
   },
 }));
 
-// --- 2. DYNAMIC IMPORTS ---
+// import the mocked prisma and testable modules 
 const { prisma } = await import('../../src/prisma.js');
 const {
   createEventHost,
@@ -24,7 +23,7 @@ const {
   deleteEventHosts
 } = await import('../../src/controllers/eventHostController.js');
 
-// --- 3. HELPERS ---
+// mocking the res and req objects 
 const mockRequest = (body = {}, params = {}, query = {}) => {
   return { body, params, query } as unknown as Request;
 };
@@ -44,7 +43,7 @@ describe('Event Host Controller', () => {
     jest.clearAllMocks();
   });
 
-  // --- createEventHost ---
+  //  create eent 
   describe('createEventHost', () => {
     it('should create an event host mapping successfully', async () => {
       const req = mockRequest({

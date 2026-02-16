@@ -54,7 +54,9 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           data: {
             uid,
             ...data,
-            school_id,
+            school: {
+              connect: { school_id: school_id }
+            }
           },
         });
 
@@ -92,7 +94,9 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           data: {
             uid,
             ...data,
-            school_id,
+            school: {
+              connect: { school_id: school_id }
+            }
           },
         });
 
@@ -113,13 +117,32 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           return;
         }
 
+
+        if (userType === UserType.SCHOOL_ADMIN && !school_id) {
+          res.status(400).json({ message: "School Admin must have a school_id" });
+          return;
+        }
+        if (userType === UserType.ORG_ADMIN && !organization_id) {
+          res.status(400).json({ message: "Org Admin must have an organization_id" });
+          return;
+        }
+
+
         user = await prisma.admin.create({
           data: {
             uid,
             ...data,
             adminType: userType,
-            school_id: school_id ?? null,
-            organization_id: organization_id ?? null,
+            ...(school_id && {
+              school: {
+                connect: { school_id: school_id }
+              }
+            }),
+            ...(organization_id && {
+              organization: {
+                connect: { organization_id: organization_id }
+              }
+            })
           },
         });
 
@@ -150,18 +173,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 };
 
 // backend/user-service/src/controllers/userController.ts
-
+//uses the token to retrive the logged user 
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
-  console.log("🔥 [1] User Service Hit! Controller started.");
 
   try {
     const uid = req.headers["x-user-uid"] as string;
     const userType = req.headers["x-user-type"] as string;
 
-    console.log("🔍 [2] Headers Received:", { uid, userType });
 
     if (!uid || !userType) {
-      console.log("❌ [3] Missing Headers. Sending 400.");
       res.status(400).json({
         message: "x-user-uid and x-user-type headers are required",
       });
@@ -171,9 +191,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     let user: any;
 
     if (userType === UserType.STUDENT) {
-      console.log("👤 [4] Fetching STUDENT...");
       user = await prisma.student.findUnique({ where: { uid } });
-      console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
 
       if (!user) {
         res.status(404).json({ message: "Student not found" });
@@ -191,9 +209,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (userType === UserType.TEACHER) {
-      console.log("👨‍🏫 [4] Fetching TEACHER...");
       user = await prisma.teacher.findUnique({ where: { uid } });
-      console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
 
       if (!user) {
         res.status(404).json({ message: "Teacher not found" });
@@ -209,7 +225,6 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (userType === UserType.ORG_ADMIN || UserType.SUPER_ADMIN || UserType.SCHOOL_ADMIN) {
-      console.log("🛡️ [4] Fetching ADMIN...");
       user = await prisma.admin.findUnique({ where: { uid } });
 
       if (!user) {
@@ -225,19 +240,19 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    console.log("⚠️ [6] User Type did not match logic:", userType);
     res.status(400).json({
       message: "Invalid user type",
     });
 
   } catch (error: any) {
-    console.error("💥 [CRITICAL] Controller Error:", error);
     res.status(500).json({
       message: error.message,
     });
   }
 };
 
+
+//fetches the user by uid for viewing 
 export const getUserByFirebaseUID = async (req: Request, res: Response): Promise<void> => {
   try {
     //uid should come from frontend using firebase frontend client
