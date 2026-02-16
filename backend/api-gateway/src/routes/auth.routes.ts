@@ -53,7 +53,7 @@ router.post('/register', async (req: Request, res: Response) => {
           name,
           date_of_birth: new Date(dateOfBirth),
           userType: role,                   // <-- MAPPING: 'role' -> 'userType'
-          school_id: schoolId ? parseInt(schoolId) : null,              // <-- MAPPING: 'schoolId' -> 'school_id'
+          school_id: schoolId ? schoolId : null,              // <-- MAPPING: 'schoolId' -> 'school_id'
           organization_id: organizationId,  // <-- MAPPING: 'organizationId' -> 'organization_id'
 
           // <-- REQUIRED: User Service logic fails if this is missing.

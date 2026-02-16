@@ -64,7 +64,7 @@ export function requireRole(...allowedRoles: string[]) {
     const allowed = allowedRoles.includes(req.user.role);
 
     if (!allowed) {
-      res.status(401).json({
+      res.status(403).json({
         message: `Forbidden, Access Denied. Required Roles to access: ${allowedRoles.join(", ")}`
       })
 
@@ -109,28 +109,59 @@ export function requireSchoolAccess(schoolIdParam: string = "schoolId") {
     if (!req.user) {
       res.status(401).json({
         error: "Unauthorized",
-        message: "Authentication required."
-      })
-      return
+        message: "Authentication required.",
+      });
+      return;
+    }
+
+    if (req.user.role === "SUPER_ADMIN") {
+      next();
+      return;
     }
 
     const resourceSchoolId = req.params[schoolIdParam];
-    //TODO:THE role check is hard coded have to make it enum when enum situatiuon is done 
-    if (req.user.schoolId !== resourceSchoolId && req.user.role !== "SUPER_ADMIN") {
+
+    if (req.user.schoolId !== resourceSchoolId) {
       res.status(403).json({
         error: "Forbidden",
-        message: "You can only access resources from your own resources."
-      })
-      return
+        message: "You can only access resources from your own school.",
+      });
+      return;
     }
 
-
     next();
-
-
-  }
+  };
 }
 
+export function requireOrgAccess(orgIdParam: string = "orgId") {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "Authentication required.",
+      });
+      return;
+    }
+
+    // SUPER_ADMIN bypasses org access check
+    if (req.user.role === "SUPER_ADMIN") {
+      next();
+      return;
+    }
+
+    const resourceOrgId = req.params[orgIdParam];
+
+    if (req.user.organizationId !== resourceOrgId) {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "You can only access resources from your own organization.",
+      });
+      return;
+    }
+
+    next();
+  };
+}
 
 
 export const authMiddleware = {
@@ -138,4 +169,5 @@ export const authMiddleware = {
   requireRole,
   requireOwenership,
   requireSchoolAccess,
+  requireOrgAccess
 }
