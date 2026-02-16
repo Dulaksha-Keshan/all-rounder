@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/", createUser);
 router.get("/:id", getUserById);
-router.get("firebase/:uid", getUserByFirebaseUID)
+router.get("/firebase/:uid", getUserByFirebaseUID)
 router.patch("/:id", updateUser);
 router.delete("/:id", softDeleteUser);
 

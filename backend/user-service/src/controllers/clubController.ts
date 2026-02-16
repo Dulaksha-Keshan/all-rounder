@@ -3,7 +3,8 @@ import Club from "../mongoose/clubModel.js";
 import { UserType } from "@prisma/client";
 import { prisma } from "../prisma.js";
 import mongoose
- from "mongoose";
+  from "mongoose";
+
 export const getAllClubs = async (req: Request, res: Response): Promise<void> => {
   try {
     const schoolId = req.headers['x-school-id'];
@@ -332,7 +333,7 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
       await prisma.student.update({
         where: { uid },
         data: {
-          clubIds: { push: clubId } 
+          clubIds: { push: clubId }
         }
       });
     } else if (userType === "TEACHER") {
@@ -397,24 +398,24 @@ export const leaveClub = async (req: Request, res: Response): Promise<void> => {
     await club.save();
 
     if (userType === "STUDENT") {
-  const student = await prisma.student.findUnique({
-    where: { uid: userId },
-  });
+      const student = await prisma.student.findUnique({
+        where: { uid: userId },
+      });
 
-  if (!student) {
-    res.status(404).json({ message: "Student not found" });
-    return;
-  }
+      if (!student) {
+        res.status(404).json({ message: "Student not found" });
+        return;
+      }
 
-  await prisma.student.update({
-    where: { uid: userId },
-    data: {
-      clubIds: {
-        set: student.clubIds.filter((id: string) => id !== clubId),
-      },
-    },
-  });
-}
+      await prisma.student.update({
+        where: { uid: userId },
+        data: {
+          clubIds: {
+            set: student.clubIds.filter((id: string) => id !== clubId),
+          },
+        },
+      });
+    }
 
 
     res.status(200).json({

@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import { createUser } from "./userController.js";
-
 import { UserType } from "@prisma/client";
-
 import { prisma } from "../prisma.js";
 
 

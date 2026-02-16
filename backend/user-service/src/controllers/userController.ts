@@ -96,11 +96,11 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        /*        await Verification.create({
-                  userId: user.uid,
-                  userType: "TEACHER",
-                  ...verificationPayload,
-                }); */
+        await Verification.create({
+          userId: user.uid,
+          userType: "TEACHER",
+          ...verificationPayload,
+        });
         break;
 
       case UserType.SCHOOL_ADMIN:
@@ -123,11 +123,11 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        /*       await Verification.create({
-                 userId: user.uid,
-                 userType: "ADMIN",
-                 verificationMethod: "DOCUMENT_AI",
-               }); */
+        await Verification.create({
+          userId: user.uid,
+          userType: "ADMIN",
+          verificationMethod: "DOCUMENT_AI",
+        });
         break;
 
       default:
@@ -170,7 +170,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
     let user: any;
 
-    if (userType === "STUDENT") {
+    if (userType === UserType.STUDENT) {
       console.log("👤 [4] Fetching STUDENT...");
       user = await prisma.student.findUnique({ where: { uid } });
       console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
@@ -184,13 +184,13 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
       res.status(200).json({
         message: "Student fetched successfully",
-        userType: "STUDENT",
+        userType: UserType.STUDENT,
         user,
       });
       return;
     }
 
-    if (userType === "TEACHER") {
+    if (userType === UserType.TEACHER) {
       console.log("👨‍🏫 [4] Fetching TEACHER...");
       user = await prisma.teacher.findUnique({ where: { uid } });
       console.log("✅ [5] Prisma Query Done. Result:", user ? "Found" : "Null");
@@ -208,7 +208,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    if (userType === "ADMIN") {
+    if (userType === UserType.ORG_ADMIN || UserType.SUPER_ADMIN || UserType.SCHOOL_ADMIN) {
       console.log("🛡️ [4] Fetching ADMIN...");
       user = await prisma.admin.findUnique({ where: { uid } });
 
@@ -302,7 +302,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     delete updateData.uid;
     delete updateData.name;
 
-    if (userType === "STUDENT") {
+    if (userType === UserType.STUDENT) {
       const student = await prisma.student.findUnique({
         where: { uid },
       });
@@ -337,14 +337,14 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     let updatedUser: any;
 
     switch (userType) {
-      case "STUDENT":
+      case UserType.STUDENT:
         updatedUser = await prisma.student.update({
           where: { uid },
           data: updateData,
         });
         break;
 
-      case "TEACHER":
+      case UserType.TEACHER:
         updatedUser = await prisma.teacher.update({
           where: { uid },
           data: updateData,
@@ -352,7 +352,9 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
         break;
 
-      case "ADMIN":
+      case UserType.SCHOOL_ADMIN:
+      case UserType.ORG_ADMIN:
+      case UserType.SUPER_ADMIN:
         updatedUser = await prisma.admin.update({
           where: { uid },
           data: updateData,
@@ -397,21 +399,23 @@ export const softDeleteUser = async (
     let updatedUser: any;
 
     switch (userType) {
-      case "STUDENT":
+      case UserType.STUDENT:
         updatedUser = await prisma.student.update({
           where: { uid },
           data: { is_active: false },
         });
         break;
 
-      case "TEACHER":
+      case UserType.TEACHER:
         updatedUser = await prisma.teacher.update({
           where: { uid },
           data: { is_active: false },
         });
         break;
 
-      case "ADMIN":
+      case UserType.SCHOOL_ADMIN:
+      case UserType.ORG_ADMIN:
+      case UserType.SUPER_ADMIN:
         updatedUser = await prisma.admin.update({
           where: { uid },
           data: { is_active: false },
