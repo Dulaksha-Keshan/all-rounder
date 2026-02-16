@@ -45,7 +45,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         </div>
 
         {/* Content Section */}
-        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white dark:bg-[var(--card-bg)]">
+        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white">
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="px-3 py-1 bg-[var(--secondary-pale-lavender)] text-[var(--primary-purple)] text-xs font-bold rounded-lg border border-[var(--secondary-light-lavender)]">

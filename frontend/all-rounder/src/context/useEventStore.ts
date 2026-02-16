@@ -17,7 +17,7 @@ export interface Event {
     description: string;
     category: string;
     eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
-    startDate: string; // ISO date string
+    startDate: string; 
     endDate: string;   // ISO date string
     location: string;
     organizer: string; // Name or ID string from schema

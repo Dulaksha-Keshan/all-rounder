@@ -6,7 +6,7 @@ import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
 
 export interface Club {
-    id: string; // Changed to string
+    id: string; 
     name: string;
     description: string;
     category: string;
