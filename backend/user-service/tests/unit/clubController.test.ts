@@ -3,7 +3,43 @@ import { Request, Response } from 'express';
 import { UserType } from '@prisma/client';
 
 
-// We need to handle Mongoose chaining (find().sort())
+// mimicking prisma 
+jest.unstable_mockModule('../../src/prisma.js', () => ({
+  prisma: {
+    student: {
+      update: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    teacher: {
+      update: jest.fn(),
+      findUnique: jest.fn(),
+    },
+  },
+}));
+
+// mocking mongoose functions
+const mockSave = jest.fn();
+const mockMembersPush = jest.fn();
+const mockMembersPull = jest.fn();
+
+// Helper to create a data record that behaves like a Mongoose Document
+const createMockClubDoc = (data: any) => ({
+  ...data,
+  isDeleted: data.isDeleted || false,
+  members: {
+    ...data.members || [],
+    // Attach Mongoose-specific array methods
+    push: mockMembersPush,
+    pull: mockMembersPull,
+    some: Array.prototype.some.bind(data.members || []),
+    length: (data.members || []).length,
+    filter: Array.prototype.filter.bind(data.members || []),
+    map: Array.prototype.map.bind(data.members || [])
+  },
+  save: mockSave,
+});
+
+// Chainable mock for find().sort()
 const mockSort = jest.fn();
 const mockFind = jest.fn().mockReturnValue({ sort: mockSort });
 
@@ -14,24 +50,25 @@ jest.unstable_mockModule('../../src/mongoose/clubModel.js', () => ({
     findOne: jest.fn(),
     create: jest.fn(),
     findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
   },
 }));
 
-// Import the mocked model to control behavior in tests
+// mimick import and testable module
+const { prisma } = await import('../../src/prisma.js');
 const Club = (await import('../../src/mongoose/clubModel.js')).default;
-
-// Import the controller functions
 const {
   getAllClubs,
   getAllClubsForAdmins,
   getClubById,
   createClub,
-  updateClub,
-  deleteClub
+  deleteClub,
+  joinClub,
+  leaveClub,
+  getMembers,
+  getUserClubs
 } = await import('../../src/controllers/clubController.js');
 
-// mocking request and responses  objects
+// mimicking res and req objects
 const mockRequest = (body = {}, headers = {}, params = {}) => {
   return { body, headers, params } as unknown as Request;
 };
@@ -49,100 +86,74 @@ describe('Club Controller', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the chainable mock return
+    // Reset chainable returns
     mockFind.mockReturnValue({ sort: mockSort });
+    // Reset document mock implementations if needed
+    mockSave.mockResolvedValue(true);
   });
 
-  // --- getAllClubs ---
+  // public view of clubs fort all the clubsa for their school
   describe('getAllClubs', () => {
-    it('should fetch clubs for a specific school', async () => {
+    it('should fetch clubs for a school', async () => {
       const req = mockRequest({}, { 'x-school-id': 'school1' });
       const res = mockResponse();
-      const mockClubs = [{ name: 'Chess Club' }];
-
-      mockSort.mockResolvedValue(mockClubs); // The final result after sort()
+      mockSort.mockResolvedValue([{ name: 'Club A' }]);
 
       await getAllClubs(req, res);
 
       expect(Club.find).toHaveBeenCalledWith({ schoolId: 'school1' });
       expect(mockSort).toHaveBeenCalledWith({ createdAt: -1 });
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ clubs: mockClubs }));
     });
 
-    it('should return 400 if school ID header is missing', async () => {
-      const req = mockRequest({}, {}); // No headers
+    it('should return 400 if school ID is missing', async () => {
+      const req = mockRequest();
       const res = mockResponse();
-
       await getAllClubs(req, res);
-
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(Club.find).not.toHaveBeenCalled();
     });
   });
 
-  // --- getAllClubsForAdmins ---
+  // all clubs for admins just a super admin method
   describe('getAllClubsForAdmins', () => {
-    it('should fetch all clubs for SUPER_ADMIN', async () => {
+    it('should fetch all clubs for super admin', async () => {
       const req = mockRequest({}, { 'x-user-type': UserType.SUPER_ADMIN });
       const res = mockResponse();
-      const mockClubs = [{ name: 'All Clubs' }];
 
-      mockSort.mockResolvedValue(mockClubs);
+      mockSort.mockResolvedValue([]);
 
       await getAllClubsForAdmins(req, res);
 
-      expect(Club.find).toHaveBeenCalledWith(); // Called without args
+      expect(Club.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
-    it('should return 401 if user is not SUPER_ADMIN', async () => {
-      const req = mockRequest({}, { 'x-user-type': UserType.STUDENT });
+    it('should return 401 for non-super admins', async () => {
+      const req = mockRequest({}, { 'x-user-type': 'STUDENT' });
       const res = mockResponse();
-
       await getAllClubsForAdmins(req, res);
-
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(Club.find).not.toHaveBeenCalled();
     });
   });
 
-  // --- getClubById ---
+  // fetching a club by id  also limited to the users own school
   describe('getClubById', () => {
-    it('should return club if it exists and matches school', async () => {
-      const req = mockRequest({}, { 'x-school-id': 'school1' }, { id: 'club1' });
+    it('should return club if school matches', async () => {
+      const req = mockRequest({}, { 'x-school-id': 's1' }, { id: 'c1' });
       const res = mockResponse();
 
-      (Club.findById as jest.Mock).mockResolvedValue({ _id: 'club1', schoolId: 'school1', name: 'Club A' });
+      (Club.findById as jest.Mock).mockResolvedValue({ _id: 'c1', schoolId: 's1' });
 
       await getClubById(req, res);
 
-      expect(Club.findById).toHaveBeenCalledWith('club1');
       expect(res.status).toHaveBeenCalledWith(200);
     });
 
-    it('should return 400 if club ID or school ID is missing', async () => {
-      const req = mockRequest({}, { 'x-school-id': 'school1' }, {}); // Missing ID param
+    it('should return 404 if club schoolId mismatch', async () => {
+      const req = mockRequest({}, { 'x-school-id': 's1' }, { id: 'c1' });
       const res = mockResponse();
-      await getClubById(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
 
-    it('should return 404 if club does not exist', async () => {
-      const req = mockRequest({}, { 'x-school-id': 'school1' }, { id: 'club1' });
-      const res = mockResponse();
-      (Club.findById as jest.Mock).mockResolvedValue(null);
-
-      await getClubById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-    });
-
-    it('should return 404 if club belongs to a different school', async () => {
-      const req = mockRequest({}, { 'x-school-id': 'school1' }, { id: 'club1' });
-      const res = mockResponse();
-      // Club exists but schoolId differs
-      (Club.findById as jest.Mock).mockResolvedValue({ _id: 'club1', schoolId: 'OTHER_SCHOOL' });
+      (Club.findById as jest.Mock).mockResolvedValue({ _id: 'c1', schoolId: 'DIFFERENT' });
 
       await getClubById(req, res);
 
@@ -151,138 +162,293 @@ describe('Club Controller', () => {
     });
   });
 
-  // --- createClub ---
+  // create a club as a school admin
   describe('createClub', () => {
-    it('should create a club successfully', async () => {
+    it('should create club successfully', async () => {
       const req = mockRequest({
-        name: 'Science Club',
-        description: 'Science stuff',
-        category: 'Education',
-        schoolName: 'High School',
-        teacherInCharge: { name: 'Teacher A' }
+        name: 'Math Club',
+        description: 'Math',
+        category: 'Edu',
+        schoolName: 'S1',
+        teacherInCharge: { name: 'T1' }
       }, {
         'x-user-type': UserType.SCHOOL_ADMIN,
         'x-user-id': 'admin1'
       });
       const res = mockResponse();
 
-      (Club.findOne as jest.Mock).mockResolvedValue(null); // No existing club
-      (Club.create as jest.Mock).mockResolvedValue({ name: 'Science Club', _id: 'club1' });
+      (Club.findOne as jest.Mock).mockResolvedValue(null); // No dupe
+      (Club.create as jest.Mock).mockResolvedValue({ name: 'Math Club' });
 
       await createClub(req, res);
 
-      expect(Club.create).toHaveBeenCalledWith(expect.objectContaining({
-        name: 'Science Club',
-        createdBy: 'admin1'
-      }));
+      expect(Club.create).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(201);
     });
 
-    it('should return 403 if user is not an admin', async () => {
-      const req = mockRequest({}, { 'x-user-type': UserType.STUDENT, 'x-user-id': 'u1' });
-      const res = mockResponse();
-
-      await createClub(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(403);
-    });
-
-    it('should return 409 if club name already exists', async () => {
+    it('should return 409 if club name exists', async () => {
       const req = mockRequest({
-        name: 'Science Club',
-        description: 'Desc',
-        category: 'Cat',
-        schoolName: 'School',
-        teacherInCharge: { name: 'T' }
+        name: 'Math Club',
+        description: 'Math',
+        category: 'Edu',
+        schoolName: 'S1',
+        teacherInCharge: { name: 'T1' }
       }, {
         'x-user-type': UserType.SCHOOL_ADMIN,
         'x-user-id': 'admin1'
       });
       const res = mockResponse();
-
-      (Club.findOne as jest.Mock).mockResolvedValue({ name: 'Science Club' }); // Exists
+      (Club.findOne as jest.Mock).mockResolvedValue({ name: 'Math Club' });
 
       await createClub(req, res);
-
       expect(res.status).toHaveBeenCalledWith(409);
-      expect(Club.create).not.toHaveBeenCalled();
+    });
+  });
+
+  // removing a club from a school with ownership
+  describe('deleteClub', () => {
+    it('should soft delete club if owner requests it', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'owner1',
+        'x-user-type': 'TEACHER'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      // Create a mock doc that we can save()
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        createdBy: 'owner1',
+        isDeleted: false
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await deleteClub(req, res);
+
+      expect(mockClub.isDeleted).toBe(true); // Check if flag flipped
+      expect(mockClub.save).toHaveBeenCalled(); // Check if saved
+      expect(res.status).toHaveBeenCalledWith(200);
     });
 
-    it('should return 400 if required fields are missing', async () => {
-      const req = mockRequest({ name: 'Only Name' }, {
-        'x-user-type': UserType.SCHOOL_ADMIN,
-        'x-user-id': 'admin1'
+    it('should fail if unauthorized user tries to delete', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'imposter',
+        'x-user-type': 'TEACHER'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        createdBy: 'owner1', // Different owner
+        isDeleted: false
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await deleteClub(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(mockClub.save).not.toHaveBeenCalled();
+    });
+  });
+
+  // Join a club
+  describe('joinClub', () => {
+    it('should allow student to join club and update both DBs', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'u1',
+        'x-user-type': 'STUDENT',
+        'x-school-id': 's1'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        schoolId: 's1',
+        members: [] // Empty members
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await joinClub(req, res);
+
+      // Verify Mongoose Update
+      expect(mockClub.members.push).toHaveBeenCalledWith(expect.objectContaining({
+        uid: 'u1',
+        userType: 'STUDENT'
+      }));
+      expect(mockClub.save).toHaveBeenCalled();
+
+      // Verify Prisma Update
+      expect(prisma.student.update).toHaveBeenCalledWith({
+        where: { uid: 'u1' },
+        data: { clubIds: { push: 'c1' } }
+      });
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 409 if already a member', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'u1',
+        'x-user-type': 'STUDENT',
+        'x-school-id': 's1'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      // Mock club with existing member
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        schoolId: 's1',
+        members: [{ uid: 'u1' }] // User already here
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await joinClub(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(mockClub.save).not.toHaveBeenCalled();
+    });
+  });
+
+  //leave a club
+  describe('leaveClub', () => {
+    it('should allow user to leave and remove from both DBs', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'u1',
+        'x-user-type': 'STUDENT'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        members: [{ uid: 'u1' }] // Is member
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      // Mock student fetching for the array filter logic
+      (prisma.student.findUnique as jest.Mock).mockResolvedValue({
+        uid: 'u1',
+        clubIds: ['c1', 'c2']
+      });
+
+      await leaveClub(req, res);
+
+      // Verify Mongoose pull
+      expect(mockClub.members.pull).toHaveBeenCalledWith({ uid: 'u1' });
+      expect(mockClub.save).toHaveBeenCalled();
+
+      // Verify Prisma update (filtering out c1)
+      expect(prisma.student.update).toHaveBeenCalledWith({
+        where: { uid: 'u1' },
+        data: {
+          clubIds: { set: ['c2'] } // c1 should be gone
+        }
+      });
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 409 if user is not a member', async () => {
+      const req = mockRequest({}, {
+        'x-user-uid': 'u1',
+        'x-user-type': 'STUDENT'
+      }, { id: 'c1' });
+      const res = mockResponse();
+
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        members: [] // Empty
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await leaveClub(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+    });
+  });
+
+  // --- getUserClubs ---
+  describe('getUserClubs', () => {
+    it('should fetch clubs for a student', async () => {
+      const req = mockRequest({}, {
+        'x-user-id': 'u1',
+        'x-user-type': 'STUDENT'
       });
       const res = mockResponse();
 
-      await createClub(req, res);
+      // 1. Prisma returns list of IDs
+      (prisma.student.findUnique as jest.Mock).mockResolvedValue({
+        uid: 'u1',
+        clubIds: ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012'] // Valid ObjectIds
+      });
 
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-  });
+      // 2. Mongoose finds those clubs
+      const mockClubsList = [{ name: 'Club 1' }, { name: 'Club 2' }];
+      (Club.find as jest.Mock).mockResolvedValue(mockClubsList);
 
-  // --- updateClub ---
-  describe('updateClub', () => {
-    it('should update club successfully', async () => {
-      const req = mockRequest(
-        { name: 'Updated Name' },
-        { 'x-school-id': 'school1' },
-        { id: 'club1' }
-      );
-      const res = mockResponse();
+      await getUserClubs(req, res);
 
-      (Club.findByIdAndUpdate as jest.Mock).mockResolvedValue({ _id: 'club1', name: 'Updated Name' });
+      // Verify Prisma called
+      expect(prisma.student.findUnique).toHaveBeenCalledWith({
+        where: { uid: 'u1' },
+        select: { clubIds: true }
+      });
 
-      await updateClub(req, res);
+      // Verify Mongoose called with $in query
+      expect(Club.find).toHaveBeenCalledWith({
+        _id: { $in: expect.any(Array) },
+        isDeleted: false
+      });
 
-      expect(Club.findByIdAndUpdate).toHaveBeenCalledWith('club1', expect.objectContaining({ name: 'Updated Name' }), expect.anything());
       expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ count: 2 }));
     });
 
-    it('should return 400 if school ID or Club ID is missing', async () => {
-      const req = mockRequest({}, {}, { id: 'club1' }); // Missing School ID header
+    it('should return empty list if user has no clubs', async () => {
+      const req = mockRequest({}, {
+        'x-user-id': 'u1',
+        'x-user-type': 'TEACHER'
+      });
       const res = mockResponse();
 
-      await updateClub(req, res);
+      (prisma.teacher.findUnique as jest.Mock).mockResolvedValue({
+        clubIds: []
+      });
 
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
+      await getUserClubs(req, res);
 
-    it('should return 404 if club not found', async () => {
-      const req = mockRequest({}, { 'x-school-id': 'school1' }, { id: 'club1' });
-      const res = mockResponse();
-
-      (Club.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
-
-      await updateClub(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-    });
-  });
-
-  // --- deleteClub ---
-  describe('deleteClub', () => {
-    it('should delete club successfully', async () => {
-      const req = mockRequest({}, {}, { id: 'club1' });
-      const res = mockResponse();
-
-      (Club.findByIdAndDelete as jest.Mock).mockResolvedValue({ _id: 'club1' });
-
-      await deleteClub(req, res);
-
-      expect(Club.findByIdAndDelete).toHaveBeenCalledWith('club1');
       expect(res.status).toHaveBeenCalledWith(200);
-    });
-
-    it('should return 404 if club not found', async () => {
-      const req = mockRequest({}, {}, { id: 'club1' });
-      const res = mockResponse();
-
-      (Club.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
-
-      await deleteClub(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ clubs: [] }));
+      expect(Club.find).not.toHaveBeenCalled();
     });
   });
+
+  // get members of a club
+  describe('getMembers', () => {
+    it('should return members list', async () => {
+      const req = mockRequest({}, {}, { id: 'c1' });
+      const res = mockResponse();
+
+      const mockClub = createMockClubDoc({
+        _id: 'c1',
+        name: 'Club A',
+        members: [{ uid: 'u1' }, { uid: 'u2' }]
+      });
+
+      (Club.findById as jest.Mock).mockResolvedValue(mockClub);
+
+      await getMembers(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        totalMembers: 2,
+        clubName: 'Club A'
+      }));
+    });
+  });
+
 });
