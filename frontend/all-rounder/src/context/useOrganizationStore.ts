@@ -68,9 +68,9 @@ export const useOrganizationStore = create<OrganizationState>()(
 
                     set((state) => ({
                         organizations: state.organizations.map(o =>
-                            o.id === id ? { ...o, ...updated } : o
+                            o.organization_id === id ? { ...o, ...updated } : o
                         ),
-                        activeOrganization: state.activeOrganization?.id === id
+                        activeOrganization: state.activeOrganization?.organization_id === id
                             ? { ...state.activeOrganization, ...updated }
                             : state.activeOrganization
                     }));
@@ -87,8 +87,8 @@ export const useOrganizationStore = create<OrganizationState>()(
                     await api.delete(`/organizations/${id}`);
 
                     set((state) => ({
-                        organizations: state.organizations.filter(o => o.id !== id),
-                        activeOrganization: state.activeOrganization?.id === id ? null : state.activeOrganization
+                        organizations: state.organizations.filter(o => o.organization_id !== id),
+                        activeOrganization: state.activeOrganization?.organization_id === id ? null : state.activeOrganization
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete organization' });
@@ -100,7 +100,7 @@ export const useOrganizationStore = create<OrganizationState>()(
             setActiveOrganization: (org) => set({ activeOrganization: org }),
 
             getOrganizationById: (id: string) => {
-                return get().organizations.find(o => o.id === id);
+                return get().organizations.find(o => o.organization_id === id);
             },
         }),
         {

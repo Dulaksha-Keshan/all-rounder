@@ -1,4 +1,4 @@
-import { Event } from "@/context/useEventStore"
+import { Event } from "@/app/_type/type";
 
 export const Events: Event[] = [
   {
@@ -10,10 +10,8 @@ export const Events: Event[] = [
     startDate: "2026-01-20T18:00:00.000Z",
     endDate: "2026-01-20T21:00:00.000Z",
     location: "Zoom & Wayground/Quizziz",
-    organizer: "1", // School ID
-    hosts: [
-      { hostType: "school", hostId: "1", hostName: "School Name", isPrimary: true }
-    ],
+    organizerId: "1",
+    organizerType: "School",
     eligibility: "Students grades 9-13",
     registrationUrl: "https://example.com/register",
     isOnline: true,
@@ -42,10 +40,8 @@ export const Events: Event[] = [
     startDate: "2025-12-14T19:00:00.000Z",
     endDate: "2025-12-14T22:00:00.000Z",
     location: "Online",
-    organizer: "1", // Org ID
-    hosts: [
-      { hostType: "organization", hostId: "1", hostName: "Science Society", isPrimary: true }
-    ],
+    organizerId: "1",
+    organizerType: "Organization",
     eligibility: "School students",
     isOnline: true,
     visibility: "public",
@@ -72,10 +68,8 @@ export const Events: Event[] = [
     startDate: "2025-01-10T19:00:00.000Z",
     endDate: "2025-01-10T23:59:00.000Z",
     location: "Online",
-    organizer: "1",
-    hosts: [
-      { hostType: "organization", hostId: "1", hostName: "Design Club", isPrimary: true }
-    ],
+    organizerId: "1",
+    organizerType: "Organization",
     eligibility: "Open to all",
     isOnline: true,
     visibility: "public",
@@ -102,10 +96,8 @@ export const Events: Event[] = [
     startDate: "2025-12-20T19:00:00.000Z",
     endDate: "2026-03-05T19:00:00.000Z",
     location: "Online",
-    organizer: "1",
-    hosts: [
-      { hostType: "school", hostId: "1", hostName: "Tech Academy", isPrimary: true }
-    ],
+    organizerId: "1",
+    organizerType: "School",
     eligibility: "Beginners welcome",
     isOnline: true,
     visibility: "public",
@@ -132,10 +124,8 @@ export const Events: Event[] = [
     startDate: "2025-12-20T10:00:00.000Z",
     endDate: "2025-12-20T17:00:00.000Z",
     location: "Nalanda College",
-    organizer: "2",
-    hosts: [
-      { hostType: "school", hostId: "2", hostName: "Nalanda College", isPrimary: true }
-    ],
+    organizerId: "2",
+    organizerType: "School",
     eligibility: "School students",
     isOnline: false,
     visibility: "public",
@@ -162,10 +152,8 @@ export const Events: Event[] = [
     startDate: "2025-12-15T08:30:00.000Z",
     endDate: "2025-12-15T16:00:00.000Z",
     location: "Online Platform",
-    organizer: "9",
-    hosts: [
-      { hostType: "school", hostId: "9", hostName: "Bandaranayake College", isPrimary: true }
-    ],
+    organizerId: "9",
+    organizerType: "School",
     eligibility: "Grades 9-13",
     isOnline: true,
     visibility: "public",

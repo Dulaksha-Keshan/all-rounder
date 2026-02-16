@@ -16,7 +16,7 @@ const CountChartContainer = ({ schoolId, orgId }: CountChartContainerProps) => {
   let filteredStudents = students;
 
   if (schoolId) {
-    filteredStudents = students.filter((s) => s.schoolId === schoolId);
+    filteredStudents = students.filter((s) => s.school_id === schoolId);
   } else if (orgId) {
     filteredStudents = students.filter((s) => s.organizationId === orgId);
   }

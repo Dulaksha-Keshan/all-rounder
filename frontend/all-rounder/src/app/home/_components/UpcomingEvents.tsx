@@ -4,7 +4,8 @@ import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { useEventStore, Event } from "@/context/useEventStore";
+import { useEventStore } from "@/context/useEventStore";
+import { Event } from "@/app/_type/type";
 
 export default function UpcomingEvents() {
     const containerRef = useRef<HTMLDivElement>(null);

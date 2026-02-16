@@ -21,10 +21,7 @@ const BigCalendarContainer = ({
   // Filter events based on type
   const filteredEvents = events.filter((event) => {
     if (!id) return false;
-    // Map props type to host type (lowercase)
-    const targetHostType = type === "School" ? "school" : "organization";
-    // Check hosts array
-    return event.hosts?.some(h => h.hostId === id && h.hostType === targetHostType);
+    return event.organizerId === id && event.organizerType === type;
   });
 
   const data = filteredEvents.map((event) => ({

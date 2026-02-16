@@ -1,5 +1,5 @@
 import { EventCard } from "./EventCard";
-import { Event } from "@/context/useEventStore";
+import { Event } from "@/app/_type/type";
 
 export const EventList = ({ events }: { events: Event[] }) => {
   if (events.length === 0) {

@@ -35,11 +35,11 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
     if (!organizerId) return null;
 
     if (type === "School") {
-      const school = schools.find((s) => s.id === organizerId);
+      const school = schools.find((s) => s.school_id === organizerId);
       return school?.name || organizerId;
     } else {
-      const org = organizations.find((o) => o.id === organizerId);
-      return org?.name || organizerId;
+      const org = organizations.find((o) => o.organization_id === organizerId);
+      return org?.organization_name || organizerId;
     }
   };
 
@@ -48,8 +48,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   // Filter events based on organizer ID and type
   const filteredEvents = events.filter((event) => {
     if (organizerId) {
-      const targetHostType = type === "School" ? "school" : "organization";
-      return event.hosts?.some(h => h.hostId === organizerId && h.hostType === targetHostType);
+      return event.organizerId === organizerId && event.organizerType === type;
     }
     return true;
   });
@@ -58,7 +57,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   const filteredStudents = students.filter((student) => {
     if (!organizerId) return true;
     if (type === "School") {
-      return student.schoolId === organizerId;
+      return student.school_id === organizerId;
     } else {
       // For organizations, include ALL students (since any student can participate)
       return true;
@@ -69,7 +68,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   const filteredTeachers = teachers.filter((teacher) => {
     if (!organizerId) return true;
     if (type === "School") {
-      return teacher.schoolId === organizerId;
+      return teacher.school_id === organizerId;
     } else {
       // For organizations, include ALL teachers (since any teacher can participate)
       return true;
@@ -78,22 +77,14 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
 
   // Calculate statistics for each event (using filtered data)
   const eventStats = filteredEvents.map((event) => {
-    const studentParticipants = filteredStudents.filter((student) =>
-      student.registeredEvents?.some(
-        (registration) => registration.eventId === event.id
-      )
-    );
-
-    const teacherParticipants = filteredTeachers.filter((teacher) =>
-      teacher.registeredEvents?.some(
-        (registration) => registration.eventId === event.id
-      )
-    );
+    // Note: registeredEvents was removed from schema, so participation counts are set to 0
+    const studentParticipants: any[] = [];
+    const teacherParticipants: any[] = [];
 
     const participatingSchoolIds = [
       ...new Set([
-        ...studentParticipants.map((s) => s.schoolId),
-        ...teacherParticipants.map((t) => t.schoolId),
+        ...studentParticipants.map((s) => s.school_id),
+        ...teacherParticipants.map((t) => t.school_id),
       ]),
     ];
 

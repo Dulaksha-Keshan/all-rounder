@@ -86,12 +86,12 @@ function HomeClientContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredStudents.map(student => (
                             <Link
-                                key={`s-${student.id}`}
-                                href={`/user/student/${student.id}`}
+                                key={`s-${student.uid}`}
+                                href={`/user/student/${student.uid}`}
                                 className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
-                                    <Image src={student.photoUrl || "/icons/Avatar.png"} alt={student.name} fill className="object-cover" />
+                                    <Image src={student.profile_picture || "/icons/Avatar.png"} alt={student.name} fill className="object-cover" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm text-[var(--text-main)]">{student.name}</h3>
@@ -101,12 +101,12 @@ function HomeClientContent() {
                         ))}
                         {filteredTeachers.map(teacher => (
                             <Link
-                                key={`t-${teacher.id}`}
-                                href={`/user/teacher/${teacher.id}`}
+                                key={`t-${teacher.uid}`}
+                                href={`/user/teacher/${teacher.uid}`}
                                 className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
-                                    <Image src={teacher.photoUrl || "/icons/Avatar.png"} alt={teacher.name} fill className="object-cover" />
+                                    <Image src={teacher.profile_picture || "/icons/Avatar.png"} alt={teacher.name} fill className="object-cover" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm text-[var(--text-main)]">{teacher.name}</h3>

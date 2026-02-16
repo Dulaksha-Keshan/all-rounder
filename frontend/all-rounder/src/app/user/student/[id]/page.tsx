@@ -28,6 +28,14 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     });
   };
 
+  // Helper to calculate age
+  const calculateAge = (dob: string) => {
+    const birthday = new Date(dob);
+    const ageDifMs = Date.now() - birthday.getTime();
+    const ageDate = new Date(ageDifMs);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+  };
+
   // Get data from stores
   const { getStudentById } = useStudentStore();
   const { getSchoolById } = useSchoolStore();
@@ -41,7 +49,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   }
 
   // Get school name
-  const school = getSchoolById(student.schoolId);
+  const school = getSchoolById(student.school_id);
   const schoolName = school?.name || 'Unknown School';
 
   // TODO: Get this from your auth system
@@ -49,8 +57,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const loggedInUserType = "student"; // Replace with actual auth
 
   // Check if viewing own profile
-  // Check if viewing own profile
-  const isOwnProfile = loggedInUserId === student.id && loggedInUserType === "student";
+  const isOwnProfile = loggedInUserId === student.uid && loggedInUserType === "student";
 
   const { currentUser, updateProfile } = useUserStore();
 
@@ -74,14 +81,8 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
 
-  // Get full event details for registered events
-  const registeredEventsWithDetails = studentData.registeredEvents?.map(reg => {
-    const event = getEventById(reg.eventId); // No Number() conversion needed
-    return {
-      ...reg,
-      eventDetails: event
-    };
-  }) || [];
+  // Note: registeredEvents was removed from schema, so this is set to empty for now
+  const registeredEventsWithDetails: any[] = [];
 
   const handleSave = () => {
     if (isOwnProfile) {
@@ -109,18 +110,18 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     cancelFollowRequest
   } = useUserStore();
 
-  const isFollowing = following.includes(student.id);
-  const isRequested = sentRequests.includes(student.id);
+  const isFollowing = following.includes(student.uid);
+  const isRequested = sentRequests.includes(student.uid);
 
   const handleFollowAction = () => {
     if (isFollowing) {
-      unfollowUser(student.id);
+      unfollowUser(student.uid);
     } else if (isRequested) {
-      cancelFollowRequest(student.id);
+      cancelFollowRequest(student.uid);
     } else {
       // For now, assume public profiles for simplicity, or toggle based on logic
-      followUser(student.id);
-      // If private: sendFollowRequest(student.id);
+      followUser(student.uid);
+      // If private: sendFollowRequest(student.uid);
     }
   };
 
@@ -143,7 +144,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                 <span>{schoolName}</span>
                 <span>•</span>
-                <span>Age {studentData.age}</span>
+                <span>Age {calculateAge(studentData.date_of_birth)}</span>
               </div>
 
               {/* Social Stats */}
@@ -266,7 +267,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
                 <p className="text-sm text-gray-600 mb-1">Events Registered</p>
                 <p className="text-3xl font-bold text-[#8387CC]">
-                  {studentData.registeredEvents?.length || 0}
+                  0
                 </p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
@@ -275,7 +276,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
                 <p className="text-sm text-gray-600 mb-1">Age</p>
-                <p className="text-3xl font-bold text-[#8387CC]">{studentData.age}</p>
+                <p className="text-3xl font-bold text-[#8387CC]">{calculateAge(studentData.date_of_birth)}</p>
               </div>
               <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
                 <p className="text-sm text-gray-600 mb-1">Skills</p>
@@ -341,11 +342,11 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               </div>
             )}
 
-            {/* Bio Section */}
-            {studentData.profile?.bio && (
+            {/* About Section */}
+            {studentData.about && (
               <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
                 <h2 className="text-xl font-bold text-[#34365C] mb-4">About</h2>
-                <p className="text-gray-700 leading-relaxed">{studentData.profile.bio}</p>
+                <p className="text-gray-700 leading-relaxed">{studentData.about}</p>
               </div>
             )}
           </div>
@@ -390,17 +391,17 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
               <div>
                 <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
-                  Age
+                  Date of Birth
                 </label>
                 {isEditing ? (
                   <input
-                    type="number"
-                    value={editData.age}
-                    onChange={(e) => setEditData({ ...editData, age: Number(e.target.value) })}
+                    type="date"
+                    value={editData.date_of_birth}
+                    onChange={(e) => setEditData({ ...editData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-[var(--gray-200)] bg-[var(--white)] text-[var(--text-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)]"
                   />
                 ) : (
-                  <p className="text-[var(--text-main)] font-medium">{studentData.age}</p>
+                  <p className="text-[var(--text-main)] font-medium">{formatDate(studentData.date_of_birth)}</p>
                 )}
               </div>
 
@@ -425,54 +426,49 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                 {isEditing ? (
                   <input
                     type="tel"
-                    value={editData.profile?.phone || ''}
+                    value={editData.contact_number || ''}
                     onChange={(e) =>
                       setEditData({
                         ...editData,
-                        profile: { ...editData.profile, phone: e.target.value } as any
+                        contact_number: e.target.value
                       })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
                   <p className="text-[var(--text-main)] font-medium">
-                    {studentData.profile?.phone || 'N/A'}
+                    {studentData.contact_number || 'N/A'}
                   </p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
-                  Address
+                  Grade
                 </label>
                 {isEditing ? (
-                  <textarea
-                    value={editData.profile?.address || ''}
-                    onChange={(e) =>
-                      setEditData({
-                        ...editData,
-                        profile: { ...editData.profile, address: e.target.value } as any
-                      })
-                    }
+                  <input
+                    type="text"
+                    value={editData.grade}
+                    onChange={(e) => setEditData({ ...editData, grade: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
-                    rows={3}
                   />
                 ) : (
-                  <p className="text-gray-800">{studentData.profile?.address || 'N/A'}</p>
+                  <p className="text-gray-800">{studentData.grade}</p>
                 )}
               </div>
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
-                  Bio
+                  Bio / About
                 </label>
                 {isEditing ? (
                   <textarea
-                    value={editData.profile?.bio || ''}
+                    value={editData.about || ''}
                     onChange={(e) =>
                       setEditData({
                         ...editData,
-                        profile: { ...editData.profile, bio: e.target.value } as any
+                        about: e.target.value
                       })
                     }
                     className="w-full px-3 py-2 border border-[var(--gray-200)] bg-[var(--white)] text-[var(--text-main)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)]"
@@ -480,7 +476,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   />
                 ) : (
                   <p className="text-[var(--text-main)] font-medium">
-                    {studentData.profile?.bio || 'N/A'}
+                    {studentData.about || 'N/A'}
                   </p>
                 )}
               </div>

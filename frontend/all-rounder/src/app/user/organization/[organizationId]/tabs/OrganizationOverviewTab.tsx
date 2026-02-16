@@ -14,7 +14,7 @@ export default function OrganizationOverviewTab({
           About Organization
         </h2>
         <p className="text-gray-600 text-sm leading-relaxed">
-          {organization.name} supports students, hosts events, and partners with
+          {organization.organization_name} supports students, hosts events, and partners with
           schools through the All-Rounder platform.
         </p>
       </div>

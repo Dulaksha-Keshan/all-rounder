@@ -2,7 +2,7 @@
 
 import { Calendar, MapPin, Clock, Trophy } from 'lucide-react';
 import Image from 'next/image';
-import { Event } from '@/context/useEventStore';
+import { Event } from '@/app/_type/type';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Link from 'next/link';

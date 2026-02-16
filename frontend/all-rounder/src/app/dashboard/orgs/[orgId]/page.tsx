@@ -37,7 +37,7 @@ export default function OrgDashboard({ params }: OrgDashboardProps) {
 
   // Filter events by organization
   const orgEvents = events.filter(
-    (e) => e.hosts?.some(h => h.hostId === orgId && h.hostType === "organization")
+    (e) => e.organizerId === orgId && e.organizerType === "Organization"
   );
 
   console.log("Organization events:", orgEvents.length);
@@ -68,8 +68,7 @@ export default function OrgDashboard({ params }: OrgDashboardProps) {
             </div>
             {/* Header */}
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{org.name}</h1>
-              <p className="text-gray-600">{org.location}</p>
+              <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{org.organization_name}</h1>
             </div>
 
             {/* Stats Card - Events */}

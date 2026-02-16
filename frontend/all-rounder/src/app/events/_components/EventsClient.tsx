@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Search, Filter, BarChart2 } from 'lucide-react';
-import { Event } from '@/context/useEventStore';
+import { Event } from '@/app/_type/type';
 import { EventList } from './EventList';
 
 export default function EventsClient({ events }: { events: Event[] }) {

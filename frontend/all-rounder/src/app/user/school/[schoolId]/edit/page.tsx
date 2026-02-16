@@ -21,7 +21,7 @@ export default function EditSchoolPage() {
 
   // ✅ controlled state
   const [name, setName] = useState(school.name);
-  const [location, setLocation] = useState(school.location);
+  const [address, setAddress] = useState(school.address);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +31,7 @@ export default function EditSchoolPage() {
     updateSchool(schoolId as string, {
 
       name,
-      location,
+      address,
     });
 
     // ✅ redirect back
@@ -59,12 +59,12 @@ export default function EditSchoolPage() {
             />
           </div>
 
-          {/* Location */}
+          {/* Address */}
           <div>
-            <label className="text-sm text-gray-500">Location</label>
+            <label className="text-sm text-gray-500">Address</label>
             <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="mt-1 w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>

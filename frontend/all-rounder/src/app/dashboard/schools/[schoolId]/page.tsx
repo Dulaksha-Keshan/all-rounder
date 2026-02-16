@@ -34,7 +34,7 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
 
   // Filter data by schoolId
   const schoolEvents = events.filter(
-    (e) => e.hosts?.some(h => h.hostId === schoolId && h.hostType === "school")
+    (e) => e.organizerId === schoolId && e.organizerType === "School"
   );
 
   return (
@@ -65,7 +65,7 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
             {/* Header */}
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-[var(--primary-dark-purple)]">{school.name}</h1>
-              <p className="text-gray-600">{school.location}</p>
+              <p className="text-gray-600">{school.address}</p>
             </div>
 
             {/* Stats Cards */}

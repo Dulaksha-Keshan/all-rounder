@@ -2,88 +2,183 @@
 
 // Student interface
 export interface Student {
-  id: string; // Changed to string for UUID
-  uid?: string; // Backend UID
+  uid: string; // Backend UID
   name: string;
   email: string;
-  photoUrl?: string; // Backend: profile_picture
-  age?: number; // Backend: Derived from date_of_birth
-  dob?: string; // Backend: date_of_birth
-  schoolId: string;
+  date_of_birth: string;
+  contact_number?: string;
+  profile_picture?: string;
+  is_active: boolean;
+  is_frozen: boolean;
+
+  grade: string;
   organizationId?: string;
-  sex?: "MALE" | "FEMALE"; // Keep for now, backend doesn't explicitly show enum but likely exists
-  registeredEvents?: {
-    eventId: string;
-    registeredAt: string;
-  }[];
-  profile?: {
-    bio?: string; // Backend: about
-    phone?: string; // Backend: contact_number
-    address?: string;
-    zipCode?: string;
-  };
-  skills?: {
-    name: string;
-  }[];
-  grade?: string; // Backend: grade
-  clubIds?: string[]; // Backend: clubIds
+  created_at: string;
+  updated_at: string;
+
+  school_id: string;
+  school?: School;
+
+  skills?: Skill[];
+  clubIds: string[];
+  about?: string;  // Added for bio/description
+
+  sex?: "MALE" | "FEMALE";
 }
 
 // Teacher interface
 export interface Teacher {
-  id: string; // Changed to string (UUID)
-  uid?: string;
+  uid: string;
   name: string;
   email: string;
-  photoUrl?: string;
-  schoolId: string;
-  organizationId?: string;
+  date_of_birth: string;
+  contact_number?: string;
+  profile_picture?: string;
+  is_active: boolean;
+
+  subject?: string;
+  designation?: string;
+
+  staff_id?: string;
+  created_at: string;
+  updated_at: string;
+
+  school_id: string;
+  school?: School
+
+  clubIds: string[];
+  about?: string;  // Added for bio/description
+
   sex?: "MALE" | "FEMALE";
-  subject?: string; // Backend: subject
-  designation?: string; // Backend: designation
-  registeredEvents?: {
-    eventId: string;
-    registeredAt: string;
-  }[];
-  profile?: {
-    bio?: string;
-    phone?: string;
-    address?: string;
-    zipCode?: string;
-  };
-  clubIds?: string[];
 }
 
 // ==================== ORGANIZER INTERFACES ====================
 
-// School interface
-export interface School {
-  id: string;
-  school_id?: string; // Matches backend field
+export interface Admin {
+  uid: string;
   name: string;
-  address?: string; // Backend: address
-  district?: string; // Backend: district
-  student_count?: number; // Backend: student_count
-  email?: string;
+  email: string;
+  date_of_birth: string;
   contact_number?: string;
+  profile_picture?: string;
+  is_active: boolean;
+
+  staff_id?: string;
+  created_at: string;
+  updated_at: string;
+
+
+  school_id?: string;
+  school?: School;
+  organization_id?: string;
+  organization?: Organization;
+}
+
+//School Interface
+export interface School {
+  school_id: string;
+  name: string;
+  address: string;
+  district: string;
+  student_count?: number;
+  email: string;
+  contact_number: string;
   principal_name?: string;
   web_link?: string;
-  location?: string; // Frontend legacy
-  logoUrl?: string;
+  created_at: string;
+  updated_at: string;
+
+  students?: Student[];
+  teachers?: Teacher[];
+  admins?: Admin[];
+  eventHosts?: EventHost[];
 }
 
 // Organization interface
 export interface Organization {
-  id: string;
-  organization_id?: string; // Matches backend field
-  name: string; // Frontend legacy
-  organization_name?: string; // Backend match
-  contact_person?: string;
+  organization_id: string; // 
+  organization_name: string;
+  contact_person: string;
   website?: string;
-  location?: string;
-  logoUrl?: string;
+  admins?: Admin[];
+  eventHosts?: EventHost[];
+  created_at: string;
+  updated_at: string;
 }
 
-// ==================== EVENT INTERFACES ====================
+// EventHost interface
+export interface EventHost {
+  id: string;
+  eventId: string;
+  schoolId?: string;
+  organizationId?: string;
 
-export type { OrganizerType, Event } from "@/context/useEventStore";
+  isPrimaryHost: boolean;
+  createdAt: string;
+
+  school?: School;
+  organization?: Organization;
+}
+
+// ==================== SKILL INTERFACE ====================
+
+export interface Skill {
+  name: string;
+}
+
+export type OrganizerType = "School" | "Organization";
+
+export interface Club {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  logoUrl?: string;
+  schoolId: string;
+  schoolName: string;
+  foundedYear?: number;
+  teacherInCharge?: {
+    name: string;
+    contactEmail?: string;
+  };
+  socialLinks?: {
+    website?: string;
+    facebook?: string;
+    instagram?: string;
+  };
+  visibility: "public" | "private";
+  membersCount?: number;
+  isJoined?: boolean;
+  createdAt?: string;
+
+  // Relations (kept separate from backend schema metadata as requested)
+}
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
+  startDate: string;
+  endDate: string;
+  location: string;
+
+  organizerId: string;
+  organizerType: OrganizerType;
+
+  eligibility: string;
+  registrationUrl?: string;
+  isOnline: boolean;
+  visibility: "public" | "private";
+  createdBy: string; // User ID
+  isDeleted?: boolean;
+
+  // UI/Legacy metadata (event-specific, not in school/org)
+  imageUrl?: string;
+  status?: "Registered" | "Open";
+  requirements?: string[];
+  prizes?: string[];
+  contactEmail?: string;
+  time?: string; // Derived or extra info
+}
