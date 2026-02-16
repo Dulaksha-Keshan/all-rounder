@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express'
 import { firebaseAuth } from '../config/firebase-admin.js'
 import { verifyToken } from '../middleware/auth.middleware.js'
-import axios, { responseEncoding } from 'axios'
-import { error } from 'console';
+import axios from 'axios';
+
 
 
 const router = express.Router();
@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role, schoolId, organizationId, verificationOption, dateOfBirth } = req.body;
+    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth } = req.body;
 
     if (!email || !password || !name || !role) {
       res.status(400).json({
@@ -45,22 +45,26 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Forward to User Service to create in PostgreSQL
     try {
+      const userPayload: any = {
+        uid: firebaseUser.uid,
+        email,
+        name,
+        date_of_birth: new Date(dateOfBirth),
+        userType: role,
+        school_id: schoolId ? schoolId : null,
+        organization_id: organizationId,
+        verificationOption: verificationOption || "DOCUMENT"
+      };
+
+      if (role === "STUDENT" || role === "TEACHER") {
+        userPayload.grade = grade ? grade : null;
+      }
+
       const userServiceResponse = await axios.post(
         `${process.env.USER_SERVICE_URL}/api/users`,
-        {
-          uid: firebaseUser.uid,            // <-- REQUIRED: User Service needs 'uid'
-          email,
-          name,
-          date_of_birth: new Date(dateOfBirth),
-          userType: role,                   // <-- MAPPING: 'role' -> 'userType'
-          school_id: schoolId ? schoolId : null,              // <-- MAPPING: 'schoolId' -> 'school_id'
-          organization_id: organizationId,  // <-- MAPPING: 'organizationId' -> 'organization_id'
-
-          // <-- REQUIRED: User Service logic fails if this is missing.
-          // We default to "DOCUMENT" if the frontend didn't send it.
-          verificationOption: verificationOption || "DOCUMENT"
-        }
+        userPayload
       );
+
 
       const dbUser = userServiceResponse.data;
 
