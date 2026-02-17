@@ -91,7 +91,7 @@ export interface School {
   students?: Student[];
   teachers?: Teacher[];
   admins?: Admin[];
-  eventHosts?: EventHost[];
+  eventHosts?: Host[];
 
   sex?: "MALE" | "FEMALE";
 }
@@ -103,7 +103,7 @@ export interface Organization {
   contact_person: string;
   website?: string;
   admins?: Admin[];
-  eventHosts?: EventHost[];
+  eventHosts?: Host[];
   created_at: string;
   updated_at: string;
   sex?: "MALE" | "FEMALE";

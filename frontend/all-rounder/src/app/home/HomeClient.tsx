@@ -19,7 +19,7 @@ import gsap from "gsap";
 
 function HomeClientContent() {
     const { posts, stats, createPost, deletePost, editPost, likePost, commentPost } = useHomeStore();
-    const { followRequests, acceptFollowRequest, declineFollowRequest } = useUserStore();
+    const { followRequests, acceptFollowRequest, declineFollowRequest, currentUser } = useUserStore();
     const { students } = useStudentStore();
     const { teachers } = useTeacherStore();
     const headerRef = useRef<HTMLDivElement>(null);
@@ -42,8 +42,8 @@ function HomeClientContent() {
         createPost(content, media);
     };
 
-    const handleDeletePost = (id: string) => {
-        deletePost(id);
+    const handleDeletePost = async (id: string) => {
+        await deletePost(id);
     };
 
     const handleEdit = (id: string, newContent: string) => {
@@ -65,6 +65,15 @@ function HomeClientContent() {
             { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
         );
     }, []);
+
+    // Helper to get ID based on user type
+    const getCurrentUserId = () => {
+        if (!currentUser) return undefined;
+        if ('uid' in currentUser) return currentUser.uid;
+        if ('organization_id' in currentUser) return currentUser.organization_id;
+        return undefined;
+    };
+    const currentUserId = getCurrentUserId();
 
     return (
         <div className="p-4 md:p-6 lg:p-8 bg-[var(--page-bg)] min-h-screen transition-colors duration-300">
@@ -129,7 +138,7 @@ function HomeClientContent() {
                         onComment={handleComment}
                         onDelete={handleDeletePost}
                         onEdit={handleEdit}
-                        currentUserId={useUserStore.getState().currentUser?.uid}
+                        currentUserId={currentUserId}
                     />
                 </div>
 

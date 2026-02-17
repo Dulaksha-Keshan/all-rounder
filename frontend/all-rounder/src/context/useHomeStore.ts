@@ -143,9 +143,12 @@ export const useHomeStore = create<HomeState>()(
                     posts: state.posts.map(p => {
                         if (p._id === id) {
                             const currentUser = useUserStore.getState().currentUser;
-                            const currentUserId = currentUser?.uid || "1";
-                            const isLiked = p.likes.includes(currentUserId);
-                            let newLikes = [...p.likes];
+                            const currentUserId = currentUser ?
+                                ('uid' in currentUser ? currentUser.uid :
+                                    'organization_id' in currentUser ? currentUser.organization_id : "1")
+                                : "1";
+                            const isLiked = p.likes?.includes(currentUserId) || false;
+                            let newLikes = [...(p.likes || [])];
 
                             if (isLiked) {
                                 newLikes = newLikes.filter(uid => uid !== currentUserId);
