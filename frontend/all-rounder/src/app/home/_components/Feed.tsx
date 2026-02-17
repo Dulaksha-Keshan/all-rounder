@@ -1,18 +1,20 @@
 "use client";
 
 import PostCreator from "./PostCreator";
-import PostCard, { PostType } from "./PostCard";
+import PostCard from "./PostCard";
+import { Post } from '@/app/_type/type';
 
 interface FeedProps {
-    posts: PostType[];
-    onLike: (id: number) => void;
-    onComment: (id: number, text: string) => void;
-    onDelete: (id: number) => void;
-    onEdit: (id: number, newContent: string) => void;
-    onCreatePost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => void;
+    posts: Post[];
+    onLike: (id: string) => void;
+    onComment: (id: string, text: string) => void;
+    onDelete: (id: string) => Promise<void>;
+    onEdit: (id: string, newContent: string) => void;
+    onCreatePost: (content: string, media?: any[]) => void;
+    currentUserId?: string;
 }
 
-export default function Feed({ posts, onLike, onComment, onDelete, onEdit, onCreatePost }: FeedProps) {
+export default function Feed({ posts, onLike, onComment, onDelete, onEdit, onCreatePost, currentUserId }: FeedProps) {
     return (
         <div className="w-full">
             <PostCreator onCreatePost={onCreatePost} />
@@ -26,6 +28,7 @@ export default function Feed({ posts, onLike, onComment, onDelete, onEdit, onCre
                         onComment={onComment}
                         onDelete={onDelete}
                         onEdit={onEdit}
+                        currentUserId={currentUserId}
                     />
                 ))}
             </div>

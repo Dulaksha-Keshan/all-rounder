@@ -29,7 +29,7 @@ function HomeClientContent() {
     // Filter posts based on search query
     const filteredPosts = posts.filter(post =>
         post.content.toLowerCase().includes(searchQuery) ||
-        post.author.name.toLowerCase().includes(searchQuery)
+        post.author?.name.toLowerCase().includes(searchQuery)
     );
 
     // Filter people based on search query
@@ -42,19 +42,19 @@ function HomeClientContent() {
         createPost(content, media);
     };
 
-    const handleDeletePost = (id: number) => {
+    const handleDeletePost = (id: string) => {
         deletePost(id);
     };
 
-    const handleEdit = (id: number, newContent: string) => {
+    const handleEdit = (id: string, newContent: string) => {
         editPost(id, newContent);
     };
 
-    const handleLike = (id: number) => {
+    const handleLike = (id: string) => {
         likePost(id);
     };
 
-    const handleComment = (id: number, text: string) => {
+    const handleComment = (id: string, text: string) => {
         commentPost(id, text);
     };
 
@@ -129,6 +129,7 @@ function HomeClientContent() {
                         onComment={handleComment}
                         onDelete={handleDeletePost}
                         onEdit={handleEdit}
+                        currentUserId={useUserStore.getState().currentUser?.uid}
                     />
                 </div>
 

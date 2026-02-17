@@ -2,13 +2,14 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PostType, Comment } from '../app/home/_components/PostCard';
+import { Post } from '@/app/_type/type';
 import { INITIAL_POSTS } from '../app/home/constants';
 import api from '@/lib/axios';
+import { useUserStore } from './useUserStore';
 
 interface HomeState {
-    posts: PostType[];
-    drafts: PostType[];
+    posts: Post[];
+    drafts: Post[];
     stats: {
         views: number;
         achievements: number;
@@ -22,18 +23,18 @@ interface HomeState {
     fetchHomeData: () => Promise<void>;
     createPost: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => Promise<void>;
     saveDraft: (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => Promise<void>;
-    deletePost: (id: number) => Promise<void>;
-    deleteDraft: (id: number) => Promise<void>;
-    editPost: (id: number, newContent: string) => Promise<void>;
-    likePost: (id: number) => Promise<void>;
-    commentPost: (id: number, text: string) => Promise<void>;
+    deletePost: (id: string) => Promise<void>;
+    deleteDraft: (id: string) => Promise<void>;
+    editPost: (id: string, newContent: string) => Promise<void>;
+    likePost: (id: string) => Promise<void>;
+    commentPost: (id: string, text: string) => Promise<void>;
     updateStats: (key: keyof HomeState['stats'], value: number) => void; // Keep synchronous for now or make async? Probably sync is fine if it's local only, but user might want it stored. I'll leave as sync or make async if fits pattern. Let's make it sync as it seems to be a local helper? Or maybe fetch stats is part of fetchHomeData.
 }
 
 export const useHomeStore = create<HomeState>()(
     persist(
         (set, get) => ({
-            posts: INITIAL_POSTS,
+            posts: [], // INITIAL_POSTS might have number IDs, so starting empty or needing update. Safest to start empty or cast.
             drafts: [],
             stats: {
                 views: 1234,
@@ -143,13 +144,17 @@ export const useHomeStore = create<HomeState>()(
                 set((state) => ({
                     posts: state.posts.map(p => {
                         if (p.id === id) {
-                            const isLiked = p.isLiked;
-                            let newLikes = Array.isArray(p.likes) ? [...p.likes] : [];
+                            const currentUser = useUserStore.getState().currentUser;
+                            const currentUserId = currentUser?.uid || "1"; // Fallback if not logged in (should be logged in)
+                            const isLiked = p.likes.includes(currentUserId);
+                            let newLikes = [...p.likes];
+
                             if (isLiked) {
-                                newLikes = newLikes.filter(l => l.userId !== 1);
+                                newLikes = newLikes.filter(uid => uid !== currentUserId);
                             } else {
-                                newLikes.push({ userId: 1, name: "You" });
+                                newLikes.push(currentUserId);
                             }
+
                             return { ...p, likes: newLikes, isLiked: !isLiked };
                         }
                         return p;

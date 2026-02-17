@@ -7,48 +7,22 @@ import { useHomeStore } from '@/context/useHomeStore';
 import gsap from 'gsap';
 import ConfirmationModal from "@/components/ConfirmationModal";
 
-export interface Comment {
-    id: number;
-    author: {
-        name: string;
-        image?: string;
-        role?: string;
-    };
-    text: string;
-    timestamp: string;
-}
+import { Post, Comment, Like } from '@/app/_type/type';
 
-export interface Like {
-    userId: number;
-    name: string;
-    image?: string;
-}
+// Remove local interfaces that conflict with global ones
+// Use the global Post type directly
 
-export interface PostType {
-    id: number;
-    author: {
-        name: string;
-        role: string;
-        image?: string;
-    };
-    time: string;
-    content: string;
-    likes: Like[];
-    comments: Comment[];
-    media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[];
-    isLiked?: boolean;
-}
 
 interface PostCardProps {
-    post: PostType;
-    onLike: (id: number) => void;
-    onComment: (id: number, text: string) => void;
-    onDelete: (id: number) => void;
-    onEdit?: (id: number, newContent: string) => void;
+    post: Post;
+    onLike: (id: string) => void;
+    onComment: (id: string, text: string) => void;
+    onDelete: (id: string) => void;
+    onEdit?: (id: string, newContent: string) => void;
     currentUserId?: string;
 }
 
-export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: PostCardProps) {
+export default function PostCard({ post, onLike, onComment, onDelete, onEdit, currentUserId }: PostCardProps) {
     const [showComments, setShowComments] = useState(false);
     const [showLikesModal, setShowLikesModal] = useState(false);
     const [commentText, setCommentText] = useState("");
@@ -121,16 +95,16 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: 
             <div className="p-4 flex justify-between items-start">
                 <div className="flex gap-3">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[var(--gray-100)] bg-[var(--gray-50)] flex items-center justify-center">
-                        {post.author.image ? (
-                            <Image src={post.author.image} alt={post.author.name} fill className="object-cover" />
+                        {post.author?.image ? (
+                            <Image src={post.author.image} alt={post.author.name || 'User'} fill className="object-cover" />
                         ) : (
                             <User className="text-[var(--gray-400)]" />
                         )}
                     </div>
                     <div>
-                        <h3 className="font-bold text-[var(--text-main)]">{post.author.name}</h3>
-                        <p className="text-xs text-[var(--text-muted)]">{post.author.role}</p>
-                        <p className="text-xs text-[var(--gray-400)] mt-0.5">{post.time}</p>
+                        <h3 className="font-bold text-[var(--text-main)]">{post.author?.name || 'Unknown User'}</h3>
+                        <p className="text-xs text-[var(--text-muted)]">{post.author?.role || 'User'}</p>
+                        <p className="text-xs text-[var(--gray-400)] mt-0.5">{post.time || new Date(post.createdAt || Date.now()).toLocaleDateString()}</p>
                     </div>
                 </div>
                 <div className="relative">
@@ -197,29 +171,27 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: 
             </div>
 
             {/* Media */}
-            {post.media && post.media.length > 0 && (
+            {post.attachments && post.attachments.length > 0 && (
                 <div className="mb-4 px-4 space-y-2">
-                    {post.media.map((item, idx) => (
+                    {post.attachments.map((url, idx) => (
                         <div key={idx} className="rounded-lg overflow-hidden border border-[var(--gray-200)]">
-                            {item.type === 'image' ? (
-                                <div className="relative w-full h-[400px]">
-                                    <Image src={item.url} alt="Post Media" fill className="object-cover" />
-                                </div>
-                            ) : (
-                                <div className="p-4 bg-[var(--gray-50)] flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-[var(--white)] rounded shadow-sm">
-                                            <Download size={20} className="text-[var(--primary-blue)]" />
-                                        </div>
-                                        <span className="text-sm font-medium text-[var(--text-main)] truncate max-w-[200px]">{item.name}</span>
-                                    </div>
-                                    <a href={item.url} download className="text-[var(--primary-blue)] hover:underline text-xs font-bold">Download</a>
-                                </div>
-                            )}
+                            {/* Simplified media handling - assuming images for now based on string[] in Post type. 
+                                 Real implementation might need to check file extension or metadata. */}
+                            <div className="relative w-full h-[400px]">
+                                <Image src={url} alt="Post Media" fill className="object-cover" />
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
+
+            {/* Legacy Media Handling (if keeping existing prop structure for compatibility) */}
+            {/* Note: The global Post type uses 'attachments: string[]'. The old local type used 'media: {...}[]'. 
+                 I've added the attachments block above. if 'media' is still passed (which isn't on Post type), it won't be accessible.
+                 Removing the old media block to avoid confusion if we are strictly using 'Post'. 
+                 If we need to support both, we should cast or extend the type. 
+                 Proceeding with 'attachments' as defined in type.ts.
+              */}
 
             {/* Stats */}
             <div className="px-4 py-3 border-t border-[var(--gray-100)] flex justify-between text-xs text-[var(--text-muted)]">
@@ -241,9 +213,9 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: 
             <div className="px-2 py-2 border-t border-[var(--gray-100)] flex justify-between">
                 <button
                     onClick={() => onLike(post.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[var(--gray-50)] font-medium transition-colors ${post.isLiked ? 'text-blue-500' : 'text-[var(--text-muted)]'}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[var(--gray-50)] font-medium transition-colors ${post.likes.includes(currentUserId || '') ? 'text-blue-500' : 'text-[var(--text-muted)]'}`}
                 >
-                    <ThumbsUp size={18} className={post.isLiked ? 'fill-current' : ''} />
+                    <ThumbsUp size={18} className={post.likes.includes(currentUserId || '') ? 'fill-current' : ''} />
                     <span>Like</span>
                 </button>
                 <button
@@ -287,16 +259,14 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: 
                         </div>
                         <div className="max-h-[300px] overflow-y-auto space-y-3">
                             {post.likes.length > 0 ? (
-                                post.likes.map((like, idx) => (
+                                post.likes.map((likeId, idx) => (
                                     <div key={idx} className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-                                            {like.image ? (
-                                                <Image src={like.image} alt={like.name} width={32} height={32} className="rounded-full" />
-                                            ) : (
-                                                like.name.charAt(0)
-                                            )}
+                                            {/* Since we only have IDs in the new Post type, we can't show names easily without fetching.
+                                                 Displaying a placeholder or just the ID for now, or we'd need to fetch user details. */}
+                                            U
                                         </div>
-                                        <span className="font-medium text-sm">{like.name}</span>
+                                        <span className="font-medium text-sm">User {likeId}</span>
                                     </div>
                                 ))
                             ) : (
@@ -314,21 +284,21 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit }: 
                     {post.comments.length > 0 && (
                         <div className="px-4 py-3 space-y-4 max-h-[300px] overflow-y-auto">
                             {post.comments.map((comment) => (
-                                <div key={comment.id} className="flex gap-3">
+                                <div key={comment._id} className="flex gap-3">
                                     <div className="w-8 h-8 rounded-full bg-purple-100 flex-shrink-0 flex items-center justify-center text-purple-600 font-bold text-xs">
-                                        {comment.author.image ? (
-                                            <Image src={comment.author.image} alt={comment.author.name} width={32} height={32} className="rounded-full" />
+                                        {comment.user?.image ? (
+                                            <Image src={comment.user.image} alt={comment.user.name} width={32} height={32} className="rounded-full" />
                                         ) : (
-                                            comment.author.name.charAt(0)
+                                            (comment.user?.name || '?').charAt(0)
                                         )}
                                     </div>
                                     <div className="flex-1">
                                         <div className="bg-[var(--card-bg)] p-3 rounded-lg border border-[var(--gray-200)] shadow-sm">
                                             <div className="flex justify-between items-baseline mb-1">
-                                                <span className="font-bold text-xs">{comment.author.name}</span>
-                                                <span className="text-[10px] text-gray-400">{comment.timestamp}</span>
+                                                <span className="font-bold text-xs">{comment.user?.name || 'Unknown'}</span>
+                                                <span className="text-[10px] text-gray-400">{new Date(comment.createdAt).toLocaleDateString()}</span>
                                             </div>
-                                            <p className="text-sm text-[var(--text-main)] opacity-90">{comment.text}</p>
+                                            <p className="text-sm text-[var(--text-main)] opacity-90">{comment.content}</p>
                                         </div>
                                     </div>
                                 </div>

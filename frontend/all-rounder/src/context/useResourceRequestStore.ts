@@ -3,26 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
-
-export interface ResourceRequest {
-    id: string;
-    title: string;
-    description: string;
-    resourceType: "funding" | "equipment" | "mentorship" | "venue" | "software" | "other";
-    quantity: number;
-    urgency: "low" | "medium" | "high";
-    requestedFor: string;
-    neededBy?: string; // Date string
-    status: "pending" | "approved" | "rejected" | "fulfilled";
-    visibility: "public" | "private";
-    createdBy: string; // User ID
-    remarks?: string;
-    contactNumber?: string;
-    email?: string;
-    isDeleted?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
-}
+import { ResourceRequest } from '@/app/_type/type';
 
 interface ResourceRequestState {
     requests: ResourceRequest[];

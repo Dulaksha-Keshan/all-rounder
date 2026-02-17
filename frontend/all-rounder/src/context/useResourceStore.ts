@@ -2,23 +2,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
+import { Resource } from '@/app/_type/type';
 import api from '@/lib/axios';
 
-export interface Resource {
-    id: string;
-    title: string;
-    description: string;
-    type: 'PDF' | 'Video' | 'Link' | 'Document';
-    url: string;
-    uploadedBy: {
-        name: string;
-        id: string;
-    };
-    uploadedAt: string;
-    downloads: number;
-    tags?: string[];
-}
+
 
 interface ResourceState {
     resources: Resource[];

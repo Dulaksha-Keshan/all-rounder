@@ -3,18 +3,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
+import { Notification } from '@/app/_type/type';
 
-export interface Notification {
-    id: string;
-    title: string;
-    message: string;
-    type: "EVENT" | "POST" | "RESOURCE" | "CLUB" | "SYSTEM";
-    recipient: string; // User ID
-    isRead: boolean;
-    relatedId?: string; // ID of related event/post/resource
-    createdAt: string;
-    link?: string; // Derived or optional
-}
+
 
 interface NotificationState {
     notifications: Notification[];

@@ -4,14 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Skills } from '@/app/_data/skills';
 import api from '@/lib/axios';
-
-export interface Skill {
-    id: string; // Changed to string
-    name: string;
-    category: string;
-    level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
-    endorsements: number;
-}
+import { Skill } from '@/app/_type/type';
 
 interface SkillState {
     skills: Skill[]; // All available skills in the system

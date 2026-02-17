@@ -3,36 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
-
-// Defining types locally to be self-contained, mirroring PostType usage
-export interface Post {
-    id: string;
-    title: string;
-    content: string;
-    category: string;
-    postType: "achievement" | "participation" | "event" | "project";
-    visibility: "public" | "private";
-    attachments?: string[]; // URLs
-    tags?: string[];
-    student: string; // Student ID
-    school: string; // School ID
-    organization: string; // Organization ID
-    likes: string[]; // Array of Student IDs
-    comments: {
-        student: string; // Student ID
-        comment: string;
-        createdAt: string;
-    }[];
-    isDeleted?: boolean;
-
-    // Legacy/UI mappings
-    time?: string; // Derived from createdAt
-    author?: { // Derived from student/school/org info
-        name: string;
-        role: string;
-        image?: string;
-    };
-}
+import { Post } from '@/app/_type/type';
 
 interface PostState {
     posts: Post[];
@@ -42,7 +13,7 @@ interface PostState {
 
     // Actions
     fetchPosts: () => Promise<void>;
-    createPost: (post: Omit<Post, 'id' | 'likes' | 'comments' | 'time'>) => Promise<void>;
+    createPost: (post: Omit<Post, 'id' | 'likes' | 'comments' | 'time' | 'createdAt' | 'updatedAt' | 'isLiked'>) => Promise<void>;
     deletePost: (id: string) => Promise<void>;
     likePost: (id: string) => Promise<void>;
     commentPost: (id: string, text: string) => Promise<void>;

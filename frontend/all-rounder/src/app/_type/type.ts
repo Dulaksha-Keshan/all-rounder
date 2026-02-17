@@ -92,6 +92,8 @@ export interface School {
   teachers?: Teacher[];
   admins?: Admin[];
   eventHosts?: EventHost[];
+
+  sex?: "MALE" | "FEMALE";
 }
 
 // Organization interface
@@ -104,20 +106,49 @@ export interface Organization {
   eventHosts?: EventHost[];
   created_at: string;
   updated_at: string;
+  sex?: "MALE" | "FEMALE";
 }
 
-// EventHost interface
-export interface EventHost {
+// Matches the embedded HostSchema
+export interface Host {
   id: string;
-  eventId: string;
-  schoolId?: string;
-  organizationId?: string;
+  hostType: "school" | "organization";
+  hostId: string;
+  hostName: string;
+  isPrimary: boolean;
+}
 
-  isPrimaryHost: boolean;
+// Main Event interface
+export interface Event {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
+  startDate: Date;
+  endDate: Date;
+  location: string;
+  organizer: string;
+  hosts?: Host[];
+  eligibility: string;
+  registrationUrl?: string;
+  isOnline: boolean;
+  visibility: "public" | "private";
+  createdBy: string;
+  isDeleted?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "EVENT" | "POST" | "RESOURCE" | "CLUB" | "SYSTEM";
+  recipient: string;
+  isRead: boolean;
+  relatedId?: string;
   createdAt: string;
-
-  school?: School;
-  organization?: Organization;
 }
 
 // ==================== SKILL INTERFACE ====================
@@ -181,4 +212,141 @@ export interface Event {
   prizes?: string[];
   contactEmail?: string;
   time?: string; // Derived or extra info
+}
+
+// Defining types locally to be self-contained, mirroring PostType usage
+export interface Post {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  postType: "achievement" | "participation" | "event" | "project";
+  visibility: "public" | "private";
+  attachments?: string[];
+  tags?: string[];
+  student: string;
+  school: string;
+  organization: string;
+  likes: string[]; 
+  comments: Comment[]; // Updated to use the new Comment interface
+  /* 
+     Old structure for reference/compatibility if needed temporarily:
+     {
+         student: string; 
+         comment: string;
+         createdAt: string;
+     }[]
+  */
+  isDeleted?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  isLiked?: boolean; // UI state
+
+  // Legacy/UI mappings
+  time?: string; // Derived from createdAt
+  author?: { // Derived from student/school/org info
+    name: string;
+    role: string;
+    image?: string;
+  };
+}
+
+
+export interface Achievement {
+  _id: string; // Mongoose ID
+  user: string; // ObjectId as string (User)
+  title: string;
+  description: string;
+  category: string;
+  level: "local" | "national" | "international";
+  dateAchieved: string; // Date as string
+  organization: string;
+  proofUrl: string;
+  visibility: "public" | "private";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Comment {
+  _id: string;
+  postId: string;
+  userId: string; 
+  userType: "STUDENT" | "TEACHER" | "ADMIN";
+  content: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+
+  // UI convenience (populated or derived)
+  user?: {
+    name: string;
+    image?: string;
+  };
+}
+
+export interface Like {
+  _id: string;
+  postId: string;
+  userId: string; 
+  userType: "STUDENT" | "TEACHER" | "ADMIN";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Verification {
+  _id: string;
+  userId: string; // Schema says String (could be UID or ObjectId string depending on usage)
+  userType: "STUDENT" | "TEACHER" | "ADMIN";
+  verificationMethod: "DOCUMENT_AI" | "TEACHER_APPROVAL" | "ADMIN_APPROVAL";
+  verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  verificationRequestedBy: number; // Schema says Number
+  verifiedAt?: string; // Date as string
+  remarks?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResourceRequest {
+  id: string;
+  title: string;
+  description: string;
+  resourceType: "funding" | "equipment" | "mentorship" | "venue" | "software" | "other";
+  quantity: number;
+  urgency: "low" | "medium" | "high";
+  requestedFor: string;
+  neededBy?: string; // Date string
+  status: "pending" | "approved" | "rejected" | "fulfilled";
+  visibility: "public" | "private";
+  createdBy: string; // User ID
+  remarks?: string;
+  contactNumber?: string;
+  email?: string;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  type: 'PDF' | 'Video' | 'Link' | 'Document';
+  url: string;
+  uploadedBy: {
+    name: string;
+    id: string;
+  };
+  uploadedAt: string;
+  downloads: number;
+  tags?: string[];
+}
+
+export interface Skill {
+  id: string; // Changed to string
+  name: string;
+  category: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+  endorsements: number;
 }
