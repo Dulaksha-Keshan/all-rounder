@@ -6,43 +6,66 @@ import api from '@/lib/axios';
 import { ResourceRequest } from '@/app/_type/type';
 
 interface ResourceRequestState {
-    requests: ResourceRequest[];
+    resources: ResourceRequest[];
     isLoading: boolean;
     error: string | null;
 
     // Actions
-    fetchRequests: () => Promise<void>;
-    createRequest: (request: Omit<ResourceRequest, 'id' | 'status' | 'isDeleted' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-    updateRequest: (id: string, updates: Partial<ResourceRequest>) => Promise<void>;
-    deleteRequest: (id: string) => Promise<void>;
-    getRequestById: (id: string) => ResourceRequest | undefined;
+    fetchResources: (params?: { status?: string; resourceType?: string; visibility?: string }) => Promise<void>;
+    fetchResourceById: (id: string) => Promise<ResourceRequest | undefined>;
+    createResource: (resource: Omit<ResourceRequest, 'id' | 'status' | 'createdBy' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateResource: (id: string, updates: Partial<ResourceRequest>) => Promise<void>;
+    deleteResource: (id: string) => Promise<void>;
+    searchResources: (keyword: string) => Promise<void>;
 }
 
 export const useResourceRequestStore = create<ResourceRequestState>()(
     persist(
         (set, get) => ({
-            requests: [],
+            resources: [],
             isLoading: false,
             error: null,
 
-            fetchRequests: async () => {
+            fetchResources: async (params) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.get('/resource-requests');
-                    set({ requests: response.data });
+                    const response = await api.get('/resources', { params });
+                    set({ resources: response.data.resources });
                 } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch resource requests' });
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch resources' });
                 } finally {
                     set({ isLoading: false });
                 }
             },
 
-            createRequest: async (requestData) => {
+            fetchResourceById: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.post('/resource-requests', requestData);
+                    const response = await api.get(`/resources/${id}`);
+                    const resource = response.data.resource;
+
                     set((state) => ({
-                        requests: [response.data, ...state.requests]
+                        resources: state.resources.some(r => r.id === id)
+                            ? state.resources.map(r => r.id === id ? resource : r)
+                            : [...state.resources, resource]
+                    }));
+                    return resource;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch resource' });
+                    return undefined;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            createResource: async (resourceData) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.post('/resources', resourceData);
+                    const newResource = response.data.resourceRequest;
+
+                    set((state) => ({
+                        resources: [newResource, ...state.resources]
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to create resource request' });
@@ -51,13 +74,16 @@ export const useResourceRequestStore = create<ResourceRequestState>()(
                 }
             },
 
-            updateRequest: async (id, updates) => {
+            updateResource: async (id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.put(`/resource-requests/${id}`, updates);
-                    const updated = response.data;
+                    const response = await api.put(`/resources/${id}`, updates);
+                    const updatedResource = response.data.updatedResource;
+
                     set((state) => ({
-                        requests: state.requests.map((r) => r.id === id ? { ...r, ...updated } : r)
+                        resources: state.resources.map(r =>
+                            r.id === id ? updatedResource : r
+                        )
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to update resource request' });
@@ -66,12 +92,13 @@ export const useResourceRequestStore = create<ResourceRequestState>()(
                 }
             },
 
-            deleteRequest: async (id) => {
+            deleteResource: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.delete(`/resource-requests/${id}`);
+                    await api.delete(`/resources/${id}`);
+
                     set((state) => ({
-                        requests: state.requests.filter((r) => r.id !== id)
+                        resources: state.resources.filter(r => r.id !== id)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete resource request' });
@@ -80,7 +107,19 @@ export const useResourceRequestStore = create<ResourceRequestState>()(
                 }
             },
 
-            getRequestById: (id) => get().requests.find((r) => r.id === id),
+            searchResources: async (keyword) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get('/resources/search', {
+                        params: { keyword }
+                    });
+                    set({ resources: response.data.resources });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to search resources' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
         }),
         {
             name: 'resource-request-storage',

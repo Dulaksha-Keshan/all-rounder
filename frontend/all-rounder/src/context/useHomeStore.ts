@@ -3,7 +3,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Post } from '@/app/_type/type';
-import { INITIAL_POSTS } from '../app/home/constants';
 import api from '@/lib/axios';
 import { useUserStore } from './useUserStore';
 
@@ -28,13 +27,13 @@ interface HomeState {
     editPost: (id: string, newContent: string) => Promise<void>;
     likePost: (id: string) => Promise<void>;
     commentPost: (id: string, text: string) => Promise<void>;
-    updateStats: (key: keyof HomeState['stats'], value: number) => void; // Keep synchronous for now or make async? Probably sync is fine if it's local only, but user might want it stored. I'll leave as sync or make async if fits pattern. Let's make it sync as it seems to be a local helper? Or maybe fetch stats is part of fetchHomeData.
+    updateStats: (key: keyof HomeState['stats'], value: number) => void;
 }
 
 export const useHomeStore = create<HomeState>()(
     persist(
         (set, get) => ({
-            posts: [], // INITIAL_POSTS might have number IDs, so starting empty or needing update. Safest to start empty or cast.
+            posts: [],
             drafts: [],
             stats: {
                 views: 1234,
@@ -79,7 +78,6 @@ export const useHomeStore = create<HomeState>()(
             saveDraft: async (content, media) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // Assuming drafts are also saved to backend
                     const response = await api.post('/drafts', { content, media });
                     set((state) => ({
                         drafts: [response.data, ...state.drafts]
@@ -97,7 +95,7 @@ export const useHomeStore = create<HomeState>()(
                     await api.delete(`/posts/${id}`);
 
                     set((state) => ({
-                        posts: state.posts.filter(p => p.id !== id)
+                        posts: state.posts.filter(p => p._id !== id)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete post' });
@@ -112,7 +110,7 @@ export const useHomeStore = create<HomeState>()(
                     await api.delete(`/drafts/${id}`);
 
                     set((state) => ({
-                        drafts: state.drafts.filter(d => d.id !== id)
+                        drafts: state.drafts.filter(d => d._id !== id)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete draft' });
@@ -129,7 +127,7 @@ export const useHomeStore = create<HomeState>()(
 
                     set((state) => ({
                         posts: state.posts.map(p =>
-                            p.id === id ? { ...p, ...updatedPost } : p
+                            p._id === id ? { ...p, ...updatedPost } : p
                         )
                     }));
                 } catch (error: any) {
@@ -143,9 +141,9 @@ export const useHomeStore = create<HomeState>()(
                 // Optimistic update
                 set((state) => ({
                     posts: state.posts.map(p => {
-                        if (p.id === id) {
+                        if (p._id === id) {
                             const currentUser = useUserStore.getState().currentUser;
-                            const currentUserId = currentUser?.uid || "1"; // Fallback if not logged in (should be logged in)
+                            const currentUserId = currentUser?.uid || "1";
                             const isLiked = p.likes.includes(currentUserId);
                             let newLikes = [...p.likes];
 
@@ -165,7 +163,6 @@ export const useHomeStore = create<HomeState>()(
                     await api.post(`/posts/${id}/like`);
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to toggle like' });
-                    // Could revert optimistic update here
                 }
             },
 
@@ -177,8 +174,9 @@ export const useHomeStore = create<HomeState>()(
 
                     set((state) => ({
                         posts: state.posts.map(p => {
-                            if (p.id === id) {
-                                return { ...p, comments: [...(Array.isArray(p.comments) ? p.comments : []), newComment] };
+                            if (p._id === id) {
+                                // Logic assumes p.comments exists and is array. 
+                                return { ...p, comments: [...(p.comments || []), newComment] };
                             }
                             return p;
                         })
@@ -195,7 +193,7 @@ export const useHomeStore = create<HomeState>()(
             })),
         }),
         {
-            name: 'home-storage-v2', // Versioned to clear old incompatible data
+            name: 'home-storage-v2',
         }
     )
 );

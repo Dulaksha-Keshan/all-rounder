@@ -8,12 +8,12 @@ import { Post } from '@/app/_type/type';
 interface PostState {
     posts: Post[];
     isLoading: boolean;
-
     error: string | null;
 
     // Actions
     fetchPosts: () => Promise<void>;
-    createPost: (post: Omit<Post, 'id' | 'likes' | 'comments' | 'time' | 'createdAt' | 'updatedAt' | 'isLiked'>) => Promise<void>;
+    createPost: (post: Omit<Post, '_id' | 'likes' | 'comments' | 'time' | 'createdAt' | 'updatedAt' | 'isLiked'>) => Promise<void>;
+    getPostById: (id: string) => Promise<Post | undefined>;
     deletePost: (id: string) => Promise<void>;
     likePost: (id: string) => Promise<void>;
     commentPost: (id: string, text: string) => Promise<void>;
@@ -55,13 +55,34 @@ export const usePostStore = create<PostState>()(
                 }
             },
 
+            getPostById: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/posts/${id}`);
+                    const post = response.data.post;
+
+                    set((state) => ({
+                        posts: state.posts.some(p => p._id === id)
+                            ? state.posts.map(p => p._id === id ? post : p)
+                            : [...state.posts, post]
+                    }));
+
+                    return post;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch post' });
+                    return undefined;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
             deletePost: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
                     await api.delete(`/posts/${id}`);
 
                     set((state) => ({
-                        posts: state.posts.filter(p => p.id !== id)
+                        posts: state.posts.filter(p => p._id !== id)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete post' });
@@ -71,28 +92,13 @@ export const usePostStore = create<PostState>()(
             },
 
             likePost: async (id) => {
-                // Optimistic update
-                set((state) => ({
-                    posts: state.posts.map(p => {
-                        if (p.id === id) {
-                            // This is a simplified optimistic update. 
-                            // In reality, we'd need the current user's ID to add/remove from the array.
-                            // For now, we'll assume the backend handles the actual toggling and return state as is or fetch updated.
-                            // Or simpler: just don't do optimistic update for the array content without user ID, 
-                            // just wait for re-fetch or assume success if needed.
-                            // Let's rely on re-fetching or simple toggle if we had user ID.
-                            return p;
-                        }
-                        return p;
-                    })
-                }));
-
+                // Simplified optimistic update - toggle implementation would require user ID
                 try {
                     await api.post(`/posts/${id}/like`);
-                    // Ideally fetch updated post here
+                    // Fetch updated post to ensure sync
                     const response = await api.get(`/posts/${id}`);
                     set((state) => ({
-                        posts: state.posts.map(p => p.id === id ? response.data : p)
+                        posts: state.posts.map(p => p._id === id ? response.data.post : p)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to like post' });
@@ -103,14 +109,17 @@ export const usePostStore = create<PostState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.post(`/posts/${id}/comments`, { text });
-                    // Backend should return the new comment or updated post
-                    // Assuming it returns the updated post for simplicity
-                    const updatedPost = response.data; // or fetch if needed
+                    // Backend returns updated post or new comment. Assuming updated post or we fetch it.
+                    // If backend returns the comment, we need to append it. If post, replace it.
+                    // Based on previous code assumption, let's assume we re-fetch or backend returns post.
+                    // For safety, let's fetch the post again to be sure of state
+                    const postResponse = await api.get(`/posts/${id}`);
+                    const updatedPost = postResponse.data.post;
 
                     set((state) => ({
                         posts: state.posts.map(p => {
-                            if (p.id === id) {
-                                return updatedPost; // Replace with updated post from backend
+                            if (p._id === id) {
+                                return updatedPost;
                             }
                             return p;
                         })

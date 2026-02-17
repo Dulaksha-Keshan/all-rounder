@@ -118,27 +118,7 @@ export interface Host {
   isPrimary: boolean;
 }
 
-// Main Event interface
-export interface Event {
-  _id: string;
-  title: string;
-  description: string;
-  category: string;
-  eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
-  startDate: Date;
-  endDate: Date;
-  location: string;
-  organizer: string;
-  hosts?: Host[];
-  eligibility: string;
-  registrationUrl?: string;
-  isOnline: boolean;
-  visibility: "public" | "private";
-  createdBy: string;
-  isDeleted?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+
 
 export interface Notification {
   id: string;
@@ -153,9 +133,7 @@ export interface Notification {
 
 // ==================== SKILL INTERFACE ====================
 
-export interface Skill {
-  name: string;
-}
+
 
 export type OrganizerType = "School" | "Organization";
 
@@ -185,38 +163,41 @@ export interface Club {
   // Relations (kept separate from backend schema metadata as requested)
 }
 
+// Main Event interface
 export interface Event {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   category: string;
   eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
-  startDate: string;
-  endDate: string;
+  startDate: Date | string; // Allow string for frontend handling
+  endDate: Date | string;
   location: string;
-
-  organizerId: string;
-  organizerType: OrganizerType;
-
+  organizer: string;
+  hosts?: Host[];
   eligibility: string;
   registrationUrl?: string;
   isOnline: boolean;
   visibility: "public" | "private";
-  createdBy: string; // User ID
+  createdBy: string;
   isDeleted?: boolean;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 
-  // UI/Legacy metadata (event-specific, not in school/org)
+  // UI/Legacy metadata (kept for compatibility if needed, else optional)
   imageUrl?: string;
   status?: "Registered" | "Open";
   requirements?: string[];
   prizes?: string[];
   contactEmail?: string;
-  time?: string; // Derived or extra info
+  time?: string;
+  organizerId?: string; // Legacy support
+  organizerType?: OrganizerType; // Legacy support
 }
 
 // Defining types locally to be self-contained, mirroring PostType usage
 export interface Post {
-  id: string;
+  _id: string; // Mongoose ID
   title: string;
   content: string;
   category: string;
@@ -227,7 +208,7 @@ export interface Post {
   student: string;
   school: string;
   organization: string;
-  likes: string[]; 
+  likes: string[];
   comments: Comment[]; // Updated to use the new Comment interface
   /* 
      Old structure for reference/compatibility if needed temporarily:
@@ -270,7 +251,7 @@ export interface Achievement {
 export interface Comment {
   _id: string;
   postId: string;
-  userId: string; 
+  userId: string;
   userType: "STUDENT" | "TEACHER" | "ADMIN";
   content: string;
   isDeleted: boolean;
@@ -287,7 +268,7 @@ export interface Comment {
 export interface Like {
   _id: string;
   postId: string;
-  userId: string; 
+  userId: string;
   userType: "STUDENT" | "TEACHER" | "ADMIN";
   isActive: boolean;
   createdAt: string;
@@ -328,20 +309,6 @@ export interface ResourceRequest {
 
 }
 
-export interface Resource {
-  id: string;
-  title: string;
-  description: string;
-  type: 'PDF' | 'Video' | 'Link' | 'Document';
-  url: string;
-  uploadedBy: {
-    name: string;
-    id: string;
-  };
-  uploadedAt: string;
-  downloads: number;
-  tags?: string[];
-}
 
 export interface Skill {
   id: string; // Changed to string
@@ -349,4 +316,5 @@ export interface Skill {
   category: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
   endorsements: number;
+  description?: string; // Added from controller usage
 }

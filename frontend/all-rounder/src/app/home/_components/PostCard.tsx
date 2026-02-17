@@ -48,14 +48,14 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit, cu
     const handleCommentSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (commentText.trim()) {
-            onComment(post.id, commentText);
+            onComment(post._id, commentText);
             setCommentText("");
             setShowComments(false);
         }
     };
 
     const handleShare = () => {
-        const url = `${window.location.origin}/post/${post.id}`;
+        const url = `${window.location.origin}/post/${post._id}`;
         navigator.clipboard.writeText(url).then(() => {
             setIsShared(true);
             setTimeout(() => setIsShared(false), 2000);
@@ -65,9 +65,11 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit, cu
 
     const handleEditSave = () => {
         if (onEdit && editContent.trim()) {
-            const htmlContent = textToHtml(editContent);
-            onEdit(post.id, htmlContent);
-            setIsEditing(false);
+            if (onEdit && editContent.trim()) {
+                const htmlContent = textToHtml(editContent);
+                onEdit(post._id, htmlContent);
+                setIsEditing(false);
+            }
         }
     };
 
@@ -212,7 +214,7 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit, cu
             {/* Actions */}
             <div className="px-2 py-2 border-t border-[var(--gray-100)] flex justify-between">
                 <button
-                    onClick={() => onLike(post.id)}
+                    onClick={() => onLike(post._id)}
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[var(--gray-50)] font-medium transition-colors ${post.likes.includes(currentUserId || '') ? 'text-blue-500' : 'text-[var(--text-muted)]'}`}
                 >
                     <ThumbsUp size={18} className={post.likes.includes(currentUserId || '') ? 'fill-current' : ''} />
@@ -238,7 +240,7 @@ export default function PostCard({ post, onLike, onComment, onDelete, onEdit, cu
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={() => onDelete(post.id)}
+                onConfirm={() => onDelete(post._id)}
                 title="Delete Post"
                 message="Are you sure you want to delete this post? This action cannot be undone."
                 confirmLabel="Yes, I confirm"
