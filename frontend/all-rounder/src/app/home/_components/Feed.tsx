@@ -20,9 +20,9 @@ export default function Feed({ posts, onLike, onComment, onDelete, onEdit, onCre
             <PostCreator onCreatePost={onCreatePost} />
 
             <div className="space-y-6">
-                {posts.map((post) => (
+                {posts.map((post, index) => (
                     <PostCard
-                        key={post._id}
+                        key={post._id || (post as any).id || index}
                         post={post}
                         onLike={onLike}
                         onComment={onComment}

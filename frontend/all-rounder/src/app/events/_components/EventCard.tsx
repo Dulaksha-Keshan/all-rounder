@@ -72,7 +72,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
                 </div>
                 <div>
                   <p className="text-[10px] text-[var(--gray-400)] uppercase font-bold tracking-wider">Date</p>
-                  <p className="text-sm font-semibold">{new Date(event.startDate).toLocaleDateString()}</p>
+                  <p className="text-sm font-semibold">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-[var(--gray-600)]">
@@ -88,7 +88,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
           </div>
 
           <div className="flex items-center justify-center pt-6 border-t border-[var(--gray-100)]">
-            <Link href={`/events/${event.id}`} className="w-full sm:w-auto">
+            <Link href={`/events/${event._id}`} className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-2.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all">
                 Details
               </button>

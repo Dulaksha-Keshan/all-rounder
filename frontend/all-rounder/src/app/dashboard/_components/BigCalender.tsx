@@ -9,6 +9,7 @@ import { useState } from "react";
 const localizer = momentLocalizer(moment);
 
 interface EventType {
+  id?: string;
   title: string;
   start: Date;
   end: Date;

@@ -2,7 +2,10 @@ import { Event } from "@/app/_type/type";
 
 export const Events: Event[] = [
   {
-    id: "1",
+    _id: "1",
+    organizer: "1",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "Inquiro'25 - Inter School Quiz Competition",
     description: "Inquiro'25 is an exciting inter-school quiz competition designed to challenge and engage young minds. This competition tests participants' knowledge across various subjects including general knowledge, current affairs, science, literature, and more.\n\nThe competition will be conducted in multiple rounds, starting with preliminary online quizzes on Wayground/Quizziz platform, followed by live elimination rounds on Zoom. Participants will compete in teams, showcasing their quick thinking, teamwork, and breadth of knowledge.",
     category: "Quiz",
@@ -32,7 +35,10 @@ export const Events: Event[] = [
     time: "6 pm Onwards"
   },
   {
-    id: "2",
+    _id: "2",
+    organizer: "1",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "Ciencias'25 All Island InterSchool Debate Competition",
     description: "Ciencias'25 presents Sri Lanka's premier interschool debating tournament, exclusively organized by a leading Science Society. This competition brings together the brightest debaters from schools across the island to discuss and debate contemporary scientific, ethical, and social issues.",
     category: "Debate",
@@ -60,7 +66,10 @@ export const Events: Event[] = [
     time: "7 pm Onwards"
   },
   {
-    id: "3",
+    _id: "3",
+    organizer: "1",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "Synapse'25 - Inter-school Graphic Design Competition",
     description: "Synapse'25 invites creative minds to explore the frontiers of imagination through graphic design. This competition challenges participants to visualize the future—from groundbreaking technology and cosmic mysteries to innovative sustainable solutions.",
     category: "Graphic Design",
@@ -88,13 +97,16 @@ export const Events: Event[] = [
     time: "7 pm Onwards"
   },
   {
-    id: "4",
+    _id: "4",
+    organizer: "1",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "Talentraa AI-Powered Full-Stack Engineering Masterclass",
     description: "The Talentraa AI-Powered Full-Stack Engineering Masterclass is an intensive training program designed to transform complete beginners into job-ready full-stack developers in just 2.5 months.",
     category: "Workshop",
     eventType: "workshop",
     startDate: "2025-12-20T19:00:00.000Z",
-    endDate: "2026-03-05T19:00:00.000Z",
+    endDate: "2025-12-20T21:00:00.000Z",
     location: "Online",
     organizerId: "1",
     organizerType: "School",
@@ -116,7 +128,10 @@ export const Events: Event[] = [
     time: "7 pm Onwards"
   },
   {
-    id: "5",
+    _id: "5",
+    organizer: "2",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "Nalanda College Science Society Competitions",
     description: "The Nalanda College Science Society proudly presents a comprehensive competition series featuring six distinct categories, each designed to celebrate different aspects of scientific inquiry and creative expression.",
     category: "Science",
@@ -144,7 +159,10 @@ export const Events: Event[] = [
     time: "10 am Onwards"
   },
   {
-    id: "6",
+    _id: "6",
+    organizer: "9",
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
     title: "විශ්වාභියාත්‍රා'26 - Inter-School Quiz, Graphic and Presentation Competition",
     description: "විශ්වාභියාත්‍රා'26 (Vishwabhiyathra) is an inter-school competition trilogy organized by Bandaranayake College Gampaha, designed to celebrate and nurture young talent across multiple disciplines.",
     category: "General/Multiple",

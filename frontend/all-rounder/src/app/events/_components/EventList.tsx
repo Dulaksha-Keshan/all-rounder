@@ -13,8 +13,8 @@ export const EventList = ({ events }: { events: Event[] }) => {
 
   return (
     <div className="space-y-6">
-      {events.map((event) => (
-        <EventCard key={event.id} event={event} />
+      {events.map((event, index) => (
+        <EventCard key={event._id || index} event={event} />
       ))}
     </div>
   );
