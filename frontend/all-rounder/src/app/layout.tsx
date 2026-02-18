@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {Navbar} from "@/layout/Navbar";
+import {Navbar} from "@/layout/navbar2";
 import Footer from "@/layout/Footer";
 import GoToTopButton from "@/components/GoToTopButton";
 
@@ -65,7 +65,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Navbar isAuthenticated={isAuthenticated} userType={userType} />
-        <main className="pt-24">
+        <main className="pt-20 md:pt-0">
           {children}
         </main>
         {/* Added the structured data script here */}

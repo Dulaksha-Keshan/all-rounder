@@ -103,11 +103,7 @@ html, body {
 
 /* ===== DARK MODE VARIABLES ===== */
 .dark {
-<<<<<<< HEAD
-  /* Primary Colors (Dark) */
-=======
   /* Keep branding colors but ensure they work well on dark */
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
   --primary-dark-purple: #34365C;
   --primary-purple: #8387CC;
   --primary-blue: #4169E1;
@@ -127,23 +123,6 @@ html, body {
   --accent-purple-text: #E0E7FF;
   --accent-purple-darker: #C7D2FE;
 
-<<<<<<< HEAD
-  /* Neutral Colors (Dark) */
-  --white: #111827;
-  --black: #F9FAFB;
-  --gray-50: #1F2937;
-  --gray-100: #374151;
-  --gray-200: #4B5563;
-  --gray-300: #6B7280;
-  --gray-600: #E5E7EB;
-  --gray-700: #F9FAFB;
-
-  /* Functional Backgrounds (Dark) */
-  --page-bg: #0F172A;
-  --card-bg: #1E293B;
-  --text-main: #FFFFFF;
-  --text-muted: #D1D5DB;
-=======
   --white: #1F2937;
   /* Gray-800 - Cards/Containers */
   --black: #F3F4F6;
@@ -173,7 +152,6 @@ html, body {
   /* Gray-100 */
   --text-muted: #9CA3AF;
   /* Gray-400 */
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 }
 
 /* ===== UTILITY CLASSES ===== */
@@ -193,10 +171,6 @@ html, body {
 .text-muted { color: var(--text-muted); }
 .text-accent { color: var(--accent-purple-text); }
 
-<<<<<<< HEAD
-/* Border Utilities */
-.border-secondary-lavender { border-color: var(--secondary-light-lavender); }
-=======
 .bg-primary-blue {
   background-color: var(--primary-blue);
 }
@@ -225,7 +199,6 @@ html, body {
 .border-secondary-lavender {
   border-color: var(--secondary-light-lavender);
 }
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
 
 /* Gradient Utilities */
 .gradient-purple-blue {
