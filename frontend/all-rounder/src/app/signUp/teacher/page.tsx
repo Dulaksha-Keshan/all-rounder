@@ -1,44 +1,120 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, School, Upload, FileText, Eye, EyeOff } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  School,
+  Upload,
+  FileType2,
+  FileImage,
+  Eye,
+  EyeOff,
+  X,
+  CheckCircle2,
+  PlusCircle,
+} from "lucide-react";
 import Image from "next/image";
+
+function PageBackground() {
+  const starsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* === Gradient Orbs === */}
+      <div
+        className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl"
+        style={{ background: "var(--primary-purple)" }}
+      />
+      <div
+        className="absolute -top-20 right-0 w-[380px] h-[380px] rounded-full opacity-20 blur-3xl"
+        style={{ background: "var(--primary-blue)" }}
+      />
+      <div
+        className="absolute bottom-0 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl"
+        style={{ background: "var(--secondary-light-lavender)" }}
+      />
+      <div
+        className="absolute -bottom-20 left-10 w-[300px] h-[300px] rounded-full opacity-20 blur-2xl"
+        style={{ background: "var(--primary-dark-purple)" }}
+      />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl"
+        style={{ background: "var(--secondary-purple-light)" }}
+      />
+
+      {/* === Stars === */}
+      <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl opacity-40" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl opacity-30" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl opacity-25" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[3] = el; }} className="absolute top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl opacity-35" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[4] = el; }} className="absolute bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl opacity-30" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[5] = el; }} className="absolute top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl opacity-25" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[6] = el; }} className="absolute top-1/4 left-1/4 text-2xl sm:text-3xl opacity-20" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+      <div ref={(el) => { starsRef.current[7] = el; }} className="absolute bottom-1/3 right-1/4 text-xl sm:text-2xl opacity-20" style={{ color: "var(--primary-dark-purple)" }}>★</div>
+    </div>
+  );
+}
 
 export default function TeacherSignup() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    // Personal Information
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-
-    // Professional Information
     schoolName: "",
     department: "",
     employeeId: "",
     yearsOfExperience: "",
-
-    // Account Security
     password: "",
     confirmPassword: "",
-
-    // Verification
-    verificationType: "staff-id", // or "appointment-letter"
+    verificationType: "staff-id",
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
-    }
+  const addFiles = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+    const allowed = Array.from(newFiles).filter((f) =>
+      ["application/pdf", "image/jpeg", "image/png"].includes(f.type)
+    );
+    setUploadedFiles((prev) => {
+      const existing = new Set(prev.map((f) => f.name + f.size));
+      return [...prev, ...allowed.filter((f) => !existing.has(f.name + f.size))];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    addFiles(e.dataTransfer.files);
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type === "application/pdf")
+      return <FileType2 className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-blue)" }} />;
+    return <FileImage className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-purple)" }} />;
   };
 
   const updateField = (field: string, value: string) => {
@@ -48,7 +124,6 @@ export default function TeacherSignup() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Password validation for step 1
     if (
       currentStep === 1 &&
       formData.password &&
@@ -64,107 +139,138 @@ export default function TeacherSignup() {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
+      if (uploadedFiles.length === 0) return;
       alert("Teacher account created! Your verification documents are under review.");
       router.push("/login");
     }
   };
 
+  const inputClass =
+    "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
+  const inputStyle = { "--tw-ring-color": "var(--primary-blue)" } as React.CSSProperties;
+  const iconInputClass =
+    "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
+  const labelClass = "block text-sm mb-2 text-primary-dark";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8F8FF] to-[#DCD0FF] py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div
+      className="min-h-screen py-40 px-4 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 50%, var(--secondary-pale-lavender) 100%)",
+      }}
+    >
+      <PageBackground />
+
+      <div className="max-w-2xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="max-w-md mx-auto">
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4 flex justify-center">
-                <Image
-                  src="/icons/logoForPages.png"
-                  alt="Login Icon"
-                  width={80}
-                  height={80}
-                />
-              </div>
-            </div>
+        <div className="flex flex-col items-center text-center mb-8">
+          <div className="mb-6">
+            <Image
+              src="/icons/logoForPages.png"
+              alt="Logo"
+              width={80}
+              height={80}
+              priority
+            />
           </div>
-          <h1 className="text-[#34365C] mb-2">Teacher Registration</h1>
-          <p className="text-gray-600">Join as a verified educator</p>
+          <h1 className="text-primary-dark text-3xl font-bold tracking-tight mb-2">
+            Teacher Registration
+          </h1>
+          <p className="text-muted text-sm max-w-[280px]">
+            Join as a verified educator on{" "}
+            <span className="font-semibold" style={{ color: "var(--primary-blue)" }}>
+              All-Rounder
+            </span>
+          </p>
         </div>
 
-        {/* Progress Steps */}
+        {/* Step Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between max-w-md mx-auto">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors"
+                  style={
                     step <= currentStep
-                      ? "bg-[#4169E1] text-white"
-                      : "bg-gray-300 text-gray-600"
-                  }`}
+                      ? { background: "var(--primary-blue)", color: "#fff" }
+                      : { background: "#D1D5DB", color: "#6B7280" }
+                  }
                 >
                   {step}
                 </div>
                 {step < 3 && (
                   <div
-                    className={`w-20 h-1 ${
-                      step < currentStep ? "bg-[#4169E1]" : "bg-gray-300"
-                    }`}
+                    className="w-20 h-1 transition-colors"
+                    style={
+                      step < currentStep
+                        ? { background: "var(--primary-blue)" }
+                        : { background: "#D1D5DB" }
+                    }
                   />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-600">
+          <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-muted">
             <span>Personal</span>
             <span>Professional</span>
             <span>Verification</span>
           </div>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        {/* Form Card */}
+        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
           <form onSubmit={handleSubmit}>
-            {/* Step 1: Personal Information */}
+
+            {/* ── Step 1: Personal Information ── */}
             {currentStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-[#34365C] mb-4">Personal Information</h3>
+                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
+                  Personal Information
+                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
+                </h3>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">First Name *</label>
+                    <label className={labelClass}>First Name *</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => updateField("firstName", e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                        className={iconInputClass}
+                        style={inputStyle}
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">Last Name *</label>
+                    <label className={labelClass}>Last Name *</label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => updateField("lastName", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                      className={inputClass}
+                      style={inputStyle}
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">Email Address *</label>
+                  <label className={labelClass}>Email Address *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => updateField("email", e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                      className={iconInputClass}
+                      style={inputStyle}
                       placeholder="teacher@school.edu"
                       required
                     />
@@ -172,19 +278,20 @@ export default function TeacherSignup() {
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">Phone Number *</label>
+                  <label className={labelClass}>Phone Number *</label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                    className={inputClass}
+                    style={inputStyle}
                     required
                   />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">Password *</label>
+                    <label className={labelClass}>Password *</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
@@ -198,21 +305,22 @@ export default function TeacherSignup() {
                             setPasswordError("");
                           }
                         }}
-                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
+                        style={inputStyle}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((p) => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">Confirm Password *</label>
+                    <label className={labelClass}>Confirm Password *</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -225,13 +333,14 @@ export default function TeacherSignup() {
                             setPasswordError("");
                           }
                         }}
-                        className="w-full pr-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                        className="w-full px-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
+                        style={inputStyle}
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword((p) => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
                         {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                       </button>
@@ -242,20 +351,24 @@ export default function TeacherSignup() {
               </div>
             )}
 
-            {/* Step 2 & Step 3 remain exactly as your original code */}
+            {/* ── Step 2: Professional Information ── */}
             {currentStep === 2 && (
               <div className="space-y-4">
-                <h3 className="text-[#34365C] mb-4">Professional Information</h3>
+                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
+                  Professional Information
+                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
+                </h3>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">School/Institution Name *</label>
+                  <label className={labelClass}>School/Institution Name *</label>
                   <div className="relative">
                     <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       value={formData.schoolName}
                       onChange={(e) => updateField("schoolName", e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                      className={iconInputClass}
+                      style={inputStyle}
                       placeholder="Enter your school name"
                       required
                     />
@@ -264,35 +377,38 @@ export default function TeacherSignup() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">Department/Subject *</label>
+                    <label className={labelClass}>Department/Subject *</label>
                     <input
                       type="text"
                       value={formData.department}
                       onChange={(e) => updateField("department", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                      className={inputClass}
+                      style={inputStyle}
                       placeholder="e.g., Mathematics, Science"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2 text-[#34365C]">Employee ID *</label>
+                    <label className={labelClass}>Employee ID *</label>
                     <input
                       type="text"
                       value={formData.employeeId}
                       onChange={(e) => updateField("employeeId", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                      className={inputClass}
+                      style={inputStyle}
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">Years of Experience *</label>
+                  <label className={labelClass}>Years of Experience *</label>
                   <select
                     value={formData.yearsOfExperience}
                     onChange={(e) => updateField("yearsOfExperience", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                    className={inputClass}
+                    style={inputStyle}
                     required
                   >
                     <option value="">Select</option>
@@ -306,11 +422,21 @@ export default function TeacherSignup() {
               </div>
             )}
 
+            {/* ── Step 3: Employment Verification ── */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <h3 className="text-[#34365C] mb-4">Employment Verification</h3>
+                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
+                  Employment Verification
+                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
+                </h3>
 
-                <div className="p-4 bg-[#F8F8FF] border border-[#DCD0FF] rounded-lg mb-4">
+                <div
+                  className="p-4 border rounded-lg mb-4"
+                  style={{
+                    background: "var(--secondary-pale-lavender)",
+                    borderColor: "var(--secondary-light-lavender)",
+                  }}
+                >
                   <p className="text-sm text-gray-700">
                     To gain "Verified Teacher" status, please upload proof of employment. This can be:
                   </p>
@@ -322,11 +448,12 @@ export default function TeacherSignup() {
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">Document Type *</label>
+                  <label className={labelClass}>Document Type *</label>
                   <select
                     value={formData.verificationType}
                     onChange={(e) => updateField("verificationType", e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4169E1]"
+                    className={inputClass}
+                    style={inputStyle}
                     required
                   >
                     <option value="staff-id">Staff ID Card</option>
@@ -336,37 +463,112 @@ export default function TeacherSignup() {
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-[#34365C]">Upload Document *</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#4169E1] transition">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className={labelClass + " mb-0"}>Upload Document(s) *</label>
+                    {uploadedFiles.length > 0 && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}>
+                        {uploadedFiles.length} file{uploadedFiles.length > 1 ? "s" : ""} added
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Drop Zone */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    className="rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer"
+                    style={{
+                      borderColor: dragOver ? "var(--primary-blue)" : "var(--secondary-light-lavender)",
+                      background: dragOver ? "var(--secondary-pale-lavender)" : "transparent",
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <input
+                      ref={fileInputRef}
                       type="file"
-                      onChange={handleFileUpload}
+                      onChange={(e) => addFiles(e.target.files)}
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
-                      id="file-upload"
-                      required
+                      multiple
                     />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                      {uploadedFile ? (
-                        <div className="flex items-center justify-center gap-2 text-[#4169E1]">
-                          <FileText className="w-5 h-5" />
-                          <span>{uploadedFile.name}</span>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-gray-600">Click to upload or drag and drop</p>
-                          <p className="text-sm text-gray-500 mt-1">PDF, JPG, or PNG (max 5MB)</p>
-                        </>
-                      )}
-                    </label>
+                    <div className="flex flex-col items-center gap-2 py-8 px-4 select-none">
+                      <div
+                        className="w-14 h-14 rounded-full flex items-center justify-center mb-1"
+                        style={{ background: "var(--secondary-pale-lavender)" }}
+                      >
+                        <Upload className="w-6 h-6" style={{ color: "var(--primary-blue)" }} />
+                      </div>
+                      <p className="text-sm font-medium text-primary-dark">
+                        {dragOver ? "Drop files here" : "Drag & drop or click to browse"}
+                      </p>
+                      <p className="text-xs text-muted text-center max-w-xs">
+                        Staff ID, appointment letter, or employment contract
+                      </p>
+                      <p className="text-xs text-muted">PDF, JPG or PNG · max 5 MB each</p>
+                      <div
+                        className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                        style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        Add files
+                      </div>
+                    </div>
                   </div>
+
+                  {/* File List */}
+                  {uploadedFiles.length > 0 && (
+                    <ul className="mt-3 space-y-2">
+                      {uploadedFiles.map((file, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all"
+                          style={{
+                            background: "var(--secondary-pale-lavender)",
+                            borderColor: "var(--secondary-light-lavender)",
+                          }}
+                        >
+                          {/* Icon */}
+                          <div
+                            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ background: "var(--secondary-light-lavender)" }}
+                          >
+                            {getFileIcon(file)}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-primary-dark truncate">{file.name}</p>
+                            <p className="text-xs text-muted">{formatBytes(file.size)}</p>
+                          </div>
+
+                          {/* Uploaded badge */}
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-green-500" />
+
+                          {/* Remove */}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors hover:bg-red-50 group"
+                            aria-label={`Remove ${file.name}`}
+                          >
+                            <X className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Validation hint */}
+                  {uploadedFiles.length === 0 && (
+                    <p className="text-xs text-muted mt-2">At least one document is required.</p>
+                  )}
                 </div>
 
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    🔒 Your documents will be reviewed by our verification team within 24-48 hours. 
-                    You'll receive an email once your account is verified.
+                    🔒 Your documents will be reviewed by our verification team within 24-48 hours. You'll receive
+                    an email once your account is verified.
                   </p>
                 </div>
               </div>
@@ -378,14 +580,15 @@ export default function TeacherSignup() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                  className="flex-1 py-3 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
                 >
                   Back
                 </button>
               )}
               <button
                 type="submit"
-                className="flex-1 py-3 bg-[#4169E1] text-white rounded-lg hover:bg-[#3557c1] transition"
+                className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg"
+                style={{ background: "var(--primary-blue)" }}
               >
                 {currentStep === 3 ? "Submit for Verification" : "Next"}
               </button>
@@ -393,9 +596,13 @@ export default function TeacherSignup() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               Already have an account?{" "}
-              <Link href="/login" className="text-[#4169E1] hover:underline">
+              <Link
+                href="/login"
+                className="font-medium hover:underline"
+                style={{ color: "var(--primary-blue)" }}
+              >
                 Sign in
               </Link>
             </p>
