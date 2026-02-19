@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware';
 import { Student, Teacher, Organization } from '@/app/_type/type';
 import api from '@/lib/axios';
 
-type UserRole = 'Student' | 'Teacher' | 'Organization' | 'Admin';
+type UserRole = 'Student' | 'Teacher' | 'Organization' | 'Admin' | 'School';
 
 interface UserState {
     currentUser: Student | Teacher | Organization | null;
@@ -15,10 +15,10 @@ interface UserState {
     error: string | null;
 
     // Social State
-    following: number[]; // IDs of users I follow
-    followers: number[]; // IDs of users following me
-    followRequests: number[]; // IDs of users requesting to follow me
-    sentRequests: number[]; // IDs of users I've requested to follow
+    following: string[]; // IDs of users I follow
+    followers: string[]; // IDs of users following me
+    followRequests: string[]; // IDs of users requesting to follow me
+    sentRequests: string[]; // IDs of users I've requested to follow
 
     // Actions
     login: (user: Student | Teacher | Organization, role: UserRole) => Promise<void>;
@@ -27,12 +27,12 @@ interface UserState {
     setError: (error: string | null) => void;
 
     // Social Actions
-    followUser: (userId: number) => Promise<void>;
-    unfollowUser: (userId: number) => Promise<void>;
-    sendFollowRequest: (userId: number) => Promise<void>;
-    cancelFollowRequest: (userId: number) => Promise<void>;
-    acceptFollowRequest: (userId: number) => Promise<void>;
-    declineFollowRequest: (userId: number) => Promise<void>;
+    followUser: (userId: string) => Promise<void>;
+    unfollowUser: (userId: string) => Promise<void>;
+    sendFollowRequest: (userId: string) => Promise<void>;
+    cancelFollowRequest: (userId: string) => Promise<void>;
+    acceptFollowRequest: (userId: string) => Promise<void>;
+    declineFollowRequest: (userId: string) => Promise<void>;
 }
 
 export const useUserStore = create<UserState>()(

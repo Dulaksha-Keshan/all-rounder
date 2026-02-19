@@ -12,27 +12,8 @@ const ParticipantsChartContainer = () => {
 
   // Count participants per day
   const data = daysOfWeek.map((day) => {
+    // Note: registeredEvents was removed from schema, so participation counts are set to 0
     let participantsCount = 0;
-
-    students.forEach((student) => {
-      if (
-        student.registeredEvents?.some((registration) => {
-          const event = events.find(
-            (e) => e.id === Number(registration.eventId)
-          );
-          if (!event) return false;
-
-          const eventDate = new Date(event.date);
-          const eventDay = eventDate.getDay(); // 0 = Sunday
-          const dayIndex = daysOfWeek.indexOf(day); // 0 = Monday
-
-          return eventDay === (dayIndex + 1) % 7;
-        })
-      ) {
-        participantsCount += 1;
-      }
-    });
-
 
     return {
       day,

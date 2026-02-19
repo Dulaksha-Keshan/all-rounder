@@ -4,14 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Skills } from '@/app/_data/skills';
 import api from '@/lib/axios';
-
-export interface Skill {
-    id: number;
-    name: string;
-    category: string;
-    level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
-    endorsements: number;
-}
+import { Skill } from '@/app/_type/type';
 
 interface SkillState {
     skills: Skill[]; // All available skills in the system
@@ -24,9 +17,9 @@ interface SkillState {
     fetchSkills: () => Promise<void>;
     fetchUserSkills: () => Promise<void>;
     addSkillToUser: (skill: Skill) => Promise<void>;
-    removeSkillFromUser: (skillId: number) => Promise<void>;
+    removeSkillFromUser: (skillId: string) => Promise<void>;
     createNewSkill: (skill: Omit<Skill, 'id' | 'endorsements'>) => Promise<void>; // Admin/System action
-    endorseSkill: (skillId: number) => Promise<void>;
+    endorseSkill: (skillId: string) => Promise<void>;
     setSearchQuery: (query: string) => void;
 }
 

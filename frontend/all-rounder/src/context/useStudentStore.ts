@@ -14,9 +14,9 @@ interface StudentState {
     // Actions
     fetchStudents: () => Promise<void>;
     addStudent: (student: Student) => Promise<void>;
-    updateStudent: (id: number, updates: Partial<Student>) => Promise<void>;
-    deleteStudent: (id: number) => Promise<void>;
-    getStudentById: (id: number) => Student | undefined;
+    updateStudent: (uid: string, updates: Partial<Student>) => Promise<void>;
+    deleteStudent: (uid: string) => Promise<void>;
+    getStudentById: (uid: string) => Student | undefined;
     searchStudents: (query: string) => Student[];
 }
 
@@ -54,15 +54,15 @@ export const useStudentStore = create<StudentState>()(
                 }
             },
 
-            updateStudent: async (id, updates) => {
+            updateStudent: async (uid, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.put(`/students/${id}`, updates);
+                    const response = await api.put(`/students/${uid}`, updates);
                     const updated = response.data;
 
                     set((state) => ({
                         students: state.students.map(s =>
-                            s.id === id ? { ...s, ...updated } : s
+                            s.uid === uid ? { ...s, ...updated } : s
                         )
                     }));
                 } catch (error: any) {
@@ -72,13 +72,13 @@ export const useStudentStore = create<StudentState>()(
                 }
             },
 
-            deleteStudent: async (id) => {
+            deleteStudent: async (uid) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.delete(`/students/${id}`);
+                    await api.delete(`/students/${uid}`);
 
                     set((state) => ({
-                        students: state.students.filter(s => s.id !== id)
+                        students: state.students.filter(s => s.uid !== uid)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete student' });
@@ -87,8 +87,8 @@ export const useStudentStore = create<StudentState>()(
                 }
             },
 
-            getStudentById: (id: number) => {
-                return get().students.find(s => s.id === id);
+            getStudentById: (uid: string) => {
+                return get().students.find(s => s.uid === uid);
             },
 
             searchStudents: (query: string) => {

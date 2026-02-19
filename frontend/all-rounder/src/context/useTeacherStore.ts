@@ -14,9 +14,9 @@ interface TeacherState {
     // Actions
     fetchTeachers: () => Promise<void>;
     addTeacher: (teacher: Teacher) => Promise<void>;
-    updateTeacher: (id: number, updates: Partial<Teacher>) => Promise<void>;
-    deleteTeacher: (id: number) => Promise<void>;
-    getTeacherById: (id: number) => Teacher | undefined;
+    updateTeacher: (uid: string, updates: Partial<Teacher>) => Promise<void>;
+    deleteTeacher: (uid: string) => Promise<void>;
+    getTeacherById: (uid: string) => Teacher | undefined;
     searchTeachers: (query: string) => Teacher[];
 }
 
@@ -54,15 +54,15 @@ export const useTeacherStore = create<TeacherState>()(
                 }
             },
 
-            updateTeacher: async (id, updates) => {
+            updateTeacher: async (uid, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.put(`/teachers/${id}`, updates);
+                    const response = await api.put(`/teachers/${uid}`, updates);
                     const updated = response.data;
 
                     set((state) => ({
                         teachers: state.teachers.map(t =>
-                            t.id === id ? { ...t, ...updated } : t
+                            t.uid === uid ? { ...t, ...updated } : t
                         )
                     }));
                 } catch (error: any) {
@@ -72,13 +72,13 @@ export const useTeacherStore = create<TeacherState>()(
                 }
             },
 
-            deleteTeacher: async (id) => {
+            deleteTeacher: async (uid) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.delete(`/teachers/${id}`);
+                    await api.delete(`/teachers/${uid}`);
 
                     set((state) => ({
-                        teachers: state.teachers.filter(t => t.id !== id)
+                        teachers: state.teachers.filter(t => t.uid !== uid)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete teacher' });
@@ -87,8 +87,8 @@ export const useTeacherStore = create<TeacherState>()(
                 }
             },
 
-            getTeacherById: (id: number) => {
-                return get().teachers.find(t => t.id === id);
+            getTeacherById: (uid: string) => {
+                return get().teachers.find(t => t.uid === uid);
             },
 
             searchTeachers: (query: string) => {

@@ -2,7 +2,7 @@
 
 import { Calendar, MapPin, Clock, Trophy } from 'lucide-react';
 import Image from 'next/image';
-import { Event } from '@/context/useEventStore';
+import { Event } from '@/app/_type/type';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Link from 'next/link';
@@ -37,7 +37,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden bg-[#F8F8FF]">
           <Image
-            src={event.imageUrl}
+            src={event.imageUrl || '/images/hero-1.jpg'}
             alt={event.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -45,11 +45,11 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         </div>
 
         {/* Content Section */}
-        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white dark:bg-[var(--card-bg)]">
+        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white">
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="px-3 py-1 bg-[var(--secondary-pale-lavender)] text-[var(--primary-purple)] text-xs font-bold rounded-lg border border-[var(--secondary-light-lavender)]">
-                {event.categories?.[0] || 'Event'}
+                {event.category || 'Event'}
               </span>
               <div className="flex items-center gap-1.5 text-[var(--gray-400)] text-xs font-medium">
                 <Clock size={14} />
@@ -72,7 +72,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
                 </div>
                 <div>
                   <p className="text-[10px] text-[var(--gray-400)] uppercase font-bold tracking-wider">Date</p>
-                  <p className="text-sm font-semibold">{event.date}</p>
+                  <p className="text-sm font-semibold">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-[var(--gray-600)]">
@@ -88,7 +88,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
           </div>
 
           <div className="flex items-center justify-center pt-6 border-t border-[var(--gray-100)]">
-            <Link href={`/events/${event.id}`} className="w-full sm:w-auto">
+            <Link href={`/events/${event._id}`} className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-2.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all">
                 Details
               </button>

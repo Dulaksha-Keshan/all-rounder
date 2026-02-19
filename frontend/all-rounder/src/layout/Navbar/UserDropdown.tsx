@@ -13,12 +13,12 @@ interface UserDropdownProps {
   variant?: 'desktop' | 'mobile';
 }
 
-export function UserDropdown({ 
-  userType, 
-  isOpen, 
-  onToggle, 
-  onLogout, 
-  variant = 'desktop' 
+export function UserDropdown({
+  userType,
+  isOpen,
+  onToggle,
+  onLogout,
+  variant = 'desktop'
 }: UserDropdownProps) {
   const { getProfilePath } = useNavbar();
 
@@ -31,26 +31,25 @@ export function UserDropdown({
         className="fixed inset-0 z-40"
         onClick={onToggle}
       />
-      
+
       {/* Dropdown Panel */}
-      <div 
-        className={`absolute ${
-          variant === 'mobile' ? 'top-12 right-0' : 'top-full right-0 mt-2'
-        } w-56 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border-2 py-2 z-50`}
-        style={{ 
+      <div
+        className={`absolute ${variant === 'mobile' ? 'top-12 right-0' : 'top-full right-0 mt-2'
+          } w-56 bg-white rounded-2xl shadow-2xl border-2 py-2 z-50`}
+        style={{
           backgroundColor: cssVariables.colors.cardBg,
-          borderColor: cssVariables.colors.secondaryLavender 
+          borderColor: cssVariables.colors.secondaryLavender
         }}
       >
         {/* User Info */}
         <div className="px-4 py-3" style={{ borderColor: cssVariables.colors.gray200 }}>
-          <div 
+          <div
             className="text-xs"
             style={{ color: cssVariables.colors.textMuted }}
           >
             Signed in as
           </div>
-          <div 
+          <div
             className="text-sm capitalize"
             style={{ color: cssVariables.colors.textMain }}
           >
@@ -63,9 +62,9 @@ export function UserDropdown({
           href={getProfilePath(userType)}
           onClick={onToggle}
           className="flex items-center gap-3 px-4 py-3 hover:bg-[#F8F8FF] transition"
-          style={{ 
+          style={{
             color: cssVariables.colors.textMain,
-            '--hover-bg': cssVariables.colors.secondaryPaleLavender 
+            '--hover-bg': cssVariables.colors.secondaryPaleLavender
           } as React.CSSProperties}
         >
           <User className="w-4 h-4" />

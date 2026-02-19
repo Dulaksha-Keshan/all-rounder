@@ -16,13 +16,13 @@ const UserCard = ({ type, schoolId }: UserCardProps) => {
 
   if (type === "student") {
     count = schoolId
-      ? students.filter((s) => s.schoolId === schoolId).length  // ← Changed
+      ? students.filter((s) => s.school_id === schoolId).length
       : students.length;
   }
 
   if (type === "teacher") {
     count = schoolId
-      ? teachers.filter((t) => t.schoolId === schoolId).length  // ← Changed
+      ? teachers.filter((t) => t.school_id === schoolId).length
       : teachers.length;
   }
 

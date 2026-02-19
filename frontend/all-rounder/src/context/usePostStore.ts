@@ -3,39 +3,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '@/lib/axios';
-
-// Defining types locally to be self-contained, mirroring PostType usage
-export interface Post {
-    id: number;
-    author: {
-        name: string;
-        role: string;
-        image?: string;
-    };
-    time: string;
-    content: string;
-    likes: number;
-    comments: number;
-    isLiked?: boolean;
-    media?: {
-        type: 'image' | 'video' | 'doc';
-        url: string;
-        name: string;
-    }[];
-}
+import { Post } from '@/app/_type/type';
 
 interface PostState {
     posts: Post[];
     isLoading: boolean;
-
     error: string | null;
 
     // Actions
     fetchPosts: () => Promise<void>;
-    createPost: (post: Omit<Post, 'id' | 'likes' | 'comments' | 'time'>) => Promise<void>;
-    deletePost: (id: number) => Promise<void>;
-    likePost: (id: number) => Promise<void>;
-    commentPost: (id: number, text: string) => Promise<void>;
+    createPost: (post: Omit<Post, '_id' | 'likes' | 'comments' | 'time' | 'createdAt' | 'updatedAt' | 'isLiked'>) => Promise<void>;
+    getPostById: (id: string) => Promise<Post | undefined>;
+    deletePost: (id: string) => Promise<void>;
+    likePost: (id: string) => Promise<void>;
+    commentPost: (id: string, text: string) => Promise<void>;
     setPosts: (posts: Post[]) => void;
 }
 
@@ -74,13 +55,34 @@ export const usePostStore = create<PostState>()(
                 }
             },
 
+            getPostById: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/posts/${id}`);
+                    const post = response.data.post;
+
+                    set((state) => ({
+                        posts: state.posts.some(p => p._id === id)
+                            ? state.posts.map(p => p._id === id ? post : p)
+                            : [...state.posts, post]
+                    }));
+
+                    return post;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch post' });
+                    return undefined;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
             deletePost: async (id) => {
                 set({ isLoading: true, error: null });
                 try {
                     await api.delete(`/posts/${id}`);
 
                     set((state) => ({
-                        posts: state.posts.filter(p => p.id !== id)
+                        posts: state.posts.filter(p => p._id !== id)
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete post' });
@@ -90,39 +92,34 @@ export const usePostStore = create<PostState>()(
             },
 
             likePost: async (id) => {
-                // Optimistic update
-                set((state) => ({
-                    posts: state.posts.map(p => {
-                        if (p.id === id) {
-                            const isLiked = !p.isLiked;
-                            return {
-                                ...p,
-                                isLiked,
-                                likes: isLiked ? p.likes + 1 : Math.max(0, p.likes - 1)
-                            };
-                        }
-                        return p;
-                    })
-                }));
-
+                // Simplified optimistic update - toggle implementation would require user ID
                 try {
                     await api.post(`/posts/${id}/like`);
+                    // Fetch updated post to ensure sync
+                    const response = await api.get(`/posts/${id}`);
+                    set((state) => ({
+                        posts: state.posts.map(p => p._id === id ? response.data.post : p)
+                    }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to like post' });
-                    // Could revert optimistic update
                 }
             },
 
             commentPost: async (id, text) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.post(`/posts/${id}/comments`, { text });
-                    // Assuming backend returns updated comment count or the comment itself
+                    const response = await api.post(`/posts/${id}/comments`, { text });
+                    // Backend returns updated post or new comment. Assuming updated post or we fetch it.
+                    // If backend returns the comment, we need to append it. If post, replace it.
+                    // Based on previous code assumption, let's assume we re-fetch or backend returns post.
+                    // For safety, let's fetch the post again to be sure of state
+                    const postResponse = await api.get(`/posts/${id}`);
+                    const updatedPost = postResponse.data.post;
 
                     set((state) => ({
                         posts: state.posts.map(p => {
-                            if (p.id === id) {
-                                return { ...p, comments: p.comments + 1 };
+                            if (p._id === id) {
+                                return updatedPost;
                             }
                             return p;
                         })

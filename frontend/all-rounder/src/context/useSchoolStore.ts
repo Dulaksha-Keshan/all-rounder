@@ -17,10 +17,10 @@ interface SchoolState {
     setSchools: (schools: School[]) => void;
     fetchSchools: () => Promise<void>;
     addSchool: (school: School) => Promise<void>;
-    updateSchool: (id: string, updates: Partial<School>) => Promise<void>;
-    deleteSchool: (id: string) => Promise<void>;
+    updateSchool: (school_id: string, updates: Partial<School>) => Promise<void>;
+    deleteSchool: (school_id: string) => Promise<void>;
     setActiveSchool: (school: School | null) => void;
-    getSchoolById: (id: string) => School | undefined;
+    getSchoolById: (school_id: string) => School | undefined;
 }
 
 export const useSchoolStore = create<SchoolState>()(
@@ -59,17 +59,17 @@ export const useSchoolStore = create<SchoolState>()(
                 }
             },
 
-            updateSchool: async (id, updates) => {
+            updateSchool: async (school_id, updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.put(`/schools/${id}`, updates);
+                    const response = await api.put(`/schools/${school_id}`, updates);
                     const updated = response.data;
 
                     set((state) => ({
                         schools: state.schools.map(s =>
-                            s.id === id ? { ...s, ...updated } : s
+                            s.school_id === school_id ? { ...s, ...updated } : s
                         ),
-                        activeSchool: state.activeSchool?.id === id
+                        activeSchool: state.activeSchool?.school_id === school_id
                             ? { ...state.activeSchool, ...updated }
                             : state.activeSchool
                     }));
@@ -80,14 +80,14 @@ export const useSchoolStore = create<SchoolState>()(
                 }
             },
 
-            deleteSchool: async (id) => {
+            deleteSchool: async (school_id) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await api.delete(`/schools/${id}`);
+                    await api.delete(`/schools/${school_id}`);
 
                     set((state) => ({
-                        schools: state.schools.filter(s => s.id !== id),
-                        activeSchool: state.activeSchool?.id === id ? null : state.activeSchool
+                        schools: state.schools.filter(s => s.school_id !== school_id),
+                        activeSchool: state.activeSchool?.school_id === school_id ? null : state.activeSchool
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete school' });
@@ -98,8 +98,8 @@ export const useSchoolStore = create<SchoolState>()(
 
             setActiveSchool: (school) => set({ activeSchool: school }),
 
-            getSchoolById: (id: string) => {
-                return get().schools.find(s => s.id === id);
+            getSchoolById: (school_id: string) => {
+                return get().schools.find(s => s.school_id === school_id);
             },
         }),
         {

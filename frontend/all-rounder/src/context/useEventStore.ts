@@ -2,28 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-export type OrganizerType = "School" | "Organization";
-
-export interface Event {
-    id: number;
-    title: string;
-    description: string;
-    fullDescription?: string;
-    date: string;
-    deadline?: string;
-    location: string;
-    imageUrl: string;
-    categories?: string[];
-    status?: "Registered" | "Open";
-    requirements?: string[];
-    prizes?: string[];
-    contactEmail?: string;
-    time?: string;
-    organizerId: string;
-    organizerType: OrganizerType;
-    isMajor?: boolean;
-}
-
+import { Event } from '@/app/_type/type';
 import { Events } from '@/app/events/_data/events';
 import api from '@/lib/axios';
 
@@ -37,11 +16,12 @@ interface EventState {
     setEvents: (events: Event[]) => void;
     fetchEvents: () => Promise<void>;
     addEvent: (event: Event) => Promise<void>;
-    updateEvent: (id: number, updates: Partial<Event>) => Promise<void>;
-    deleteEvent: (id: number) => Promise<void>;
+    updateEvent: (id: string, updates: Partial<Event>) => Promise<void>;
+    deleteEvent: (id: string) => Promise<void>;
     setActiveEvent: (event: Event | null) => void;
-    rsvpEvent: (eventId: number) => Promise<void>;
-    getEventById: (id: number) => Event | undefined;
+    rsvpEvent: (eventId: string) => Promise<void>;
+    getEventById: (id: string) => Event | undefined; // Sync selector
+    fetchEventById: (id: string) => Promise<Event | undefined>; // Async fetch
 }
 
 export const useEventStore = create<EventState>()(
@@ -88,9 +68,9 @@ export const useEventStore = create<EventState>()(
 
                     set((state) => ({
                         events: state.events.map((e) =>
-                            e.id === id ? { ...e, ...updated } : e
+                            e._id === id ? { ...e, ...updated } : e
                         ),
-                        activeEvent: state.activeEvent?.id === id
+                        activeEvent: state.activeEvent?._id === id
                             ? { ...state.activeEvent, ...updated }
                             : state.activeEvent
                     }));
@@ -107,8 +87,8 @@ export const useEventStore = create<EventState>()(
                     await api.delete(`/events/${id}`);
 
                     set((state) => ({
-                        events: state.events.filter((e) => e.id !== id),
-                        activeEvent: state.activeEvent?.id === id ? null : state.activeEvent
+                        events: state.events.filter((e) => e._id !== id),
+                        activeEvent: state.activeEvent?._id === id ? null : state.activeEvent
                     }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to delete event' });
@@ -127,7 +107,7 @@ export const useEventStore = create<EventState>()(
                     // Optimistic or response-based
                     set((state) => ({
                         events: state.events.map((e) => {
-                            if (e.id === eventId) {
+                            if (e._id === eventId) {
                                 return { ...e, status: "Registered" };
                             }
                             return e;
@@ -140,8 +120,33 @@ export const useEventStore = create<EventState>()(
                 }
             },
 
-            getEventById: (id: number) => {
-                return get().events.find(e => e.id === id);
+            getEventById: (id: string) => {
+                return get().events.find(e => e._id === id);
+            },
+
+            fetchEventById: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/events/${id}`);
+                    // Backend returns { event, hostDetails }
+                    // We can merge hostDetails into event.hosts if needed, or just return event
+                    const { event, hostDetails } = response.data;
+                    const fullEvent = { ...event, hosts: hostDetails || event.hosts };
+
+                    set((state) => ({
+                        // Update in list if exists
+                        events: state.events.some(e => e._id === id)
+                            ? state.events.map(e => e._id === id ? fullEvent : e)
+                            : [...state.events, fullEvent],
+                        activeEvent: fullEvent
+                    }));
+                    return fullEvent;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch event' });
+                    return undefined;
+                } finally {
+                    set({ isLoading: false });
+                }
             },
         }),
         {

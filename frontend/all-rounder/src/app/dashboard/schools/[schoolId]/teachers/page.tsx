@@ -41,7 +41,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     // ------------- FILTER BY SCHOOL ID -------------
     let filteredTeachers = teachers.filter(
-        (teacher) => teacher.schoolId === schoolId
+        (teacher) => teacher.school_id === schoolId
     );
 
     // ------------- SEARCH -------------
@@ -88,13 +88,13 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     const renderRow = (teacher: Teacher) => (
         <tr
-            key={teacher.id}
+            key={teacher.uid}
             className="border-b border-[var(--gray-100)] text-sm hover:bg-[var(--gray-50)] transition-all opacity-0"
         >
             <td className="py-4 px-6">
                 <div className="flex items-center gap-3">
                     <Image
-                        src={teacher.photoUrl || "/noAvatar.png"}
+                        src={teacher.profile_picture || "/noAvatar.png"}
                         alt={teacher.name}
                         width={40}
                         height={40}
@@ -110,7 +110,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
 
             <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6 text-center">
                 <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-purple)] px-3 py-1 rounded-full text-xs font-bold">
-                    #{teacher.id}
+                    #{teacher.uid}
                 </span>
             </td>
 
@@ -127,7 +127,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
 
             <td className="py-4 px-6">
                 <Link
-                    href={`/dashboard/schools/${schoolId}/teachers/${teacher.id}`}
+                    href={`/dashboard/schools/${schoolId}/teachers/${teacher.uid}`}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-[var(--white)] rounded-lg text-xs font-medium hover:shadow-md transition-all"
                 >
                     View Profile
@@ -147,7 +147,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
                     <h1 className="text-2xl font-bold text-[var(--primary-dark-purple)]">
                         Teachers – {school.name}
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">{school.location}</p>
+                    <p className="text-sm text-gray-500 mt-1">{school.address}</p>
                 </div>
                 <SearchBar />
             </div>

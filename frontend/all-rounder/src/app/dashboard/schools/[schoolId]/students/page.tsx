@@ -40,7 +40,7 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     // ------------- FILTER BY SCHOOL ID -------------
     let filteredStudents = students.filter(
-        (student) => student.schoolId === schoolId
+        (student) => student.school_id === schoolId
     );
 
     // ------------- SEARCH -------------
@@ -87,13 +87,13 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     const renderRow = (student: any) => (
         <tr
-            key={student.id}
+            key={student.uid}
             className="border-b border-[var(--gray-100)] text-sm hover:bg-[var(--gray-50)] transition-all opacity-0"
         >
             <td className="py-4 px-6">
                 <div className="flex items-center gap-3">
                     <Image
-                        src={student.photoUrl || "/noAvatar.png"}
+                        src={student.profile_picture || "/noAvatar.png"}
                         alt={student.name}
                         width={40}
                         height={40}
@@ -120,7 +120,7 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
             </td>
             <td className="py-4 px-6">
                 <Link
-                    href={`/dashboard/schools/${schoolId}/students/${student.id}`}
+                    href={`/dashboard/schools/${schoolId}/students/${student.uid}`}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-blue)] text-[var(--white)] rounded-lg text-xs font-medium hover:shadow-md transition-all"
                 >
                     View Profile
@@ -140,7 +140,7 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
                     <h1 className="text-2xl font-bold text-[var(--primary-dark-purple)]">
                         Students – {school.name}
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">{school.location}</p>
+                    <p className="text-sm text-gray-500 mt-1">{school.address}</p>
                 </div>
                 <SearchBar />
             </div>

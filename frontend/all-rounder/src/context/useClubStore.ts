@@ -2,19 +2,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
+import { Club } from '@/app/_type/type';
 import api from '@/lib/axios';
 
-export interface Club {
-    id: number;
-    name: string;
-    description: string;
-    logoUrl?: string;
-    schoolId?: string;
-    membersCount: number;
-    isJoined?: boolean;
-    tags?: string[];
-}
 
 interface ClubState {
     clubs: Club[];
@@ -25,11 +15,11 @@ interface ClubState {
     // Actions
     setClubs: (clubs: Club[]) => void;
     fetchClubs: () => Promise<void>;
-    joinClub: (clubId: number) => Promise<void>;
-    leaveClub: (clubId: number) => Promise<void>;
+    joinClub: (clubId: string) => Promise<void>;
+    leaveClub: (clubId: string) => Promise<void>;
     createClub: (club: Omit<Club, 'id' | 'membersCount' | 'isJoined'>) => Promise<void>;
-    updateClub: (id: number, updates: Partial<Club>) => Promise<void>;
-    deleteClub: (id: number) => Promise<void>;
+    updateClub: (id: string, updates: Partial<Club>) => Promise<void>;
+    deleteClub: (id: string) => Promise<void>;
 }
 
 export const useClubStore = create<ClubState>()(
@@ -61,7 +51,7 @@ export const useClubStore = create<ClubState>()(
 
                     const club = get().clubs.find(c => c.id === clubId);
                     if (club && !club.isJoined) {
-                        const updatedClub = { ...club, isJoined: true, membersCount: club.membersCount + 1 };
+                        const updatedClub = { ...club, isJoined: true, membersCount: (club.membersCount || 0) + 1 };
                         set(state => ({
                             clubs: state.clubs.map(c => c.id === clubId ? updatedClub : c),
                             myClubs: [...state.myClubs, updatedClub]
@@ -81,7 +71,7 @@ export const useClubStore = create<ClubState>()(
 
                     set((state) => ({
                         clubs: state.clubs.map(c =>
-                            c.id === clubId ? { ...c, isJoined: false, membersCount: Math.max(0, c.membersCount - 1) } : c
+                            c.id === clubId ? { ...c, isJoined: false, membersCount: Math.max(0, (c.membersCount || 0) - 1) } : c
                         ),
                         myClubs: state.myClubs.filter(c => c.id !== clubId)
                     }));

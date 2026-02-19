@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import FAQSection from "./_components/FAQSection";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -39,27 +39,34 @@ export default function HelpPage() {
   }, []);
 
   /* 📜 FAQ scroll animation (WORKING & SAFE) */
-useEffect(() => {
-  const sections = gsap.utils.toArray<HTMLElement>(".faq-section");
+/* 📜 FAQ scroll animation (FIXED FOR ROUTE REDIRECT) */
 
-  sections.forEach((section) => {
-    gsap.from(section, {
-      scrollTrigger: {
-        trigger: section,
-        start: "top 85%",
-        once: true, // animate only once
-      },
-      opacity: 0,
-      y: 40,
-      duration: 0.6,
-      ease: "power2.out",
+
+useLayoutEffect(() => {
+  const ctx = gsap.context(() => {
+    const sections = gsap.utils.toArray<HTMLElement>(".faq-section");
+
+    sections.forEach((section) => {
+      gsap.from(section, {
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          once: true,
+        },
+        opacity: 0,
+        y: 40,
+        duration: 0.6,
+        ease: "power2.out",
+      });
     });
+
+    ScrollTrigger.refresh();
   });
 
-  return () => {
-    ScrollTrigger.getAll().forEach((t) => t.kill());
-  };
+  return () => ctx.revert();
 }, []);
+
+
 
 
   /* 🔍 Search filter */

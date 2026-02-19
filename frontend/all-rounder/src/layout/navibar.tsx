@@ -126,15 +126,19 @@ export default function Navbar({
   ];
 
   const getProfilePath = () => {
+    if (!currentUser) return "/login";
+
     switch (type) {
+      case "student":
+        return "/user/student/" + (("uid" in currentUser ? currentUser.uid : "") || "1");
       case "teacher":
-        return "/teacher-profile";
-      case "school":
-        return "/school-profile";
+        return "/user/teacher/" + (("uid" in currentUser ? currentUser.uid : "") || "1");
       case "organization":
-        return "/organization-profile";
+        return "/user/organization/" + (("organization_id" in currentUser ? currentUser.organization_id : "") || "1");
+      case "school":
+        return "/user/school/" + (("school_id" in currentUser ? currentUser.school_id : "") || "1");
       default:
-        return "/user/student/" + (currentUser?.id || "1");
+        return "/home";
     }
   };
 
@@ -199,11 +203,10 @@ export default function Navbar({
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`px-3 py-2 rounded-md transition ${
-                  isActive(link.path)
-                    ? "bg-[var(--primary-purple)] text-white"
-                    : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
-                }`}
+                className={`px-3 py-2 rounded-md transition ${isActive(link.path)
+                  ? "bg-[var(--primary-purple)] text-white"
+                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
+                  }`}
               >
                 {link.label}
               </Link>
@@ -240,8 +243,8 @@ export default function Navbar({
                         <div className="divide-y divide-[var(--gray-100)]">
                           {followRequests.map((requestId) => {
                             const requestUser =
-                              students.find((s) => s.id === requestId) ||
-                              teachers.find((t) => t.id === requestId);
+                              students.find((s) => s.uid === requestId) ||
+                              teachers.find((t) => t.uid === requestId);
                             if (!requestUser) return null;
 
                             return (
@@ -253,7 +256,7 @@ export default function Navbar({
                                   <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
                                     <NextImage
                                       src={
-                                        requestUser.photoUrl ||
+                                        ("profile_picture" in requestUser ? requestUser.profile_picture : "") ||
                                         "/images/no-avatar.png"
                                       }
                                       alt={requestUser.name}
@@ -373,11 +376,10 @@ export default function Navbar({
                   }
                   handleLinkClick(link.path, e);
                 }}
-                className={`block px-3 py-2 rounded-md transition ${
-                  isActive(link.path)
-                    ? "bg-[var(--primary-purple)] text-white font-bold"
-                    : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
-                }`}
+                className={`block px-3 py-2 rounded-md transition ${isActive(link.path)
+                  ? "bg-[var(--primary-purple)] text-white font-bold"
+                  : "text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/30"
+                  }`}
               >
                 {link.label}
               </Link>

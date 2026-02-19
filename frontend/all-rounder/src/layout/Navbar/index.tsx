@@ -12,20 +12,19 @@ export { UserDropdown } from './UserDropdown';
 export { NavIcons } from './NavIcons';
 
 // Hooks
-export { useDarkMode } from './hooks/useDarkMode';
 export { useScrollSection } from './hooks/useScrollSection';
 export { useNavbar } from './hooks/useNavbar';
 
 // Utils
-export { 
-  publicSections, 
-  navIcons, 
-  sideMenuItems, 
-  cssVariables 
+export {
+  publicSections,
+  navIcons,
+  sideMenuItems,
+  cssVariables
 } from './utils/constants';
-export { 
-  scrollToSection, 
-  handleHashNavigation, 
-  isPublicSection, 
-  getSectionLabel 
+export {
+  scrollToSection,
+  handleHashNavigation,
+  isPublicSection,
+  getSectionLabel
 } from './utils/navigation';
