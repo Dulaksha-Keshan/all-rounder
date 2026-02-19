@@ -27,9 +27,9 @@ export default function EventsClient({ events }: { events: Event[] }) {
   const allCategories = Array.from(new Set(events.flatMap(e => e.categories || [])));
 
   return (
-    <div className="min-h-screen bg-[var(--page-bg)] transition-colors duration-300">
+    <div className="min-h-screen py-0 bg-[var(--page-bg)] transition-colors duration-300">
       {/* Header Section */}
-      <div className="relative bg-[var(--primary-dark-purple)] text-white overflow-hidden">
+      <div className="relative py-15 bg-[var(--primary-dark-purple)] text-white overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-10 left-10 text-6xl text-[var(--secondary-light-lavender)] opacity-10 animate-pulse">★</div>
         <div className="absolute top-20 right-20 text-5xl text-[var(--primary-purple)] opacity-10 animate-pulse delay-75">★</div>
