@@ -150,7 +150,7 @@ useLayoutEffect(() => {
       },
       {
         q: "How does resource sharing work?",
-        a: `Resource sharing enables users to upload and access learning materials such as notes, guides, and reference content.
+        a: `Resource sharing enables users to upload and access learning materials such as textbooks, instruments, and sports equipment.
             Resources can be shared within the community to support collaborative learning.
             Uploaded content is moderated to maintain quality and relevance.`,
       },
@@ -219,9 +219,9 @@ useLayoutEffect(() => {
       },
       {
         q: "The website isn’t loading properly. What should I do?",
-        a: `First, try refreshing the page or clearing your browser cache.
-        Ensure you have a stable internet connection and are using an updated browser.
-        If the issue persists, contact our support team.`,
+        a: `Try refreshing the page first. 
+            If it still doesn’t work, check your internet connection or use an updated browser. 
+            If the problem continues, please contact support.`,
       },
       {
         q: "How do I report a bug or issue?",
