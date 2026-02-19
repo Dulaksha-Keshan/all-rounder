@@ -172,11 +172,7 @@ export default function Navbar({
             <div className="relative h-10 sm:h-12 lg:h-15 w-auto">
               {/* Using a rough aspect ratio based on typical logo dims, but letting css control height */}
               <NextImage
-<<<<<<< HEAD
-                src="/icons/logo.png"
-=======
                 src="/icons/Logo.png"
->>>>>>> 895d0ee084ebd3576f49d616aec295f7ed1415e8
                 alt="All-Rounder Logo"
                 width={200}
                 height={60}
