@@ -33,7 +33,7 @@ export default function Navbar({
     followRequests,
     acceptFollowRequest,
     declineFollowRequest,
-    logout
+    logout,
   } = useUserStore();
 
   const { students } = useStudentStore();
@@ -46,7 +46,9 @@ export default function Navbar({
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const systemPrefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
 
     if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
       setIsDarkMode(true);
@@ -124,15 +126,19 @@ export default function Navbar({
   ];
 
   const getProfilePath = () => {
+    if (!currentUser) return "/login";
+
     switch (type) {
+      case "student":
+        return "/user/student/" + (("uid" in currentUser ? currentUser.uid : "") || "1");
       case "teacher":
-        return "/teacher-profile";
-      case "school":
-        return "/school-profile";
+        return "/user/teacher/" + (("uid" in currentUser ? currentUser.uid : "") || "1");
       case "organization":
-        return "/organization-profile";
+        return "/user/organization/" + (("organization_id" in currentUser ? currentUser.organization_id : "") || "1");
+      case "school":
+        return "/user/school/" + (("school_id" in currentUser ? currentUser.school_id : "") || "1");
       default:
-        return "/user/student/" + (currentUser?.id || "1");
+        return "/home";
     }
   };
 
@@ -166,9 +172,11 @@ export default function Navbar({
     <nav className="bg-[var(--white)] sticky top-0 z-50 shadow-lg border-b border-[var(--gray-200)] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-
           {/* Logo */}
-          <Link href={isAuth ? "/home" : "/"} className="flex items-center gap-2">
+          <Link
+            href={isAuthenticated ? "/home" : "/"}
+            className="flex items-center gap-2"
+          >
             <div className="relative h-10 sm:h-12 lg:h-15 w-auto">
               {/* Using a rough aspect ratio based on typical logo dims, but letting css control height */}
               <NextImage
@@ -191,7 +199,7 @@ export default function Navbar({
                 onClick={(e) => {
                   // Set navigation flag BEFORE Next.js navigation happens
                   if (!link.path.startsWith("/#")) {
-                    sessionStorage.setItem('isNavigating', 'true');
+                    sessionStorage.setItem("isNavigating", "true");
                   }
                   handleLinkClick(link.path, e);
                 }}
@@ -221,7 +229,9 @@ export default function Navbar({
                 {notificationsOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-[var(--card-bg)] rounded-xl shadow-xl border border-[var(--gray-200)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-4 border-b border-[var(--gray-100)]">
-                      <h3 className="font-bold text-[var(--text-main)]">Notifications</h3>
+                      <h3 className="font-bold text-[var(--text-main)]">
+                        Notifications
+                      </h3>
                     </div>
 
                     <div className="max-h-96 overflow-y-auto">
@@ -231,29 +241,50 @@ export default function Navbar({
                         </div>
                       ) : (
                         <div className="divide-y divide-[var(--gray-100)]">
-                          {followRequests.map(requestId => {
-                            const requestUser = students.find(s => s.id === requestId) || teachers.find(t => t.id === requestId);
+                          {followRequests.map((requestId) => {
+                            const requestUser =
+                              students.find((s) => s.uid === requestId) ||
+                              teachers.find((t) => t.uid === requestId);
                             if (!requestUser) return null;
 
                             return (
-                              <div key={requestId} className="p-4 hover:bg-[var(--gray-50)] transition-colors">
+                              <div
+                                key={requestId}
+                                className="p-4 hover:bg-[var(--gray-50)] transition-colors"
+                              >
                                 <div className="flex items-start gap-3">
                                   <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                                    <NextImage src={requestUser.photoUrl || "/images/no-avatar.png"} alt={requestUser.name} fill className="object-cover" />
+                                    <NextImage
+                                      src={
+                                        ("profile_picture" in requestUser ? requestUser.profile_picture : "") ||
+                                        "/images/no-avatar.png"
+                                      }
+                                      alt={requestUser.name}
+                                      fill
+                                      className="object-cover"
+                                    />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-[var(--text-main)] truncate">{requestUser.name}</p>
-                                    <p className="text-xs text-[var(--text-muted)] mb-3">Wants to follow you</p>
+                                    <p className="text-sm font-bold text-[var(--text-main)] truncate">
+                                      {requestUser.name}
+                                    </p>
+                                    <p className="text-xs text-[var(--text-muted)] mb-3">
+                                      Wants to follow you
+                                    </p>
 
                                     <div className="flex gap-2">
                                       <button
-                                        onClick={() => acceptFollowRequest(requestId)}
+                                        onClick={() =>
+                                          acceptFollowRequest(requestId)
+                                        }
                                         className="flex-1 py-1.5 bg-[var(--primary-blue)] text-white text-xs font-bold rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
                                       >
                                         <Check size={14} /> Accept
                                       </button>
                                       <button
-                                        onClick={() => declineFollowRequest(requestId)}
+                                        onClick={() =>
+                                          declineFollowRequest(requestId)
+                                        }
                                         className="flex-1 py-1.5 bg-[var(--gray-100)] text-[var(--gray-700)] text-xs font-bold rounded-md hover:bg-[var(--gray-200)] transition-colors flex items-center justify-center gap-1"
                                       >
                                         <X size={14} /> Decline
@@ -341,7 +372,7 @@ export default function Navbar({
                 onClick={(e) => {
                   // Set navigation flag BEFORE Next.js navigation happens
                   if (!link.path.startsWith("/#")) {
-                    sessionStorage.setItem('isNavigating', 'true');
+                    sessionStorage.setItem("isNavigating", "true");
                   }
                   handleLinkClick(link.path, e);
                 }}

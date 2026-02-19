@@ -1,7 +1,8 @@
 
-
 import { Student, Teacher } from "@/app/_type/type";
 
+
+import { useUserStore } from "@/context/useUserStore";
 
 interface MyAccountProps {
   student?: Student;
@@ -12,6 +13,7 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
   // Use whichever prop is provided
   const user = student || teacher;
   const userType = student ? 'student' : 'teacher';
+  const { followers, following } = useUserStore();
 
   if (!user) {
     return <div>No user data available</div>;
@@ -68,7 +70,7 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
         <div className="grid grid-cols-3 gap-6">
           <div className="text-center p-4 bg-[var(--primary-purple)]/10 rounded-lg">
             <p className="text-3xl font-bold text-[var(--primary-purple)] mb-2">
-              {user.registeredEvents?.length || 0}
+              0
             </p>
             <p className="text-sm text-[var(--text-muted)] font-bold">Registered Events</p>
           </div>
@@ -78,14 +80,14 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
             <>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <p className="text-3xl font-bold text-[#8387CC] mb-2">
-                  {student.stats?.followers || 0}
+                  {followers.length}
                 </p>
                 <p className="text-sm text-gray-600">Followers</p>
               </div>
 
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <p className="text-3xl font-bold text-[#8387CC] mb-2">
-                  {student.stats?.following || 0}
+                  {following.length}
                 </p>
                 <p className="text-sm text-gray-600">Following</p>
               </div>
@@ -149,30 +151,11 @@ export default function MyAccount({ student, teacher }: MyAccountProps) {
         </div>
       </div>
 
-      {/* Registered Events */}
-      {user.registeredEvents && user.registeredEvents.length > 0 && (
-        <div className="bg-[var(--white)] rounded-xl p-6 shadow-sm border border-[var(--gray-200)]">
-          <h3 className="text-xl font-bold text-[var(--text-main)] mb-6">Registered Events</h3>
-          <div className="space-y-3">
-            {user.registeredEvents.map((event, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-[var(--primary-blue)]/5 rounded-lg border border-[var(--gray-200)]"
-              >
-                <div>
-                  <h4 className="font-semibold text-[var(--text-main)]">Event #{event.eventId}</h4>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Registered on {new Date(event.registeredAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <button className="px-4 py-2 text-[#8387CC] hover:text-[#4169E1] font-medium">
-                  View Details
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Registered Events - Disabled for now as field is missing from schema */}
+      <div className="bg-[var(--white)] rounded-xl p-6 shadow-sm border border-[var(--gray-200)]">
+        <h3 className="text-xl font-bold text-[var(--text-main)] mb-6">Registered Events</h3>
+        <p className="text-[var(--text-muted)] text-center py-4">No events registered yet.</p>
+      </div>
 
       {/* Danger Zone */}
       <div className="bg-[var(--white)] rounded-xl p-6 shadow-sm border-2 border-red-500/20">

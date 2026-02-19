@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import Image from "next/image";
@@ -7,43 +9,40 @@ import { useRouter } from "next/navigation";
 
 export default function SchoolHeader({ school }: { school: School }) {
   const router = useRouter();
-  const hasLogo = Boolean(school.logoUrl);
 
   return (
-    <div className="bg-white rounded-xl border border-indigo-100 shadow-md p-6 flex justify-between items-center">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center overflow-hidden">
-          {hasLogo ? (
-            <Image
-              src={school.logoUrl!}
-              alt={school.name}
-              width={64}
-              height={64}
-              className="object-cover"
-            />
-          ) : (
-            <Building2 className="w-8 h-8 text-indigo-500" />
-          )}
+    <div className="bg-white rounded-xl shadow-lg p-8 border border-[#DCD0FF]/50">
+      <div className="flex items-center gap-6">
+        {/* Avatar */}
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] flex items-center justify-center shadow-lg overflow-hidden">
+          <Image
+            src={"/images/schools/default-school.png"}
+            alt={school.name}
+            width={96}
+            height={96}
+            className="rounded-full object-cover"
+          />
         </div>
 
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        {/* Info */}
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-[#34365C] flex items-center gap-3">
             {school.name}
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
               Verified
             </span>
           </h1>
-          <p className="text-sm text-gray-500">{school.location}</p>
+          <p className="text-gray-600 mt-1">{school.address}</p>
         </div>
-      </div>
 
-      {/* EDIT BUTTON */}
-      <button
-        onClick={() => router.push(`/user/school/${school.id}/edit`)}
-        className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-600 transition"
-      >
-        Edit Profile
-      </button>
+        {/* Action */}
+        <button
+          onClick={() => router.push(`/user/school/${school.school_id}/edit`)}
+          className="px-5 py-2 bg-[var(--primary-blue)] text-white rounded-lg font-bold hover:shadow-lg transition-all"
+        >
+          Edit Profile
+        </button>
+      </div>
     </div>
   );
 }

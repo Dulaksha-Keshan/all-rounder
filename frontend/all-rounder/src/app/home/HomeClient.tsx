@@ -19,7 +19,7 @@ import gsap from "gsap";
 
 function HomeClientContent() {
     const { posts, stats, createPost, deletePost, editPost, likePost, commentPost } = useHomeStore();
-    const { followRequests, acceptFollowRequest, declineFollowRequest } = useUserStore();
+    const { followRequests, acceptFollowRequest, declineFollowRequest, currentUser } = useUserStore();
     const { students } = useStudentStore();
     const { teachers } = useTeacherStore();
     const headerRef = useRef<HTMLDivElement>(null);
@@ -29,7 +29,7 @@ function HomeClientContent() {
     // Filter posts based on search query
     const filteredPosts = posts.filter(post =>
         post.content.toLowerCase().includes(searchQuery) ||
-        post.author.name.toLowerCase().includes(searchQuery)
+        post.author?.name.toLowerCase().includes(searchQuery)
     );
 
     // Filter people based on search query
@@ -42,19 +42,19 @@ function HomeClientContent() {
         createPost(content, media);
     };
 
-    const handleDeletePost = (id: number) => {
-        deletePost(id);
+    const handleDeletePost = async (id: string) => {
+        await deletePost(id);
     };
 
-    const handleEdit = (id: number, newContent: string) => {
+    const handleEdit = (id: string, newContent: string) => {
         editPost(id, newContent);
     };
 
-    const handleLike = (id: number) => {
+    const handleLike = (id: string) => {
         likePost(id);
     };
 
-    const handleComment = (id: number, text: string) => {
+    const handleComment = (id: string, text: string) => {
         commentPost(id, text);
     };
 
@@ -65,6 +65,15 @@ function HomeClientContent() {
             { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
         );
     }, []);
+
+    // Helper to get ID based on user type
+    const getCurrentUserId = () => {
+        if (!currentUser) return undefined;
+        if ('uid' in currentUser) return currentUser.uid;
+        if ('organization_id' in currentUser) return currentUser.organization_id;
+        return undefined;
+    };
+    const currentUserId = getCurrentUserId();
 
     return (
         <div className="p-4 md:p-6 lg:p-8 bg-[var(--page-bg)] min-h-screen transition-colors duration-300">
@@ -86,12 +95,12 @@ function HomeClientContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredStudents.map(student => (
                             <Link
-                                key={`s-${student.id}`}
-                                href={`/user/student/${student.id}`}
+                                key={`s-${student.uid}`}
+                                href={`/user/student/${student.uid}`}
                                 className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
-                                    <Image src={student.photoUrl || "/icons/Avatar.png"} alt={student.name} fill className="object-cover" />
+                                    <Image src={student.profile_picture || "/icons/Avatar.png"} alt={student.name} fill className="object-cover" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm text-[var(--text-main)]">{student.name}</h3>
@@ -101,12 +110,12 @@ function HomeClientContent() {
                         ))}
                         {filteredTeachers.map(teacher => (
                             <Link
-                                key={`t-${teacher.id}`}
-                                href={`/user/teacher/${teacher.id}`}
+                                key={`t-${teacher.uid}`}
+                                href={`/user/teacher/${teacher.uid}`}
                                 className="flex items-center gap-3 p-3 bg-[var(--card-bg)] rounded-xl shadow-sm border border-[var(--gray-200)] hover:border-[var(--primary-purple)] transition-all"
                             >
                                 <div className="w-10 h-10 relative rounded-full overflow-hidden bg-gray-100">
-                                    <Image src={teacher.photoUrl || "/icons/Avatar.png"} alt={teacher.name} fill className="object-cover" />
+                                    <Image src={teacher.profile_picture || "/icons/Avatar.png"} alt={teacher.name} fill className="object-cover" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm text-[var(--text-main)]">{teacher.name}</h3>
@@ -129,6 +138,7 @@ function HomeClientContent() {
                         onComment={handleComment}
                         onDelete={handleDeletePost}
                         onEdit={handleEdit}
+                        currentUserId={currentUserId}
                     />
                 </div>
 

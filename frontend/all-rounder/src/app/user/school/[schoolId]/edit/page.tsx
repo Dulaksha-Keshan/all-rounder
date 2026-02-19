@@ -3,33 +3,38 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSchoolStore } from "@/context/useSchoolStore";
-import { School } from "@/app/_type/type";
+
 
 export default function EditSchoolPage() {
-  const { schoolId } = useParams();
+  // ✅ typed params (important)
+  const { schoolId } = useParams<{ schoolId: string }>();
   const router = useRouter();
+
 
   const { getSchoolById, updateSchool } = useSchoolStore();
   const school = getSchoolById(schoolId as string);
+
 
   if (!school) {
     return <p className="p-6 text-gray-500">School not found</p>;
   }
 
-  // ✅ Controlled state (IMPORTANT)
+  // ✅ controlled state
   const [name, setName] = useState(school.name);
-  const [location, setLocation] = useState(school.location);
+  const [address, setAddress] = useState(school.address);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
 
     // ✅ Save to store
     updateSchool(schoolId as string, {
+
       name,
-      location,
+      address,
     });
 
-    // ✅ Redirect back to school profile
+    // ✅ redirect back
     router.push(`/user/school/${schoolId}`);
   }
 
@@ -54,12 +59,12 @@ export default function EditSchoolPage() {
             />
           </div>
 
-          {/* Location */}
+          {/* Address */}
           <div>
-            <label className="text-sm text-gray-500">Location</label>
+            <label className="text-sm text-gray-500">Address</label>
             <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="mt-1 w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
             />
           </div>

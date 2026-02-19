@@ -25,10 +25,10 @@ export default function DashboardPage() {
                 break;
             case "School":
                 // Based on structure: /dashboard/schools/[schoolId]
-                router.push(`/dashboard/schools/${currentUser.id}`);
+                router.push(`/dashboard/schools/${(currentUser as any).school_id}`);
                 break;
             case "Organization":
-                router.push(`/dashboard/orgs/${currentUser.id}`);
+                router.push(`/dashboard/orgs/${(currentUser as any).organization_id}`);
                 break;
             default:
                 router.push("/home");

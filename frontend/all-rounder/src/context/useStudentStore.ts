@@ -4,10 +4,19 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Students } from '@/app/_data/data';
 import { Student } from '@/app/_type/type';
+import api from '@/lib/axios';
 
 interface StudentState {
     students: Student[];
-    getStudentById: (id: number) => Student | undefined;
+    isLoading: boolean;
+    error: string | null;
+
+    // Actions
+    fetchStudents: () => Promise<void>;
+    addStudent: (student: Student) => Promise<void>;
+    updateStudent: (uid: string, updates: Partial<Student>) => Promise<void>;
+    deleteStudent: (uid: string) => Promise<void>;
+    getStudentById: (uid: string) => Student | undefined;
     searchStudents: (query: string) => Student[];
 }
 
@@ -16,8 +25,70 @@ export const useStudentStore = create<StudentState>()(
         (set, get) => ({
             students: Students,
 
-            getStudentById: (id: number) => {
-                return get().students.find(s => s.id === id);
+            isLoading: false,
+            error: null,
+
+            fetchStudents: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get('/students');
+                    set({ students: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch students' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            addStudent: async (student) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.post('/students', student);
+                    set((state) => ({
+                        students: [...state.students, response.data]
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to add student' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            updateStudent: async (uid, updates) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.put(`/students/${uid}`, updates);
+                    const updated = response.data;
+
+                    set((state) => ({
+                        students: state.students.map(s =>
+                            s.uid === uid ? { ...s, ...updated } : s
+                        )
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update student' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            deleteStudent: async (uid) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.delete(`/students/${uid}`);
+
+                    set((state) => ({
+                        students: state.students.filter(s => s.uid !== uid)
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete student' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            getStudentById: (uid: string) => {
+                return get().students.find(s => s.uid === uid);
             },
 
             searchStudents: (query: string) => {

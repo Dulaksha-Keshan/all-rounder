@@ -32,30 +32,39 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     });
   };
 
+  // Helper to calculate age
+  const calculateAge = (dob: string) => {
+    if (!dob) return 0;
+    const birthday = new Date(dob);
+    const ageDifMs = Date.now() - birthday.getTime();
+    const ageDate = new Date(ageDifMs);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+  };
+
+  // Get data from stores
   // Get data from stores
   const { getTeacherById } = useTeacherStore();
   const { getSchoolById } = useSchoolStore();
   const { getEventById } = useEventStore();
 
   // Find the teacher by ID
-  const teacher = getTeacherById(Number(id));
+  const teacher = getTeacherById(id);
 
   if (!teacher) {
     notFound();
   }
 
   // Get school name
-  const school = getSchoolById(teacher.schoolId);
+  const school = getSchoolById(teacher.school_id);
   const schoolName = school?.name || 'Unknown School';
 
   // TODO: Get this from your auth system
   // For now, assuming logged-in user is teacher with ID 1
-  const loggedInUserId = 1; // Replace with actual auth
+  const loggedInUserId = "1"; // Replace with actual auth
   const loggedInUserType = "teacher"; // Replace with actual auth
 
   // Check if viewing own profile
-  // Check if viewing own profile
-  const isOwnProfile = loggedInUserId === teacher.id && loggedInUserType === "teacher";
+  const isOwnProfile = loggedInUserId === teacher.uid && loggedInUserType === "teacher";
 
   const { currentUser, updateProfile } = useUserStore();
 
@@ -71,14 +80,8 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
 
-  // Get full event details for registered events
-  const registeredEventsWithDetails = teacherData.registeredEvents?.map(reg => {
-    const event = getEventById(Number(reg.eventId));
-    return {
-      ...reg,
-      eventDetails: event
-    };
-  }) || [];
+  // Note: registeredEvents was removed from schema, so this is set to empty for now
+  const registeredEventsWithDetails: any[] = [];
 
   const handleSave = () => {
     if (isOwnProfile) {
@@ -104,17 +107,17 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     cancelFollowRequest
   } = useUserStore();
 
-  const isFollowing = following.includes(teacher.id);
-  const isRequested = sentRequests.includes(teacher.id);
+  const isFollowing = following.includes(teacher.uid);
+  const isRequested = sentRequests.includes(teacher.uid);
 
   const handleFollowAction = () => {
     if (isFollowing) {
-      unfollowUser(teacher.id);
+      unfollowUser(teacher.uid);
     } else if (isRequested) {
-      cancelFollowRequest(teacher.id);
+      cancelFollowRequest(teacher.uid);
     } else {
       // For now, assume public profiles for simplicity, or toggle based on logic
-      followUser(teacher.id);
+      followUser(teacher.uid);
     }
   };
 
@@ -130,7 +133,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-6">
               <NextImage
-                src={teacherData.photoUrl}
+                src={teacherData.profile_picture || '/default-avatar.png'}
                 alt={teacherData.name}
                 width={96}
                 height={96}
@@ -275,7 +278,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
                 <p className="text-[var(--text-muted)] text-sm font-medium">Events Registered</p>
                 <p className="text-3xl font-bold text-[var(--primary-purple)]">
-                  {teacherData.registeredEvents?.length || 0}
+                  0
                 </p>
               </div>
               <div className="bg-[var(--white)] p-6 rounded-xl shadow-lg border border-[var(--gray-200)]">
@@ -307,7 +310,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                         </p>
                         {reg.eventDetails && (
                           <p className="text-xs text-gray-500 mt-1">
-                            {formatDate(reg.eventDetails.date)} • {reg.eventDetails.location}
+                            {formatDate(reg.eventDetails.startDate)} • {reg.eventDetails.location}
                           </p>
                         )}
                       </div>
@@ -325,11 +328,11 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               </div>
             )}
 
-            {/* Bio Section */}
-            {teacherData.profile?.bio && (
+            {/* About Section */}
+            {teacherData.about && (
               <div className="bg-[var(--white)] rounded-xl shadow-lg p-6 border border-[var(--gray-200)]">
                 <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">About</h2>
-                <p className="text-[var(--text-main)] leading-relaxed font-medium">{teacherData.profile.bio}</p>
+                <p className="text-[var(--text-main)] leading-relaxed font-medium">{teacherData.about}</p>
               </div>
             )}
           </div>
@@ -383,66 +386,51 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editData.profile?.phone || ''}
+                    value={editData.contact_number || ''}
                     onChange={(e) => setEditData({
                       ...editData,
-                      profile: { ...editData.profile, phone: e.target.value } as any
+                      contact_number: e.target.value
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
-                  <p className="text-gray-800">{teacherData.profile?.phone || 'N/A'}</p>
+                  <p className="text-gray-800">{teacherData.contact_number || 'N/A'}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Zip Code</label>
+                <label className="block text-sm font-medium text-[#34365C] mb-2">Subject</label>
                 {isEditing ? (
                   <input
                     type="text"
-                    value={editData.profile?.zipCode || ''}
+                    value={editData.subject || ''}
                     onChange={(e) => setEditData({
                       ...editData,
-                      profile: { ...editData.profile, zipCode: e.target.value } as any
+                      subject: e.target.value
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                   />
                 ) : (
-                  <p className="text-gray-800">{teacherData.profile?.zipCode || 'N/A'}</p>
+                  <p className="text-gray-800">{teacherData.subject || 'N/A'}</p>
                 )}
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Address</label>
-                {isEditing ? (
-                  <textarea
-                    value={editData.profile?.address || ''}
-                    onChange={(e) => setEditData({
-                      ...editData,
-                      profile: { ...editData.profile, address: e.target.value } as any
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
-                    rows={3}
-                  />
-                ) : (
-                  <p className="text-gray-800">{teacherData.profile?.address || 'N/A'}</p>
-                )}
-              </div>
+
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#34365C] mb-2">Bio</label>
+                <label className="block text-sm font-medium text-[#34365C] mb-2">Bio / About</label>
                 {isEditing ? (
                   <textarea
-                    value={editData.profile?.bio || ''}
+                    value={editData.about || ''}
                     onChange={(e) => setEditData({
                       ...editData,
-                      profile: { ...editData.profile, bio: e.target.value } as any
+                      about: e.target.value
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8387CC]"
                     rows={4}
                   />
                 ) : (
-                  <p className="text-gray-800">{teacherData.profile?.bio || 'N/A'}</p>
+                  <p className="text-gray-800">{teacherData.about || 'N/A'}</p>
                 )}
               </div>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Search, Filter, BarChart2 } from 'lucide-react';
-import { Event } from '@/context/useEventStore';
+import { Event } from '@/app/_type/type';
 import { EventList } from './EventList';
 
 export default function EventsClient({ events }: { events: Event[] }) {
@@ -17,14 +17,14 @@ export default function EventsClient({ events }: { events: Event[] }) {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const eventCategories = event.categories || [];
+    const eventCategory = event.category;
     const matchesCategory = selectedCategory === 'All Categories' ||
-      eventCategories.includes(selectedCategory);
+      eventCategory === selectedCategory;
 
     return matchesTab && matchesSearch && matchesCategory;
   });
 
-  const allCategories = Array.from(new Set(events.flatMap(e => e.categories || [])));
+  const allCategories = Array.from(new Set(events.map(e => e.category).filter(Boolean)));
 
   return (
     <div className="min-h-screen py-0 bg-[var(--page-bg)] transition-colors duration-300">

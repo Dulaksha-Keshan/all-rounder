@@ -3,10 +3,10 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
-import { Organization } from "@/app/_type/type";
+
 
 export default function EditOrganizationPage() {
-  const { organizationId } = useParams();
+  const { organizationId } = useParams<{ organizationId: string }>();
   const router = useRouter();
 
   const { getOrganizationById, updateOrganization } = useOrganizationStore();
@@ -16,16 +16,16 @@ export default function EditOrganizationPage() {
     return <p className="p-6 text-gray-500">Organization not found</p>;
   }
 
-  const [name, setName] = useState(organization.name);
-  const [location, setLocation] = useState(organization.location);
+  const [name, setName] = useState(organization.organization_name);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     // ✅ Save to store
     updateOrganization(organizationId as string, {
-      name,
-      location,
+      organization_name: name,
     });
+
     router.push(`/user/organization/${organizationId}`);
   }
 
@@ -43,15 +43,6 @@ export default function EditOrganizationPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border px-4 py-2 text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-500">Location</label>
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
               className="mt-1 w-full rounded-lg border px-4 py-2 text-sm"
             />
           </div>

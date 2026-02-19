@@ -1,11 +1,13 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { useEventStore, Event } from '@/context/useEventStore';
+import { useEventStore } from '@/context/useEventStore';
+import { Event } from '@/app/_type/type';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export function EventDetails() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -176,7 +178,7 @@ export function EventDetails() {
               {/* Image with parallax effect on hover */}
               <div className="overflow-hidden relative h-[250px] sm:h-[350px] lg:h-[400px]">
                 <Image
-                  src={currentEvent.imageUrl}
+                  src={currentEvent.imageUrl || '/images/hero-1.jpg'} // Fallback image
                   alt={currentEvent.title}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
@@ -220,14 +222,18 @@ export function EventDetails() {
                   <div className="event-info-item text-center">
                     <Calendar className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Date</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.date}</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
+                      {new Date(currentEvent.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                    </div>
                   </div>
 
                   {/* Time */}
                   <div className="event-info-item text-center">
                     <Clock className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
                     <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Time</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.time}</div>
+                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
+                      {currentEvent.time || new Date(currentEvent.startDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
 
                   {/* Location */}
@@ -240,12 +246,12 @@ export function EventDetails() {
 
                 {/* Find Out More Button with glow effect */}
                 <div className="flex justify-center event-button">
-                  {/* <Link href="/events"> */}
-                  <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
-                    <span className="relative z-10">Find Out More</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                  </button>
-                  {/* </Link> */}
+                  <Link href="/events">
+                    <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
+                      <span className="relative z-10">Find Out More</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>

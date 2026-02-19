@@ -2,29 +2,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-export type OrganizerType = "School" | "Organization";
-
-export interface Event {
-    id: number;
-    title: string;
-    description: string;
-    fullDescription?: string;
-    date: string;
-    deadline?: string;
-    location: string;
-    imageUrl: string;
-    categories?: string[];
-    status?: "Registered" | "Open";
-    requirements?: string[];
-    prizes?: string[];
-    contactEmail?: string;
-    time?: string;
-    organizerId: string;
-    organizerType: OrganizerType;
-    isMajor?: boolean;
-}
-
+import { Event } from '@/app/_type/type';
 import { Events } from '@/app/events/_data/events';
+import api from '@/lib/axios';
 
 interface EventState {
     events: Event[];
@@ -34,12 +14,14 @@ interface EventState {
 
     // Actions
     setEvents: (events: Event[]) => void;
-    addEvent: (event: Event) => void;
-    updateEvent: (id: number, updates: Partial<Event>) => void;
-    deleteEvent: (id: number) => void;
+    fetchEvents: () => Promise<void>;
+    addEvent: (event: Event) => Promise<void>;
+    updateEvent: (id: string, updates: Partial<Event>) => Promise<void>;
+    deleteEvent: (id: string) => Promise<void>;
     setActiveEvent: (event: Event | null) => void;
-    rsvpEvent: (eventId: number) => void;
-    getEventById: (id: number) => Event | undefined;
+    rsvpEvent: (eventId: string) => Promise<void>;
+    getEventById: (id: string) => Event | undefined; // Sync selector
+    fetchEventById: (id: string) => Promise<Event | undefined>; // Async fetch
 }
 
 export const useEventStore = create<EventState>()(
@@ -50,39 +32,121 @@ export const useEventStore = create<EventState>()(
             isLoading: false,
             error: null,
 
+            fetchEvents: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get('/events');
+                    set({ events: response.data });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch events' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
             setEvents: (events) => set({ events }),
 
-            addEvent: (event) => set((state) => ({
-                events: [...state.events, event]
-            })),
+            addEvent: async (event) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.post('/events', event);
+                    set((state) => ({
+                        events: [...state.events, response.data]
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to create event' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
-            updateEvent: (id, updates) => set((state) => ({
-                events: state.events.map((e) =>
-                    e.id === id ? { ...e, ...updates } : e
-                ),
-                activeEvent: state.activeEvent?.id === id
-                    ? { ...state.activeEvent, ...updates }
-                    : state.activeEvent
-            })),
+            updateEvent: async (id, updates) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.put(`/events/${id}`, updates);
+                    const updated = response.data;
 
-            deleteEvent: (id) => set((state) => ({
-                events: state.events.filter((e) => e.id !== id),
-                activeEvent: state.activeEvent?.id === id ? null : state.activeEvent
-            })),
+                    set((state) => ({
+                        events: state.events.map((e) =>
+                            e._id === id ? { ...e, ...updated } : e
+                        ),
+                        activeEvent: state.activeEvent?._id === id
+                            ? { ...state.activeEvent, ...updated }
+                            : state.activeEvent
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to update event' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            deleteEvent: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.delete(`/events/${id}`);
+
+                    set((state) => ({
+                        events: state.events.filter((e) => e._id !== id),
+                        activeEvent: state.activeEvent?._id === id ? null : state.activeEvent
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to delete event' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
 
             setActiveEvent: (event) => set({ activeEvent: event }),
 
-            rsvpEvent: (eventId) => set((state) => ({
-                events: state.events.map((e) => {
-                    if (e.id === eventId) {
-                        return { ...e, status: "Registered" };
-                    }
-                    return e;
-                })
-            })),
+            rsvpEvent: async (eventId) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.post(`/events/${eventId}/rsvp`);
 
-            getEventById: (id: number) => {
-                return get().events.find(e => e.id === id);
+                    // Optimistic or response-based
+                    set((state) => ({
+                        events: state.events.map((e) => {
+                            if (e._id === eventId) {
+                                return { ...e, status: "Registered" };
+                            }
+                            return e;
+                        })
+                    }));
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to RSVP' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            getEventById: (id: string) => {
+                return get().events.find(e => e._id === id);
+            },
+
+            fetchEventById: async (id) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/events/${id}`);
+                    // Backend returns { event, hostDetails }
+                    // We can merge hostDetails into event.hosts if needed, or just return event
+                    const { event, hostDetails } = response.data;
+                    const fullEvent = { ...event, hosts: hostDetails || event.hosts };
+
+                    set((state) => ({
+                        // Update in list if exists
+                        events: state.events.some(e => e._id === id)
+                            ? state.events.map(e => e._id === id ? fullEvent : e)
+                            : [...state.events, fullEvent],
+                        activeEvent: fullEvent
+                    }));
+                    return fullEvent;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch event' });
+                    return undefined;
+                } finally {
+                    set({ isLoading: false });
+                }
             },
         }),
         {

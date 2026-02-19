@@ -24,13 +24,19 @@ const BigCalendarContainer = ({
     return event.organizerId === id && event.organizerType === type;
   });
 
-  const data = filteredEvents.map((event) => ({
-    title: event.title,
-    start: new Date(event.date),
-    end: new Date(event.date),
-    time: event.time,
-    location: event.location,
-  }));
+  const data = filteredEvents.map((event) => {
+    const startDate = new Date(event.startDate);
+    const endDate = event.endDate ? new Date(event.endDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+
+    return {
+      id: event._id || (event as any).id,
+      title: event.title,
+      start: startDate,
+      end: endDate > startDate ? endDate : new Date(startDate.getTime() + 60 * 60 * 1000),
+      time: event.time || startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      location: event.location,
+    };
+  });
 
   // Dynamic title based on type
   const title = type === "School" ? "School Events" : "Organization Events";
