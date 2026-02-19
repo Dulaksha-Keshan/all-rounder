@@ -297,13 +297,17 @@ useLayoutEffect(() => {
   <div className="md:col-span-3 flex justify-center">
     <div className="bg-white/10 rounded-2xl p-5 text-center w-full max-w-sm">
       <div className="text-2xl mb-2">✉️</div>
-     <p className="font-medium">Email Us</p>
-     <p className="text-sm opacity-90">
-       mail.allrounder.sdgp@gmail.com
-      </p>
+      <p className="font-medium">Email Us</p>
+      <a
+        href="mailto:mail.allrounder.sdgp@gmail.com"
+        className="text-sm opacity-90 hover:underline"
+      >
+        mail.allrounder.sdgp@gmail.com
+      </a>
     </div>
   </div>
-   </div>
+</div>
+
 </section>
 
       <div className="h-24 bg-[var(--secondary-pale-lavender)]" />
