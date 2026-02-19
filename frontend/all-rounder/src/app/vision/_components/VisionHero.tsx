@@ -1,22 +1,65 @@
-'use client';
+// 'use client';
+
+import { useEffect } from 'react';
+import gsap from 'gsap';
 
 export default function VisionHero() {
+
+  useEffect(() => {
+    // Blinking animation
+    gsap.to('.blink-star', {
+      opacity: 0.2,
+      duration: 1.5,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut',
+      stagger: {
+        each: 0.4,
+        from: "random"
+      }
+    });
+
+    // Floating animation
+    gsap.to('.float-star', {
+      y: -15,
+      duration: 3,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      stagger: {
+        each: 0.5,
+        from: "random"
+      }
+    });
+
+  }, []);
+
   return (
     <section className="relative w-full bg-[#34365C] text-white py-20 overflow-hidden">
 
-      {/* Decorative stars */}
+      {/* Animated Stars */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-16 left-20 text-4xl opacity-20">✦</div>
-        <div className="absolute top-32 right-32 text-5xl opacity-20">★</div>
-        <div className="absolute bottom-20 left-1/3 text-3xl opacity-20">✦</div>
-        <div className="absolute bottom-24 right-24 text-4xl opacity-20">★</div>
+
+        <div className="blink-star float-star absolute top-16 left-20 text-4xl text-[#DCD0FF]">
+          ✦
+        </div>
+
+        <div className="blink-star absolute top-32 right-32 text-5xl text-[#AAB4FF]">
+          ★
+        </div>
+
+        <div className="blink-star float-star absolute bottom-20 left-1/3 text-3xl text-[#DCD0FF]">
+          ✦
+        </div>
+
+        <div className="blink-star absolute bottom-24 right-24 text-4xl text-[#AAB4FF]">
+          ★
+        </div>
+
       </div>
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
-        <p className="text-sm text-[#DCD0FF] mb-4">
-          Home · Vision
-        </p>
-
+      
         <h1 className="text-4xl md:text-6xl font-bold mb-3 ">
           Our Vision & <span className="text-[#4169E1]">Mission</span>
         </h1>
