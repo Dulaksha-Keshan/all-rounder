@@ -1,9 +1,25 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Award, Menu, X, User, LogOut, LayoutDashboard, BookOpen, Gift, Trophy, Calendar, ChevronDown, Sun, Moon, HelpCircle, Users, GraduationCap, HomeIcon,  } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  HomeIcon,
+  BookOpen,
+  Gift,
+  Trophy,
+  Calendar,
+  ChevronDown,
+  HelpCircle,
+  Users,
+} from "lucide-react";
 import { useState, useEffect } from "react";
+import NextImage from "next/image";
+// import { useAuthStore } from "@/stores/authStore";  EXAMPLE PART 
 
 interface NavbarProps {
   isAuthenticated?: boolean;
@@ -11,98 +27,21 @@ interface NavbarProps {
   onLogout?: () => void;
 }
 
-export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarProps) {
+export function Navbar({
+  isAuthenticated = false,
+  userType,
+  onLogout,
+}: NavbarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [accountDropdown, setAccountDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  //const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path;
 
-  // Initialize dark mode from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  };
-
-  // Track active section based on scroll position
-  useEffect(() => {
-    if (!isAuthenticated && pathname === "/") {
-      const handleScroll = () => {
-        const sections = ["Home", "AboutUs", "Features", "Events"];
-        const scrollPosition = window.scrollY + 100;
-
-        for (const section of sections) {
-          const element = document.getElementById(section);
-          if (element) {
-            const { offsetTop, offsetHeight } = element;
-            if (
-              scrollPosition >= offsetTop &&
-              scrollPosition < offsetTop + offsetHeight
-            ) {
-              setActiveSection(section);
-              break;
-            }
-          }
-        }
-      };
-
-      handleScroll(); // Check on mount
-      window.addEventListener("scroll", handleScroll);
-      return () => window.removeEventListener("scroll", handleScroll);
-    }
-  }, [isAuthenticated, pathname]);
-
-  const isActive = (path: string) => {
-    // For authenticated users, check pathname
-    if (isAuthenticated) {
-      return pathname === path;
-    }
-
-    // For public links on landing page
-    if (path === "/") {
-      return pathname === "/" && activeSection === "Home";
-    }
-
-    // Check if it's a hash link
-    if (path.startsWith("/#")) {
-      const section = path.split("#")[1];
-      return pathname === "/" && activeSection === section;
-    }
-
-    // For other paths like /login
-    return pathname === path;
-  };
-
-  const publicLinks = [
-    { path: "/", label: "Home" },
-    { path: "/#AboutUs", label: "About Us" },
-    { path: "/#Features", label: "Features" },
-    { path: "/#Events", label: "Events" },
-    { path: "", label: "Login" },
-  ];
-
-  // Determine the profile path based on user type
+  // identifying the user type 
   const getProfilePath = () => {
     switch (userType) {
       case "teacher":
@@ -116,113 +55,97 @@ export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarPr
     }
   };
 
-  // Navigation icons for authenticated users
-  const navIcons = [
-    // { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    // { id: "resources", label: "Resources", icon: BookOpen, path: "/resources" },
-    // { id: "donations", label: "Donations", icon: Gift, path: "/donations" },
-    // { id: "events", label: "Events", icon: Calendar, path: "/competitions" },
-    // { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard" },
-    { id: "home", path: "/home", label: "Home", icon: HomeIcon},
-    { id: "dashboard", path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "resources", path: "/resources", label: "Resources", icon: BookOpen },
-    { id: "donations", path: "/donations", label: "Donations", icon: Gift },
-    { id: "competitions", path: "/competitions", label: "Competitions", icon: Calendar },
-    { id: "profile", path: getProfilePath(), label: "My Profile", icon: User },
-  ];
-
-  const links = isAuthenticated ? navIcons : publicLinks;
-
-  // Set active icon based on current path
-  useEffect(() => {
-    const currentNav = navIcons.find(nav => isActive(nav.path));
-    if (currentNav) {
-      setActiveIcon(currentNav.id);
-    }
-  }, [pathname]);
-
-  const scrollToSection = (path: string, e?: React.MouseEvent) => {
-    setMobileMenuOpen(false);
-    // Handle hash navigation for same page
-    if (path.startsWith("/#")) {
-      e?.preventDefault();
-      const section = path.split("#")[1];
-      setActiveSection(section); // Immediately set active section
-      const element = document.getElementById(section);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  
-    const element = document.getElementById(path.split("#")[1]);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleLogout = () => {
+    // Call the onLogout callback if provided
+    onLogout?.();
+    
+    // Redirect to landing page after logging out
+    router.push("/");
   };
 
- 
-  // Public (Unauthenticated) Navbar
+  // paths and icons for the main navigation - auth user
+  const navIcons = [
+    { id: "home", label: "Home", icon: HomeIcon, path: "/home"},
+    { id: "resources", label: "Resources", icon: BookOpen, path: "/resourceSharing" },
+    { id: "donations", label: "Donations", icon: Gift, path: "/donations" },
+    { id: "events", label: "Events", icon: Calendar, path: "/events" },
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard"},
+  ];
+
+  // left side dropdown menu - auth user
+  const sideMenuItems = [
+    { label: "Help & FAQs", icon: HelpCircle, path: "/help" },
+    { label: "About Us", icon: Users, path: "/vision" },
+  ];
+
+  useEffect(() => {
+    const currentNav = navIcons.find((nav) => isActive(nav.path));
+    if (currentNav) setActiveIcon(currentNav.id);
+  }, [pathname]);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) element.scrollIntoView({ behavior: "smooth" });
+  };
+
+  /* ---------------- PUBLIC NAVBAR ---------------- */
+
   if (!isAuthenticated) {
     return (
       <>
         {/* Desktop Public Navbar */}
-        <nav className="fixed top-0 left-1.5 right-1.5 z-50 md:block">
-          <div className="flex items-center justify-center px-8 py-0">
-            {/* Single white hanging panel with everything inside */}
-            <div className="bg-white rounded-[40px] shadow-2xl border-2 border-[#DCD0FF]
-                              px-8 py-4 flex items-center justify-between gap-8
-                              w-full max-w-7xl mx-auto">
-
-              {/* Left: Logo */}
-              <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition flex-shrink-0">
-                <Award className="w-10 h-10 text-[#8387CC]" />
-                <span className="font-bold text-xl text-[#34365C]">All-Rounder</span>
+        <nav className="fixed top-4 left-4 right-4 z-50 hidden md:block pointer-events-none">
+          <div className="pointer-events-auto bg-gradient-to-r from-white/80 via-[#F8F7FF]/80 to-white/80 backdrop-blur-xl rounded-[50px] shadow-2xl border-2 border-[#DCD0FF]/50 px-6 py-2">
+            <div className="flex items-center justify-between">
+              <Link
+                href="/"
+                className="flex items-center gap-2 hover:opacity-80 transition flex-shrink-0"
+              >
+                {/* Logo */}
+                <div className="relative h-center w-auto">
+                  <NextImage
+                    src="/icons/Logo.png"
+                    alt="All-Rounder Logo"
+                    width={200}
+                    height={60}  
+                    className="h-auto w-29 object-contain"
+                    priority
+                  />
+                </div>
               </Link>
 
-              {/* Middle: Navigation Links */}
-              <div className="flex items-center gap-8">
+              {/* Public Navigation Links - Desktop view */}
+              <div className="flex items-center gap-6">
                 <button
-                  onClick={() => scrollToSection('home')}
-                  className="text-[#34365C] hover:text-[#8387CC] transition font-medium"
+                  onClick={() => scrollToSection("Home")}
+                  className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   Home
                 </button>
                 <button
-                  onClick={() => scrollToSection('about')}
-                  className="text-[#34365C] hover:text-[#8387CC] transition font-medium"
+                  onClick={() => scrollToSection("AboutUs")}
+                  className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   About Us
                 </button>
                 <button
-                  onClick={() => scrollToSection('features')}
-                  className="text-[#34365C] hover:text-[#8387CC] transition font-medium"
+                  onClick={() => scrollToSection("features")}
+                  className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   Features
                 </button>
                 <button
-                  onClick={() => scrollToSection('events')}
-                  className="text-[#34365C] hover:text-[#8387CC] transition font-medium"
+                  onClick={() => scrollToSection("Events")}
+                  className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   Events
                 </button>
               </div>
 
-              {/* Right: Login and Dark Mode Toggle */}
               <div className="flex items-center gap-4 flex-shrink-0">
-                <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className="p-2 rounded-full hover:bg-[#DCD0FF] transition"
-                  aria-label="Toggle dark mode"
-                >
-                  {isDarkMode ? (
-                    <Sun className="w-5 h-5 text-[#34365C]" />
-                  ) : (
-                    <Moon className="w-5 h-5 text-[#34365C]" />
-                  )}
-                </button>
                 <Link
                   href="/login"
-                  className="px-6 py-2 bg-[#4169E1] hover:bg-[#3557c1] text-white rounded-full transition shadow-lg"
+                  className="px-6 py-2 bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] hover:from-[#6B73C8] hover:to-[#3557c1] text-white font-semibold rounded-full transition-all shadow-lg hover:shadow-xl hover:scale-105 text-sm"
                 >
                   Login
                 </Link>
@@ -232,81 +155,60 @@ export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarPr
         </nav>
 
         {/* Mobile Public Navbar */}
-        <nav className="fixed top-0 left-0 right-0 z-50 md:hidden bg-white shadow-lg border-b-2 border-[#DCD0FF]">
-          <div className="flex items-center justify-between px-4 py-3">
-            {/* Logo */}
+        <nav className="fixed top-0 left-0 right-0 z-50 md:hidden lg:hidden bg-gradient-to-r from-white/80 via-[#F8F7FF]/80 to-white/80 backdrop-blur-xl shadow-lg border-b-2 border-[#DCD0FF]/50">
+          <div className="flex items-center justify-between px-4 py-2.5">
             <Link href="/" className="flex items-center gap-2">
-              <Award className="w-8 h-8 text-[#8387CC]" />
-              <span className="font-bold text-lg text-[#34365C]">All-Rounder</span>
+              <div className="relative h-center w-auto">
+                  <NextImage
+                    src="/icons/Logo.png"
+                    alt="All-Rounder Logo"
+                    width={200}
+                    height={60}
+                    className="h-auto w-29 object-contain"
+                    priority
+                  />
+                </div>
             </Link>
 
-            {/* Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-full hover:bg-[#DCD0FF] transition"
+              className="p-2 rounded-full hover:bg-[#DCD0FF]/50 transition"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-[#34365C]" />
+                <X className="w-5 h-5 text-[#34365C]" />
               ) : (
-                <Menu className="w-6 h-6 text-[#34365C]" />
+                <Menu className="w-5 h-5 text-[#34365C]" />
               )}
             </button>
           </div>
 
-          {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="bg-white border-t-2 border-[#DCD0FF] px-4 py-4 space-y-3">
-              <button
-                onClick={() => {
-                  scrollToSection('home');
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-[#F8F8FF] rounded-lg transition"
-              >
-                Home
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('about');
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-[#F8F8FF] rounded-lg transition"
-              >
-                About Us
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('features');
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-[#F8F8FF] rounded-lg transition"
-              >
-                Features
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection('events');
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-[#F8F8FF] rounded-lg transition"
-              >
-                Events
-              </button>
-              <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+            <div className="bg-gradient-to-b from-white/90 to-[#F8F7FF]/90 backdrop-blur-md border-t-2 border-[#DCD0FF]/50 px-4 py-4 space-y-3">
+              {["Home", "AboutUs", "Features", "Events"].map((section) => (
                 <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className="p-2 rounded-full hover:bg-[#DCD0FF] transition"
+                  key={section}
+                  onClick={() => {
+                    scrollToSection(section);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 rounded-lg transition font-medium"
                 >
-                  {isDarkMode ? (
-                    <Sun className="w-5 h-5 text-[#34365C]" />
-                  ) : (
-                    <Moon className="w-5 h-5 text-[#34365C]" />
-                  )}
+                  {/* Public Navigation Links - Mobile view */}
+                  {section === "Home"
+                    ? "Home"
+                    : section === "AboutUs"
+                    ? "About Us"
+                    : section === "Features"
+                    ? "Features"
+                    : "Events"}
                 </button>
+              ))}
+
+              <div className="flex items-center justify-end pt-3 border-t border-[#DCD0FF]/50">
                 <Link
-                  href="/login"
+                  href="/login" /* works */
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-6 py-2 bg-[#4169E1] hover:bg-[#3557c1] text-white rounded-full transition"
+                  className="px-6 py-2 bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] hover:from-[#6B73C8] hover:to-[#3557c1] text-white font-semibold rounded-full transition-all shadow-lg hover:shadow-xl"
                 >
                   Login
                 </Link>
@@ -318,34 +220,47 @@ export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarPr
     );
   }
 
-  // Authenticated Navbar
+  /* ---------------- AUTHENTICATED NAVBAR ---------------- */
+
   return (
     <>
       {/* Desktop Authenticated Navbar */}
-      <nav className="fixed top-4 left-4 right-4 z-50 hidden lg:block">
-        <div className="bg-white rounded-[50px] shadow-2xl border-2 border-[#DCD0FF] px-6 py-3">
+      <nav className="fixed top-4 left-4 right-4 z-50 hidden lg:block pointer-events-none">
+        <div className="pointer-events-auto bg-gradient-to-r from-white/80 via-[#F8F7FF]/80 to-white/80 backdrop-blur-xl rounded-[50px] shadow-2xl border-2 border-[#DCD0FF]/50 px-6 py-2">
           <div className="flex items-center justify-between">
-            {/* Left: Menu Icon + Logo */}
+            {/* Left */}
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSideMenuOpen(!sideMenuOpen)}
-                className="p-2 rounded-full hover:bg-[#DCD0FF] transition"
-                aria-label="Toggle menu"
+                className="p-1.5 rounded-full hover:bg-[#DCD0FF]/50 transition-all hover:scale-110"
               >
-                <Menu className="w-6 h-6 text-[#34365C]" />
+                <Menu className="w-5 h-5 text-[#34365C]" />
               </button>
-              <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition">
-                <Award className="w-8 h-8 text-[#8387CC]" />
-                <span className="font-bold text-lg text-[#34365C] hidden xl:block">All-Rounder</span>
+
+              <Link
+                href="/home"
+                className="flex items-center gap-2 hover:opacity-80 transition"
+              >
+                {/* Logo */}
+                <div className="relative h-center w-auto">
+                  <NextImage
+                    src="/icons/Logo.png"
+                    alt="All-Rounder Logo"
+                    width={200}
+                    height={60}
+                    className="h-auto w-29 object-contain"
+                    priority
+                  />
+                </div>
               </Link>
             </div>
 
-            {/* Center: Icon Navigation */}
+            {/* Center Icons */}
             <div className="flex items-center gap-2">
               {navIcons.map((nav) => {
                 const Icon = nav.icon;
                 const isIconActive = activeIcon === nav.id;
-                
+
                 return (
                   <Link
                     key={nav.id}
@@ -354,24 +269,26 @@ export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarPr
                     className="relative group"
                   >
                     <div
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 ${
                         isIconActive
-                          ? "bg-[#8387CC] text-white shadow-lg"
-                          : "hover:bg-[#DCD0FF] text-[#34365C]"
+                          ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
+                          : "hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 text-[#34365C]"
                       }`}
                     >
-                      {Icon && <Icon className="w-5 h-5" />}
+                      <Icon className="w-4 h-4" />
                       <span
-                        className={`overflow-hidden transition-all duration-300 ${
-                          isIconActive ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"
+                        className={`overflow-hidden transition-all duration-300 font-medium text-sm ${
+                          isIconActive
+                            ? "max-w-[200px] opacity-100"
+                            : "max-w-0 opacity-0"
                         }`}
                       >
                         {nav.label}
                       </span>
                     </div>
-                    {/* Hover tooltip */}
+
                     {!isIconActive && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 bg-[#34365C] text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1 bg-gradient-to-r from-[#34365C] to-[#8387CC] text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
                         {nav.label}
                       </div>
                     )}
@@ -380,212 +297,209 @@ export function Navbar({ isAuthenticated = false, userType, onLogout }: NavbarPr
               })}
             </div>
 
-            {/* Right: User Account */}
-            <div className="relative">
-              <button
-                onClick={() => setAccountDropdown(!accountDropdown)}
-                className="flex items-center gap-3 px-4 py-2 rounded-full hover:bg-[#DCD0FF] transition"
-              >
-                <div className="w-10 h-10 rounded-full bg-[#8387CC] flex items-center justify-center text-white">
-                  <User className="w-5 h-5" />
-                </div>
-                <span className="text-sm capitalize text-[#34365C] hidden lg:block">{userType}</span>
-                <ChevronDown className="w-4 h-4 text-[#34365C] hidden lg:block" />
-              </button>
-
+            {/* Right Account */}
+            <div className="flex items-center gap-3">
               {/* Account Dropdown */}
-              {accountDropdown && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setAccountDropdown(false)}
-                  />
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-[#DCD0FF] py-2 z-50">
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <div className="text-xs text-gray-500">Signed in as</div>
-                      <div className="text-sm capitalize text-[#34365C]">{userType}</div>
-                    </div>
-                    <Link
-                      href={getProfilePath()}
-                      onClick={() => setAccountDropdown(false)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-[#F8F8FF] transition text-[#34365C]"
-                    >
-                      <User className="w-4 h-4" />
-                      <span className="text-sm">My Profile</span>
-                    </Link>
-                    <div className="border-t border-gray-200 mt-2 pt-2">
-                      <button
-                        onClick={() => {
-                          onLogout?.();
-                          setAccountDropdown(false);
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition text-red-600 w-full"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span className="text-sm">Logout</span>
-                      </button>
-                    </div>
+              <div className="relative">
+                <button
+                  onClick={() => setAccountDropdown(!accountDropdown)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition-all"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] flex items-center justify-center text-white shadow-lg">
+                    <User className="w-4 h-4" />
                   </div>
-                </>
-              )}
+                  <span className="text-sm capitalize text-[#34365C] font-semibold hidden lg:block">
+                    {userType || "User"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#34365C] hidden lg:block" />
+                </button>
+
+                {accountDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setAccountDropdown(false)}
+                    />
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-gradient-to-br from-white/95 via-[#F8F7FF]/95 to-[#F0EFFF]/95 backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-[#DCD0FF]/50 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-[#DCD0FF]/50">
+                        <div className="text-xs text-gray-500 font-medium">
+                          Signed in as
+                        </div>
+                        <div className="text-sm capitalize text-[#34365C] font-semibold">
+                          {userType || "User"}
+                        </div>
+                      </div>
+
+                      <Link
+                        href={getProfilePath()}
+                        onClick={() => setAccountDropdown(false)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C]"
+                      >
+                        <User className="w-4 h-4" />
+                        <span className="text-sm font-medium">My Profile</span>
+                      </Link>
+
+                      <div className="border-t border-[#DCD0FF]/50 mt-2 pt-2">
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setAccountDropdown(false);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-red-600 w-full rounded-lg"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span 
+                            className="text-sm font-medium">
+                            Logout
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile/Tablet Authenticated Navbar */}
-      <nav className="fixed top-2 left-2 right-2 z-50 lg:hidden">
-        <div className="bg-white rounded-[30px] shadow-2xl border-2 border-[#DCD0FF] px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Left: Menu Icon + Logo */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSideMenuOpen(!sideMenuOpen)}
-                className="p-2 rounded-full hover:bg-[#DCD0FF] transition"
-              >
-                <Menu className="w-5 h-5 text-[#34365C]" />
-              </button>
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <Award className="w-7 h-7 text-[#8387CC]" />
-                <span className="font-bold text-base text-[#34365C] hidden sm:block">All-Rounder</span>
-              </Link>
+      {/* Side Menu Dropdown - Desktop only */}
+      {sideMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm hidden lg:block"
+            onClick={() => setSideMenuOpen(false)}
+          />
+          <div className="fixed top-20 left-4 z-50 w-64 bg-gradient-to-br from-white/90 via-[#F8F7FF]/90 to-[#F0EFFF]/90 backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-[#DCD0FF]/50 py-4 hidden lg:block">
+            <div className="px-4 pb-3 border-b border-[#DCD0FF]/50">
+              <h3 className="text-sm font-bold text-[#34365C]">
+                Quick Links
+              </h3>
             </div>
 
-            {/* Right: User Account */}
-            <button
-              onClick={() => setAccountDropdown(!accountDropdown)}
-              className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-[#DCD0FF] transition"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center text-white">
-                <User className="w-4 h-4" />
-              </div>
-              <span className="text-xs capitalize text-[#34365C] hidden sm:block">{userType}</span>
-            </button>
-
-            {/* Mobile Account Dropdown */}
-            {accountDropdown && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setAccountDropdown(false)}
-                />
-                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border-2 border-[#DCD0FF] py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <div className="text-xs text-gray-500">Signed in as</div>
-                    <div className="text-sm capitalize text-[#34365C]">{userType}</div>
-                  </div>
-                  <Link
-                    href={getProfilePath()}
-                    onClick={() => setAccountDropdown(false)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#F8F8FF] transition text-[#34365C]"
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="text-sm">My Profile</span>
-                  </Link>
-                  <div className="border-t border-gray-200 mt-2 pt-2">
-                    <button
-                      onClick={() => {
-                        onLogout?.();
-                        setAccountDropdown(false);
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition text-red-600 w-full"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span className="text-sm">Logout</span>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Bottom Navigation Icons */}
-          <div className="flex items-center justify-around mt-3 pt-3 border-t border-gray-200">
-            {navIcons.map((nav) => {
-              const Icon = nav.icon;
-              const isIconActive = isActive(nav.path);
-              
+            {sideMenuItems.map((item) => {
+              const Icon = item.icon;
               return (
                 <Link
-                  key={nav.id}
-                  href={nav.path}
-                  className="flex flex-col items-center gap-1"
+                  key={item.path}
+                  href={item.path}
+                  onClick={() => setSideMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C]"
                 >
-                  <div
-                    className={`p-2 rounded-full transition ${
-                      isIconActive
-                        ? "bg-[#8387CC] text-white"
-                        : "text-[#34365C]"
-                    }`}
-                  >
-                    {Icon && <Icon className="w-5 h-5" />}
-                  </div>
-                  <span className={`text-xs ${isIconActive ? "text-[#8387CC]" : "text-gray-600"}`}>
-                    {nav.label}
-                  </span>
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
                 </Link>
               );
             })}
           </div>
-        </div>
-      </nav>
-
-      {/* Side Menu (works for both desktop and mobile) */}
-      {sideMenuOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/20 z-40 backdrop-blur-sm"
-            onClick={() => setSideMenuOpen(false)}
-          />
-          
-          {/* Side Menu Panel */}
-          <div className="fixed top-20 lg:top-24 left-2 lg:left-4 w-64 bg-white rounded-3xl shadow-2xl border-2 border-[#DCD0FF] py-6 z-50 animate-in slide-in-from-left">
-            <div className="px-6 mb-4 flex items-center justify-between">
-              <h3 className="text-lg text-[#34365C]">Menu</h3>
-              <button
-                onClick={() => setSideMenuOpen(false)}
-                className="p-1 rounded-full hover:bg-[#DCD0FF] transition lg:hidden"
-              >
-                <X className="w-5 h-5 text-[#34365C]" />
-              </button>
-            </div>
-            
-            <div className="space-y-1">
-              <Link
-                href="/onboarding"
-                onClick={() => setSideMenuOpen(false)}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-[#F8F8FF] transition ${
-                  isActive("/onboarding") ? "bg-[#DCD0FF] text-[#34365C]" : "text-gray-700"
-                }`}
-              >
-                <GraduationCap className="w-5 h-5" />
-                <span className="text-sm">Learn Hub</span>
-              </Link>
-              <Link
-                href="/team"
-                onClick={() => setSideMenuOpen(false)}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-[#F8F8FF] transition ${
-                  isActive("/team") ? "bg-[#DCD0FF] text-[#34365C]" : "text-gray-700"
-                }`}
-              >
-                <Users className="w-5 h-5" />
-                <span className="text-sm">Meet Our Team</span>
-              </Link>
-              <Link
-                href="/faq"
-                onClick={() => setSideMenuOpen(false)}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-[#F8F8FF] transition ${
-                  isActive("/faq") ? "bg-[#DCD0FF] text-[#34365C]" : "text-gray-700"
-                }`}
-              >
-                <HelpCircle className="w-5 h-5" />
-                <span className="text-sm">Help & FAQ</span>
-              </Link>
-            </div>
-          </div>
         </>
       )}
+
+      {/* Mobile Authenticated Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-gradient-to-r from-white/80 via-[#F8F7FF]/80 to-white/80 backdrop-blur-xl shadow-lg border-b-2 border-[#DCD0FF]/50">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <Link href="/home" className="flex items-center gap-2">
+          {/* Logo */}
+            <div className="relative h-center w-auto">
+                  <NextImage
+                    src="/icons/Logo.png"
+                    alt="All-Rounder Logo"
+                    width={200}
+                    height={60}
+                    className="h-auto w-29 object-contain"
+                    priority
+                  />
+                </div>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-full hover:bg-[#DCD0FF]/50 transition"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 text-[#34365C]" />
+              ) : (
+                <Menu className="w-5 h-5 text-[#34365C]" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="bg-gradient-to-b from-white/90 to-[#F8F7FF]/90 backdrop-blur-md border-t-2 border-[#DCD0FF]/50 px-4 py-4 space-y-3">
+            {/* Navigation Icons */}
+            {navIcons.map((nav) => {
+              const Icon = nav.icon;
+              return (
+                <Link
+                  key={nav.id}
+                  href={nav.path}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setActiveIcon(nav.id);
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                    activeIcon === nav.id
+                      ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
+                      : "text-[#34365C] hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-semibold">{nav.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* Profile & Logout */}
+            <div className="border-t border-[#DCD0FF]/50 pt-3 mt-3">
+              <Link
+                href={getProfilePath()}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C] rounded-lg"
+              >
+                {/* Implement my profile view after useStores */}
+                <User className="w-5 h-5" />
+                <span className="text-sm font-medium">My Profile</span>
+              </Link>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-red-50/50 transition text-red-600 w-full rounded-lg mt-2"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium">Logout</span>
+              </button>
+            </div>
+
+            {/* Quick Links */}
+            <div className="border-t border-[#DCD0FF]/50 pt-3">
+              <div className="px-4 pb-2">
+                <h3 className="text-xs font-bold text-[#34365C] opacity-60">
+                  Quick Links
+                </h3>
+              </div>
+              {sideMenuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C] rounded-lg"
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </nav>
     </>
-    );
+  );
 }
