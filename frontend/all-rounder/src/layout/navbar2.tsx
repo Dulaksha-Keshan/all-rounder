@@ -90,7 +90,7 @@ export function Navbar({
 
   /* ---------------- PUBLIC NAVBAR ---------------- */
 
-  if (!isAuthenticated) {
+  if (isAuthenticated) {
     return (
       <>
         {/* Desktop Public Navbar */}
