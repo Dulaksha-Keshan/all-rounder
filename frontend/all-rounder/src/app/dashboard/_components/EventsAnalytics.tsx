@@ -89,7 +89,7 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
     ];
 
     return {
-      id: event.id,
+      id: event._id,
       title: event.title,
       date: event.startDate,
       students: studentParticipants.length,
