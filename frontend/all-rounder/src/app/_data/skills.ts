@@ -1,4 +1,4 @@
-import { Skill } from "../_type/type.ts";
+import { Skill } from "../_type/type";
 
 // Skills data - centralized skill catalog
 export const Skills: Skill[] = [
