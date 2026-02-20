@@ -73,8 +73,13 @@ export const Students: Student[] = [
     school_id: "1",
     sex: "FEMALE",
     skills: [
-      { name: "Singing" },
-      { name: "Dancing" }
+      {
+        id: "id223", // Changed to string
+        name: "Dancing",
+        category: "Category1",
+        level: 'Beginner',
+        endorsements: 3
+      },
     ],
     clubIds: [],
     created_at: "2024-01-01T00:00:00Z",
