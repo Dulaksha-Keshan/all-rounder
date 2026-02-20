@@ -1,18 +1,18 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import NextImage from 'next/image';
-import { Calendar, MapPin, Clock, ArrowLeft, Users, Trophy, Share2, ChevronDown, Mail, Plus, Minus, BookOpen, Award, ClipboardList, HelpCircle } from 'lucide-react';
-import { Events } from '../_data/events';
-import { gsap } from 'gsap';
 import GoBackButton from '@/components/GoBackButton';
+import { gsap } from 'gsap';
+import { Award, BookOpen, Calendar, ChevronDown, ClipboardList, Clock, HelpCircle, Mail, MapPin, Minus, Plus, Share2, Trophy, Users } from 'lucide-react';
+import NextImage from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { Events } from '../_data/events';
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const eventId = params.id as string;
 
-  const event = Events.find(e => e.id === eventId);
+  const event = Events.find(e => e._id === eventId);
 
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
