@@ -28,16 +28,14 @@ export default function SplashScreen() {
 
       <div className="relative flex items-center justify-center w-full h-full px-4">
         <div className="absolute flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
-          <div 
-            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black transition-all duration-700 ${
-              animationState === 'glow' || animationState === 'complete'
+          <div
+            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black transition-all duration-700 ${animationState === 'glow' || animationState === 'complete'
                 ? 'bg-gradient-to-r from-[var(--secondary-light-lavender)] via-[var(--primary-purple)] to-[var(--secondary-light-lavender)] bg-clip-text text-transparent animate-pulse'
                 : 'text-[var(--white)]'
-            } ${
-              animationState === 'initial' 
-                ? 'opacity-0 -translate-x-[100px] sm:-translate-x-[200px] scale-90' 
+              } ${animationState === 'initial'
+                ? 'opacity-0 -translate-x-[100px] sm:-translate-x-[200px] scale-90'
                 : 'opacity-100 translate-x-0 scale-100'
-            } text-center sm:text-left`}
+              } text-center sm:text-left`}
             style={{
               fontFamily: "'Righteous', 'Fredoka', 'Poppins', sans-serif",
               letterSpacing: '0.05em',
@@ -47,26 +45,24 @@ export default function SplashScreen() {
             ALL-ROUNDER
           </div>
 
-          <div 
-            className={`transition-all duration-700 ${
-              animationState === 'initial' 
-                ? 'opacity-0 scale-0 rotate-180' 
+          <div
+            className={`transition-all duration-700 ${animationState === 'initial'
+                ? 'opacity-0 scale-0 rotate-180'
                 : animationState === 'avatar-in' || animationState === 'glow' || animationState === 'complete'
-                ? 'opacity-100 scale-100 rotate-0'
-                : 'opacity-0 scale-0 rotate-180'
-            }`}
+                  ? 'opacity-100 scale-100 rotate-0'
+                  : 'opacity-0 scale-0 rotate-180'
+              }`}
             style={{
               filter: animationState === 'glow' || animationState === 'complete' ? 'drop-shadow(0 0 15px rgba(220,208,255,0.5))' : 'none'
             }}
           >
-            <Image 
-              src="/icons/avatar.png"
+            <Image
+              src="/icons/Avatar.png"
               alt="Star Avatar"
               width={160}
               height={160}
-              className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 ${
-                animationState === 'glow' ? 'animate-bounce' : ''
-              }`}
+              className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 ${animationState === 'glow' ? 'animate-bounce' : ''
+                }`}
             />
           </div>
         </div>

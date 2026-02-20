@@ -27,10 +27,18 @@ interface NavbarProps {
   onLogout?: () => void;
 }
 
+//User logging out
+const logOut = (auth: boolean) => {
+  // e.g., clear cookies / localStorage / redirect
+  console.log("User logged out");
+  window.location.href = "/login";
+  // Redirect to login page after logout
+  auth = false;
+};
+
 export function Navbar({
-  isAuthenticated = false,
+  isAuthenticated,
   userType,
-  onLogout,
 }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -57,19 +65,19 @@ export function Navbar({
 
   const handleLogout = () => {
     // Call the onLogout callback if provided
-    onLogout?.();
-    
+    logOut(isAuthenticated as boolean);
+
     // Redirect to landing page after logging out
     router.push("/");
   };
 
   // paths and icons for the main navigation - auth user
   const navIcons = [
-    { id: "home", label: "Home", icon: HomeIcon, path: "/home"},
+    { id: "home", label: "Home", icon: HomeIcon, path: "/home" },
     { id: "resources", label: "Resources", icon: BookOpen, path: "/resourceSharing" },
     { id: "donations", label: "Donations", icon: Gift, path: "/donations" },
     { id: "events", label: "Events", icon: Calendar, path: "/events" },
-    { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard"},
+    { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard" },
   ];
 
   // left side dropdown menu - auth user
@@ -107,7 +115,7 @@ export function Navbar({
                     src="/icons/Logo.png"
                     alt="All-Rounder Logo"
                     width={200}
-                    height={60}  
+                    height={60}
                     className="h-auto w-29 object-contain"
                     priority
                   />
@@ -159,15 +167,15 @@ export function Navbar({
           <div className="flex items-center justify-between px-4 py-2.5">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative h-center w-auto">
-                  <NextImage
-                    src="/icons/Logo.png"
-                    alt="All-Rounder Logo"
-                    width={200}
-                    height={60}
-                    className="h-auto w-29 object-contain"
-                    priority
-                  />
-                </div>
+                <NextImage
+                  src="/icons/Logo.png"
+                  alt="All-Rounder Logo"
+                  width={200}
+                  height={60}
+                  className="h-auto w-29 object-contain"
+                  priority
+                />
+              </div>
             </Link>
 
             <button
@@ -197,10 +205,10 @@ export function Navbar({
                   {section === "Home"
                     ? "Home"
                     : section === "AboutUs"
-                    ? "About Us"
-                    : section === "Features"
-                    ? "Features"
-                    : "Events"}
+                      ? "About Us"
+                      : section === "Features"
+                        ? "Features"
+                        : "Events"}
                 </button>
               ))}
 
@@ -269,19 +277,17 @@ export function Navbar({
                     className="relative group"
                   >
                     <div
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 ${
-                        isIconActive
-                          ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
-                          : "hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 text-[#34365C]"
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 ${isIconActive
+                        ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
+                        : "hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 text-[#34365C]"
+                        }`}
                     >
                       <Icon className="w-4 h-4" />
                       <span
-                        className={`overflow-hidden transition-all duration-300 font-medium text-sm ${
-                          isIconActive
-                            ? "max-w-[200px] opacity-100"
-                            : "max-w-0 opacity-0"
-                        }`}
+                        className={`overflow-hidden transition-all duration-300 font-medium text-sm ${isIconActive
+                          ? "max-w-[200px] opacity-100"
+                          : "max-w-0 opacity-0"
+                          }`}
                       >
                         {nav.label}
                       </span>
@@ -348,7 +354,7 @@ export function Navbar({
                           className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-red-600 w-full rounded-lg"
                         >
                           <LogOut className="w-4 h-4" />
-                          <span 
+                          <span
                             className="text-sm font-medium">
                             Logout
                           </span>
@@ -399,17 +405,17 @@ export function Navbar({
       <nav className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-gradient-to-r from-white/80 via-[#F8F7FF]/80 to-white/80 backdrop-blur-xl shadow-lg border-b-2 border-[#DCD0FF]/50">
         <div className="flex items-center justify-between px-4 py-2.5">
           <Link href="/home" className="flex items-center gap-2">
-          {/* Logo */}
+            {/* Logo */}
             <div className="relative h-center w-auto">
-                  <NextImage
-                    src="/icons/Logo.png"
-                    alt="All-Rounder Logo"
-                    width={200}
-                    height={60}
-                    className="h-auto w-29 object-contain"
-                    priority
-                  />
-                </div>
+              <NextImage
+                src="/icons/Logo.png"
+                alt="All-Rounder Logo"
+                width={200}
+                height={60}
+                className="h-auto w-29 object-contain"
+                priority
+              />
+            </div>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -439,11 +445,10 @@ export function Navbar({
                     setMobileMenuOpen(false);
                     setActiveIcon(nav.id);
                   }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    activeIcon === nav.id
-                      ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
-                      : "text-[#34365C] hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeIcon === nav.id
+                    ? "bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] text-white shadow-lg"
+                    : "text-[#34365C] hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50"
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-sm font-semibold">{nav.label}</span>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import {Navbar} from "@/layout/navbar2";
+import { Navbar } from "@/layout/navbar2";
 import Footer from "@/layout/Footer";
 import GoToTopButton from "@/components/GoToTopButton";
 
@@ -33,7 +33,7 @@ export default function RootLayout({
   userType,
 }: Readonly<{
   children: React.ReactNode;
-  isAuthenticated? : boolean;
+  isAuthenticated?: boolean;
   userType?: "student" | "teacher" | "school" | "organization";
 }>) {
 
@@ -45,18 +45,9 @@ export default function RootLayout({
     "url": "https://all-rounder.lk"
   });
 
-  //User logging out
-  const handleLogout = () => {
-    // e.g., clear cookies / localStorage / redirect
-    console.log("User logged out");
-    window.location.href = "/login"; // Redirect to login page after logout
-  };
 
-  <Navbar
-    isAuthenticated={isAuthenticated}
-    userType={userType}
-    onLogout={handleLogout}
-  />
+
+
 
 
   return (
