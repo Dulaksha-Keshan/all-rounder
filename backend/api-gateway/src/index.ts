@@ -64,10 +64,9 @@ const userServiceProxy = (pathRewriteKey: string) =>
       proxyReq: (proxyReq, req: Request) => {
         // forwarding the authenticated user info as headers to User Service
         if (req.user) {
-          proxyReq.setHeader("x-user-id", req.user.uid);
-          proxyReq.setHeader("x-user-role", req.user.role || "");
+          proxyReq.setHeader("x-user-uid", req.user.uid);
           proxyReq.setHeader("x-user-email", req.user.email || "");
-          proxyReq.setHeader("x-user-type", req.user.userType || "");
+          proxyReq.setHeader("x-user-type", req.user.role || "");
           if (req.user.schoolId) {
             proxyReq.setHeader("x-school-id", req.user.schoolId);
           }
@@ -224,9 +223,21 @@ app.patch(
 app.get("/api/clubs", verifyToken, userServiceProxy("/api/clubs"));
 app.get("/api/clubs/:id", verifyToken, userServiceProxy("/api/clubs"));
 
+
+app.get("/api/clubs/members/:id", verifyToken, userServiceProxy("/api/clubs"));
+
+
+app.get("/api/clubs/myClubs", verifyToken, userServiceProxy("/api/clubs"));
+
+app.patch("/api/clubs/join/:id", verifyToken, requireRole("STUDENT", "TEACHER"), userServiceProxy("/api/clubs"));
+
+app.patch("/api/clubs/leave/:id", verifyToken, requireRole("STUDENT", "TEACHER"), userServiceProxy("/api/clubs"));
+
+
+
 const clubAdminMiddleware = [
   verifyToken,
-  requireRole("SCHOOL_ADMIN"),
+  requireRole("SCHOOL_ADMIN", "SUPER_ADMIN"),
 ];
 
 // group 2  schoold admin + school ownership
