@@ -15,7 +15,7 @@ export const getAllClubs = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const clubs = await Club.find({ schoolId: schoolId as string }).sort({ createdAt: -1 });
+    const clubs = await Club.find({ schoolId: schoolId as string, isDeleted: false }).sort({ createdAt: -1 });
     res.status(200).json({
       message: "Clubs fetched successfully",
       clubs,
@@ -84,6 +84,13 @@ export const getClubById = async (req: Request, res: Response): Promise<void> =>
       });
       return;
     }
+    if (club.isDeleted) {
+      res.status(404).json({
+        message: "No such a Club found in the school",
+
+      })
+      return;
+    }
     res.status(200).json({
       message: "Club fetched successfully",
       club,
@@ -99,11 +106,11 @@ export const getClubById = async (req: Request, res: Response): Promise<void> =>
 export const createClub = async (req: Request, res: Response): Promise<void> => {
   try {
     const userType = req.headers["x-user-type"] as string;
-    const createdBy = req.headers["x-user-id"] as string;
+    const createdBy = req.headers["x-user-uid"] as string;
 
     if (!userType || !createdBy) {
       res.status(400).json({
-        message: "x-User-type and x-User-id headers are required",
+        message: "x-User-type and x-User-uid headers are required",
       });
       return;
     }
@@ -297,6 +304,7 @@ export const joinClub = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+
     const club = await Club.findById(clubId);
 
     if (!club || club.isDeleted) {
@@ -477,12 +485,12 @@ export const getUserClubs = async (
   res: Response
 ): Promise<void> => {
   try {
-    const uid = req.headers["x-user-id"] as string;
+    const uid = req.headers["x-user-uid"] as string;
     const userType = req.headers["x-user-type"] as string;
 
     if (!uid || !userType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
