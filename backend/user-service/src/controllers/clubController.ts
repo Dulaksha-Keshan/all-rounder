@@ -179,7 +179,7 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-
+//TODO: Assess this 
 export const updateClub = async (req: Request, res: Response): Promise<void> => {
   try {
     const clubId = req.params.id;

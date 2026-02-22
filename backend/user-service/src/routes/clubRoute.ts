@@ -20,10 +20,7 @@ router.get("/myClubs", getUserClubs)
 // GET /api/clubs/:id - get club by id
 router.get("/:id", getClubById);
 
-
 router.get("/members/:id", getMembers);
-
-
 
 // POST /api/clubs - create new club
 router.post("/", createClub);

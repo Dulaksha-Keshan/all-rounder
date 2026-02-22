@@ -14,10 +14,10 @@ router.get("/", listSkills);
 
 router.post("/", createSkill);
 
-router.post("/users/:id/skills", addSkillToUser);
+router.post("/users", addSkillToUser);
 
-router.delete("/users/:id/skills/:skillId", removeSkillFromUser);
+router.delete("/users", removeSkillFromUser);
 
-router.get("/users/:id/skills", getUserSkills);
+router.get("/users", getUserSkills);
 
 export default router;
