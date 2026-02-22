@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoute.js";
 import schoolRoutes from "./routes/schoolRoute.js";
 import organizationRoutes from "./routes/organizationRoute.js";
 import eventHostsRoutes from "./routes/eventHostsRoutes.js"
+import clubRoutes from "./routes/clubRoute.js"
 import { connectMDB } from "./mongoDb.js";
 
 dotenv.config();
@@ -32,7 +33,8 @@ app.get('/health', (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/organizations", organizationRoutes);
-app.use("api/event-hots", eventHostsRoutes)
+app.use("/api/clubs", clubRoutes);
+app.use("/api/event-hots", eventHostsRoutes)
 
 const PORT = process.env.PORT || 3001;
 

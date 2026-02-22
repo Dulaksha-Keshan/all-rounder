@@ -6,7 +6,7 @@ const clubSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
+
     },
     description: {
       type: String,
@@ -28,18 +28,18 @@ const clubSchema = new mongoose.Schema(
       required: true,
     },
     foundedYear: {
-      type: Number,
+      type: Date,
     },
-   members:  [
-    {
-      uid: { type: String, required: true },
-      userType: { type: String, required: true },
-      joinedAt: { type: Date, default: Date.now }
-    }
+    members: [
+      {
+        uid: { type: String, required: true },
+        userType: { type: String, required: true },
+        joinedAt: { type: Date, default: Date.now }
+      }
     ],
     admins: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "User",
       },
     ],
@@ -67,7 +67,7 @@ const clubSchema = new mongoose.Schema(
       default: false,
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "User",
       required: true,
     },

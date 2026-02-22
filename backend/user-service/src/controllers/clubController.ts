@@ -115,12 +115,14 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    const schoolId = userType == UserType.SUPER_ADMIN ? req.body.schoolId : req.headers["x-school-id"];
+
+
     const {
       name,
       description,
       category,
       logoUrl,
-      schoolId,
       schoolName,
       foundedYear,
       teacherInCharge,
@@ -128,17 +130,18 @@ export const createClub = async (req: Request, res: Response): Promise<void> => 
       visibility,
     } = req.body;
 
-    if (!name || !description || !category || !schoolName || !teacherInCharge?.name) {
+    if (!name || !description || !category || !schoolName || !teacherInCharge?.name || !schoolId) {
       res.status(400).json({
         message: "Required club fields are missing",
       });
       return;
     }
 
-    const existingClub = await Club.findOne({ name });
+    const existingClub = await Club.findOne({ name, schoolId });
+
     if (existingClub) {
       res.status(409).json({
-        message: "Club with this name already exists",
+        message: "A club with this name already exists in your school",
       });
       return;
     }
