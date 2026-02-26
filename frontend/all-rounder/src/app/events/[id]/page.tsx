@@ -5,14 +5,15 @@ import { Award, BookOpen, Calendar, ChevronDown, ClipboardList, Clock, HelpCircl
 import NextImage from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Events } from '../_data/events';
+import { useEventStore } from '@/context/useEventStore';
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const eventId = params.id as string;
 
-  const event = Events.find(e => e._id === eventId);
+  const getEventById = useEventStore(state => state.getEventById);
+  const event = getEventById(eventId);
 
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);

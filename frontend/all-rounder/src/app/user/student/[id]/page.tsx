@@ -79,7 +79,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
   const { drafts, deleteDraft, likePost, commentPost } = useHomeStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [draftToDelete, setDraftToDelete] = useState<number | null>(null);
+  const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
 
   // Note: registeredEvents was removed from schema, so this is set to empty for now
   const registeredEventsWithDetails: any[] = [];
@@ -546,7 +546,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {drafts.map((draft) => (
                   <PostCard
-                    key={draft.id}
+                    key={draft._id}
                     post={draft}
                     onLike={() => { }}
                     onComment={() => { }}
