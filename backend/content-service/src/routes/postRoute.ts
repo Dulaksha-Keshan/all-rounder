@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   createPost,
-  getAllPosts,
+  getMyPosts,
+  getPostsByUser,
   getPostById,
   updatePost,
   deletePost,
@@ -9,11 +10,37 @@ import {
 
 const router = Router();
 
-// CRUD for posts
-router.post("/", createPost);           // Create new post
-router.get("/", getAllPosts);          // List all posts
-router.get("/:id", getPostById);       // Get single post by ID
-router.put("/:id", updatePost);        // Update post by ID
-router.delete("/:id", deletePost);     // Delete post by ID
+// ====================
+// POSTS CRUD ROUTES
+// ====================
+
+// Create a new post
+// Headers: x-user-id, x-user-type
+router.post("/", createPost);
+
+// Get posts of logged-in user (my profile)
+// Headers: x-user-id, x-user-type
+// Optional query: category, visibility
+router.get("/me", getMyPosts);
+
+// Get posts of another user
+// Params: userId
+// Query: userType, category
+router.get("/user/:userId", getPostsByUser);
+
+// Get a single post by ID
+// Params: id
+// Optional header: x-user-id (for private post access)
+router.get("/:id", getPostById);
+
+// Update a post by ID
+// Params: id
+// Headers: x-user-id, x-user-type
+router.put("/:id", updatePost);
+
+// Delete (soft delete) a post by ID
+// Params: id
+// Headers: x-user-id, x-user-type
+router.delete("/:id", deletePost);
 
 export default router;
