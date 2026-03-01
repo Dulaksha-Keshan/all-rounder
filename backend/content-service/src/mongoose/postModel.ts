@@ -1,5 +1,39 @@
 import mongoose from "mongoose";
 
+
+const likeSchema = new mongoose.Schema(
+  {
+    count: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    userIds: {
+      type: [String], 
+      default: [],
+    },
+  },
+  { _id: false }
+);
+
+const commentSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: String, 
+      required: true,
+    },
+    comment: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }
+);
+
 const postSchema = new mongoose.Schema(
   {
     title: {
@@ -7,62 +41,66 @@ const postSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     content: {
       type: String,
       required: true,
     },
+
     category: {
-      type: String, // e.g., "achievement", "participation", "competition", "project"
-      required: true,
-    }, // methanin ekak ain karann
-    postType: {
       type: String,
-      enum: ["achievement", "participation", "event", "project"], 
+      enum: ["achievement", "participation", "event", "project"],
       default: "achievement",
+      required: true,
     },
+
     visibility: {
       type: String,
       enum: ["public", "private"],
       default: "public",
     },
-    attachments: [
-      {
-        type: String, // URLs for images, certificates, or media
-      },
-    ],
-    tags: [
-      {
-        type: String, // e.g., "science-fair", "math-competition"
-      },
-    ],
-    student: {
-      type: String,
-      required: true, // posts are always tied to a student
-    }, // required ain krla organization and school, and students dann
-    school: {
-      type: String,
-      required: true, 
+
+    attachments: {
+      type: [String], // image URLs, certificate URLs, etc.
+      default: [],
     },
-    organization: {
-      type: String,
-      required: true, 
+
+    tags: {
+      type: [String],
+      default: [],
     },
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Student",
-      },
-    ],
-    comments: [
-      {
-        student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
-        comment: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
+
+    authorType: {
+      type: String,
+      enum: ["student", "school", "organization"],
+      required: true,
+    },
+
+    authorId: {
+      type: String,
+      required: true,
+    },
+    likes: {
+      type: likeSchema,
+      default: () => ({
+        count: 0,
+        userIds: [],
+      }),
+    },
+
+    comments: {
+      type: [commentSchema],
+      default: [],
+    },
+
+    commentCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     isDeleted: {
       type: Boolean,
-      default: false, 
+      default: false,
     },
   },
   {
@@ -70,5 +108,10 @@ const postSchema = new mongoose.Schema(
     collection: "posts",
   }
 );
+
+
+postSchema.index({ authorId: 1 });
+postSchema.index({ category: 1 });
+postSchema.index({ createdAt: -1 });
 
 export default mongoose.model("Post", postSchema);
