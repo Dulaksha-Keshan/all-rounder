@@ -139,7 +139,7 @@ export const getMyPosts = async (req: Request, res: Response): Promise<void> => 
 };
 
 //user id ek req.params, thwa kenekge posts
- const getPostsByUser = async (
+export const getPostsByUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
@@ -266,96 +266,159 @@ export const getPostById = async (
 
 export const updatePost = async (req: Request, res: Response): Promise<void> => {
   try {
-    //post ek userged balann
+    const postId = req.params.id as string;
+    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserType = req.headers["x-user-type"] as string;
 
-    const postId =  req.params.id as string;
-
-    if (!postId) {
+    // Validate headers
+    if (!currentUserId || !currentUserType) {
       res.status(400).json({
-        message: "Post ID is required",
+        message: "x-user-id and x-user-type headers are required",
       });
+      return;
+    }
+
+    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
+      res.status(400).json({
+        message: "x-user-type must be student, school admin, or organization admin",
+      });
+      return;
+    }
+
+    // Validate post ID
+    if (!postId) {
+      res.status(400).json({ message: "Post ID is required" });
       return;
     }
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({
-        message: "Invalid Post ID",
-      });
+      res.status(400).json({ message: "Invalid Post ID" });
       return;
     }
 
+    // Prevent updates to protected fields
     const updateData = { ...req.body };
-
-    delete updateData.student; 
     delete updateData._id;
     delete updateData.createdAt;
     delete updateData.isDeleted;
+    delete updateData.authorId;
+    delete updateData.authorType;
 
+    // Find and update post if the current user is the author
     const updatedPost = await Post.findOneAndUpdate(
-      { _id: postId, isDeleted: false },
+      {
+        _id: postId,
+        isDeleted: false,
+        authorId: currentUserId,
+        authorType: currentUserType,
+      },
       updateData,
       { new: true }
-    );
+    ).lean();
 
     if (!updatedPost) {
       res.status(404).json({
-        message: "Post not found or already deleted",
+        message: "Post not found, deleted, or you are not the author",
       });
       return;
     }
 
+    const safePost = {
+      id: updatedPost._id,
+      title: updatedPost.title,
+      content: updatedPost.content,
+      category: updatedPost.category,
+      visibility: updatedPost.visibility,
+      attachments: updatedPost.attachments,
+      tags: updatedPost.tags,
+      likeCount: updatedPost.likes?.count || 0,
+      commentCount: updatedPost.commentCount || 0,
+      createdAt: updatedPost.createdAt,
+      updatedAt: updatedPost.updatedAt,
+    };
+
     res.status(200).json({
       message: "Post updated successfully",
-      post: updatedPost,
+      post: safePost,
     });
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const deletePost = async (req: Request, res: Response): Promise<void> => {
   try {
     const postId = req.params.id as string;
+    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserType = req.headers["x-user-type"] as string;
 
-    if (!postId) {
+    // Validate headers
+    if (!currentUserId || !currentUserType) {
       res.status(400).json({
-        message: "Post ID is required",
+        message: "x-user-id and x-user-type headers are required",
       });
+      return;
+    }
+
+    if (!["STUDENT", "SCHOOL", "ORGANIZATION"].includes(currentUserType)) {
+      res.status(400).json({
+        message: "x-user-type must be student, school, or organization",
+      });
+      return;
+    }
+
+    // Validate post ID
+    if (!postId) {
+      res.status(400).json({ message: "Post ID is required" });
       return;
     }
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({
-        message: "Invalid Post ID",
-      });
+      res.status(400).json({ message: "Invalid Post ID" });
       return;
     }
 
+    // Soft delete only if the current user is the author
     const deletedPost = await Post.findOneAndUpdate(
-      { _id: postId, isDeleted: false }, 
+      {
+        _id: postId,
+        isDeleted: false,
+        authorId: currentUserId,
+        authorType: currentUserType,
+      },
       { isDeleted: true },
       { new: true }
-    );
+    ).lean();
 
     if (!deletedPost) {
       res.status(404).json({
-        message: "Post not found or already deleted",
+        message: "Post not found, already deleted, or you are not the author",
       });
       return;
     }
 
+    const safePost = {
+      id: deletedPost._id,
+      title: deletedPost.title,
+      content: deletedPost.content,
+      category: deletedPost.category,
+      visibility: deletedPost.visibility,
+      attachments: deletedPost.attachments,
+      tags: deletedPost.tags,
+      likeCount: deletedPost.likes?.count || 0,
+      commentCount: deletedPost.commentCount || 0,
+      createdAt: deletedPost.createdAt,
+      updatedAt: deletedPost.updatedAt,
+    };
+
     res.status(200).json({
       message: "Post deleted successfully",
-      post: deletedPost,
+      post: safePost,
     });
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -379,3 +442,61 @@ export const getFeed = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+
+//Post interactions sepcific functions
+
+
+export const toggleLikePost = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id as string;
+    const currentUserId = req.headers["x-user-id"] as string;
+
+    // Validate headers
+    if (!currentUserId) {
+      res.status(400).json({ message: "x-user-id header is required" });
+      return;
+    }
+
+    // Validate postId
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      res.status(400).json({ message: "Invalid Post ID" });
+      return;
+    }
+
+    // Find post
+    const post = await Post.findOne({ _id: postId, isDeleted: false });
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    const userIndex = post.likes.userIds.indexOf(currentUserId);
+
+    if (userIndex === -1) {
+      // User hasn't liked yet, add like
+      post.likes.userIds.push(currentUserId);
+      post.likes.count = post.likes.userIds.length;
+      await post.save();
+
+      res.status(200).json({
+        message: "Post liked successfully",
+        likeCount: post.likes.count,
+      });
+    } else {
+      // User already liked, remove like
+      post.likes.userIds.splice(userIndex, 1);
+      post.likes.count = post.likes.userIds.length;
+      await post.save();
+
+      res.status(200).json({
+        message: "Post unliked successfully",
+        likeCount: post.likes.count,
+      });
+    }
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
