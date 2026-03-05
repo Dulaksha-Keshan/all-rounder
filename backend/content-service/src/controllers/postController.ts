@@ -631,3 +631,46 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+export const getPostComments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id as string;
+    const page = parseInt((req.query.page as string) || "1", 10);
+    const limit = parseInt((req.query.limit as string) || "10", 10);
+
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      res.status(400).json({ message: "Invalid Post ID" });
+      return;
+    }
+
+    const post = await Post.findOne({ _id: postId, isDeleted: false }).lean();
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    const paginatedComments = post.comments
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) // newest first
+      .slice(startIndex, endIndex)
+      .map(comment => ({
+        id: comment._id,
+        comment: comment.comment,
+        userId: comment.userId,
+        createdAt: comment.createdAt,
+      }));
+
+    res.status(200).json({
+      message: "Comments fetched successfully",
+      comments: paginatedComments,
+      totalComments: post.comments.length,
+      page,
+      totalPages: Math.ceil(post.comments.length / limit),
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
