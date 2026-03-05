@@ -16,22 +16,14 @@ const likeSchema = new mongoose.Schema(
   { _id: false }
 );
 
+
 const commentSchema = new mongoose.Schema(
   {
-    userId: {
-      type: String, 
-      required: true,
-    },
-    comment: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }
+    userId: { type: String, required: true },
+    comment: { type: String, required: true, trim: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
 );
 
 const postSchema = new mongoose.Schema(
