@@ -565,4 +565,69 @@ export const addComment = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+export const deleteComment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.postId as string;
+    const commentId = req.params.commentId as string;
+    const currentUserId = req.headers["x-user-id"] as string;
+
+    // Validate inputs
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      res.status(400).json({ message: "Invalid Post ID" });
+      return;
+    }
+
+    if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
+      res.status(400).json({ message: "Invalid Comment ID" });
+      return;
+    }
+
+    if (!currentUserId) {
+      res.status(400).json({ message: "x-user-id header is required" });
+      return;
+    }
+
+    // Find the post
+    const post = await Post.findOne({ _id: postId, isDeleted: false });
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    // Find the comment index
+    const commentIndex = post.comments.findIndex(c => c._id.toString() === commentId);
+
+    if (commentIndex === -1) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+
+    const comment = post.comments[commentIndex];
+
+    if (!comment) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+
+    // Only the comment author can delete
+    if (comment.userId !== currentUserId) {
+      res.status(403).json({ message: "You are not allowed to delete this comment" });
+      return;
+    }
+
+    // Remove the comment
+    post.comments.splice(commentIndex, 1);
+    post.commentCount = post.comments.length;
+
+    await post.save();
+
+    res.status(200).json({
+      message: "Comment deleted successfully",
+      commentCount: post.commentCount,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
