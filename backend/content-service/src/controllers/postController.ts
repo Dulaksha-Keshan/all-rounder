@@ -500,3 +500,69 @@ export const toggleLikePost = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const addComment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const postId = req.params.id as string;
+    const currentUserId = req.headers["x-user-id"] as string;
+    const { comment } = req.body;
+
+    // Validate headers and body
+    if (!currentUserId) {
+      res.status(400).json({ message: "x-user-id header is required" });
+      return;
+    }
+
+    if (!comment || comment.trim().length === 0) {
+      res.status(400).json({ message: "Comment cannot be empty" });
+      return;
+    }
+
+    // Validate postId
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      res.status(400).json({ message: "Invalid Post ID" });
+      return;
+    }
+
+    // Find the post
+    const post = await Post.findOne({ _id: postId, isDeleted: false });
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+
+    // Add the comment
+    const newComment = {
+      userId: currentUserId,
+      comment: comment.trim(),
+      createdAt: new Date(),
+    };
+
+    post.comments.push(newComment);
+    post.commentCount = post.comments.length;
+
+    await post.save();
+
+    // Get the last added comment safely
+    const addedComment = post.comments[post.comments.length - 1];
+    if (!addedComment) {
+      res.status(500).json({ message: "Failed to add comment" });
+      return;
+    }
+
+    // Safe response
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment: {
+        id: addedComment._id,
+        comment: addedComment.comment,
+        createdAt: addedComment.createdAt,
+      },
+      commentCount: post.commentCount,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
