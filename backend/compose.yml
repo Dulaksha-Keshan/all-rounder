@@ -2,149 +2,23 @@ version: "3.8"
 
 services:
   # ============================================
-  # DATABASES
-  # ============================================
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: all-rounder-postgres
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: userdb
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts/postgres:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d userdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - all-rounder-network
-
-  mongodb:
-    image: mongo:7
-    container_name: all-rounder-mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: contentdb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-      - ./init-scripts/mongo:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - all-rounder-network
-
-  #redis:
-  #  image: redis:7-alpine
-  #  container_name: att-rounder-redis
-  #  command: redis-server --appendonly yes
-  #  ports:
-  #    - "6379:6379"
-  #  volumes:
-  #    - redis_data:/data
-  #  healthcheck:
-  #    test: ["CMD", "redis-cli", "ping"]
-  #    interval: 10s
-  #    timeout: 5s
-  #    retries: 5
-  #  networks:
-  #    - att-rounder-network
-
-  # ============================================
-  # MESSAGE QUEUE - KAFKA
-  # ============================================
-
-  #zookeeper:
-  #  image: confluentinc/cp-zookeeper:7.5.0
-  #  container_name: att-rounder-zookeeper
-  #  environment:
-  #    ZOOKEEPER_CLIENT_PORT: 2181
-  #    ZOOKEEPER_TICK_TIME: 2000
-  #  ports:
-  #    - "2181:2181"
-  #  volumes:
-  #    - zookeeper_data:/var/lib/zookeeper/data
-  #    - zookeeper_logs:/var/lib/zookeeper/log
-  #  networks:
-  #    - att-rounder-network
-
-  #kafka:
-  #  image: confluentinc/cp-kafka:7.5.0
-  #  container_name: att-rounder-kafka
-  #  depends_on:
-  #    - zookeeper
-  #  ports:
-  #    - "9092:9092"
-  #    - "9093:9093"
-  #  environment:
-  #    KAFKA_BROKER_ID: 1
-  #    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #    KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-  #    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-  #    KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #    KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-  #  volumes:
-  #    - kafka_data:/var/lib/kafka/data
-  #  healthcheck:
-  #    test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-  #    interval: 30s
-  #    timeout: 10s
-  #    retries: 5
-  #  networks:
-  #    - att-rounder-network
-
-  ## Optional: Kafka UI for monitoring
-  #kafka-ui:
-  #  image: provectuslabs/kafka-ui:latest
-  #  container_name: att-rounder-kafka-ui
-  #  depends_on:
-  #    - kafka
-  #  ports:
-  #    - "8080:8080"
-  #  environment:
-  #    KAFKA_CLUSTERS_0_NAME: local
-  #    KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-  #    KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-  #  networks:
-  #    - att-rounder-network
-
-  # ============================================
-  # MICROSERVICES
+  # MICROSERVICES (Databases run locally)
   # ============================================
 
   api-gateway:
     build:
-      context: ./backend/api-gateway
+      context: ./api-gateway
       dockerfile: Dockerfile
     container_name: all-rounder-api-gateway
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - USER_SERVICE_URL=http://user-service:3001
-      - CONTENT_SERVICE_URL=http://content-service:3002
-      - REDIS_URL=redis://redis:6379
     env_file:
-      - ./backend/api-gateway/.env
+      - ./api-gateway/.env
     depends_on:
-      #- redis
       - user-service
       - content-service
     volumes:
-      - ./backend/api-gateway:/app
+      - ./api-gateway:/app
       - /app/node_modules
     command: npm run dev
     networks:
@@ -153,28 +27,15 @@ services:
 
   user-service:
     build:
-      context: ./backend/user-service
+      context: ./user-service
       dockerfile: Dockerfile
     container_name: all-rounder-user-service
     ports:
       - "3001:3001"
-    environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/userdb
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:29092
     env_file:
-      - ./backend/user-service/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      #redis:
-      #  condition: service_healthy
-      #kafka:
-      #  condition: service_healthy
+      - ./user-service/.env
     volumes:
-      - ./backend/user-service:/app
+      - ./user-service:/app
       - /app/node_modules
     command: npm run dev
     networks:
@@ -183,69 +44,22 @@ services:
 
   content-service:
     build:
-      context: ./backend/content-service
+      context: ./content-service
       dockerfile: Dockerfile
     container_name: all-rounder-content-service
     ports:
       - "3002:3002"
-    environment:
-      - NODE_ENV=development
-      - PORT=3002
-      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/contentdb?authSource=admin
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:29092
     env_file:
-      - ./backend/content-service/.env
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+      - ./content-service/.env
     volumes:
-      - ./backend/content-service:/app
+      - ./content-service:/app
       - /app/node_modules
     command: npm run dev
     networks:
       - all-rounder-network
     restart: unless-stopped
 
-  # ============================================
-  # DATABASE ADMIN TOOLS (Optional - for development)
-  # ============================================
 
-  #pgadmin:
-  #  image: dpage/pgadmin4:latest
-  #  container_name: att-rounder-pgadmin
-  #  environment:
-  #    PGADMIN_DEFAULT_EMAIL: admin@attrounder.com
-  #    PGADMIN_DEFAULT_PASSWORD: admin123
-  #    PGADMIN_CONFIG_SERVER_MODE: 'False'
-  #  ports:
-  #    - "5050:80"
-  #  volumes:
-  #    - pgadmin_data:/var/lib/pgadmin
-  #  depends_on:
-  #    - postgres
-  #  networks:
-  #    - att-rounder-network
-
-  #mongo-express:
-  #  image: mongo-express:latest
-  #  container_name: att-rounder-mongo-express
-  #  environment:
-  #    ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-  #    ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
-  #    ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
-  #    ME_CONFIG_BASICAUTH_USERNAME: admin
-  #    ME_CONFIG_BASICAUTH_PASSWORD: admin123
-  #  ports:
-  #    - "8081:8081"
-  #  depends_on:
-  #    - mongodb
-  #  networks:
-  #    - att-rounder-network
 
 networks:
   all-rounder-network:
