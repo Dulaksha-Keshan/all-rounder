@@ -12,8 +12,10 @@ import {
   deleteComment,
   getPostComments
 } from "../controllers/postController.js";
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ====================
 // POSTS CRUD ROUTES
@@ -21,7 +23,7 @@ const router = Router();
 
 // Create a new post
 // Headers: x-user-id, x-user-type
-router.post("/", createPost);
+router.post("/", upload.array('attachments', 10), createPost);
 
 // Get posts of logged-in user (my profile)
 // Headers: x-user-id, x-user-type
@@ -45,7 +47,7 @@ router.get("/:id", getPostById);
 // Update a post by ID
 // Params: id
 // Headers: x-user-id, x-user-type
-router.put("/:id", updatePost);
+router.put("/:id", upload.array('attachments', 10), updatePost);
 
 // Delete (soft delete) a post by ID
 // Params: id

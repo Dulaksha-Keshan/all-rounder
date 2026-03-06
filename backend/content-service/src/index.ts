@@ -14,6 +14,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+app.use((req, res, next) => {
+  console.log(`📨 [Content Service] Received: ${req.method} ${req.url}`);
+  console.log(`   Headers: uid=${req.headers['x-user-uid']}, type=${req.headers['x-user-type']}`);
+  next();
+});
+
 app.use("/api/events", eventRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/resources", resourceRoutes);

@@ -1,17 +1,22 @@
 import { Request, Response } from "express";
 import Post from "../mongoose/postModel.js"
 import mongoose from "mongoose";
+import multer from 'multer';
+import { uploadToR2, deleteFromR2 } from '../utils/r2Upload.js';
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
+  const uploadedKeys: string[] = []; // For rollback
   try {
-    const authorId = req.headers["x-user-id"] as string;
+    const authorId = req.headers["x-user-uid"] as string;
     const authorType = req.headers["x-user-type"] as string;
 
     // Validate headers
     if (!authorId || !authorType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
@@ -23,7 +28,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { title, content, category, visibility, attachments, tags } = req.body;
+    const { title, content, category, visibility, tags } = req.body;
 
     // Validate required body fields
     if (!title || !content || !category) {
@@ -33,13 +38,40 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    // Handle file uploads
+    const attachmentUrls: string[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        try {
+          const key = `posts/${authorId}/${Date.now()}-${file.originalname}`;
+          const url = await uploadToR2(file.buffer, key, file.mimetype);
+          attachmentUrls.push(url);
+          uploadedKeys.push(key); // Track for rollback
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          // Rollback previous uploads
+          for (const key of uploadedKeys) {
+            try {
+              await deleteFromR2(key);
+            } catch (deleteError) {
+              console.error('Rollback delete failed:', deleteError);
+            }
+          }
+          res.status(500).json({
+            message: "File upload failed",
+          });
+          return;
+        }
+      }
+    }
+
     // Create the post
     const post = await Post.create({
       title,
       content,
       category,
       visibility: visibility || "public",
-      attachments: attachments || [],
+      attachments: attachmentUrls,
       tags: tags || [],
       authorType,
       authorId,
@@ -69,23 +101,31 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
     });
   } catch (error: any) {
     console.error(error);
+    // Rollback uploads if post creation failed
+    for (const key of uploadedKeys) {
+      try {
+        await deleteFromR2(key);
+      } catch (deleteError) {
+        console.error('Rollback delete failed:', deleteError);
+      }
+    }
     res.status(500).json({
       message: error.message,
     });
   }
 };
 
-// x-user-id use karala thamange porfile ekt giyama ena post tika
+// x-user-uid use karala thamange porfile ekt giyama ena post tika
 
 export const getMyPosts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const authorId = req.headers["x-user-id"] as string;
+    const authorId = req.headers["x-user-uid"] as string;
     const authorType = req.headers["x-user-type"] as string;
 
     // Validate headers
     if (!authorId || !authorType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
@@ -208,7 +248,7 @@ export const getPostById = async (
 ): Promise<void> => {
   try {
     const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-id"] as string; // optional, can be undefined
+    const currentUserId = req.headers["x-user-uid"] as string; // optional, can be undefined
 
     // Validate post ID
     if (!postId) {
@@ -265,15 +305,16 @@ export const getPostById = async (
 
 
 export const updatePost = async (req: Request, res: Response): Promise<void> => {
+  const uploadedKeys: string[] = []; // For rollback
   try {
     const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserId = req.headers["x-user-uid"] as string;
     const currentUserType = req.headers["x-user-type"] as string;
 
     // Validate headers
     if (!currentUserId || !currentUserType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
@@ -296,6 +337,33 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    // Handle file uploads (replace attachments if new files provided)
+    const attachmentUrls: string[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        try {
+          const key = `posts/${currentUserId}/${Date.now()}-${file.originalname}`;
+          const url = await uploadToR2(file.buffer, key, file.mimetype);
+          attachmentUrls.push(url);
+          uploadedKeys.push(key); // Track for rollback
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          // Rollback previous uploads
+          for (const key of uploadedKeys) {
+            try {
+              await deleteFromR2(key);
+            } catch (deleteError) {
+              console.error('Rollback delete failed:', deleteError);
+            }
+          }
+          res.status(500).json({
+            message: "File upload failed",
+          });
+          return;
+        }
+      }
+    }
+
     // Prevent updates to protected fields
     const updateData = { ...req.body };
     delete updateData._id;
@@ -303,6 +371,11 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
     delete updateData.isDeleted;
     delete updateData.authorId;
     delete updateData.authorType;
+
+    // If new attachments uploaded, replace them
+    if (attachmentUrls.length > 0) {
+      updateData.attachments = attachmentUrls;
+    }
 
     // Find and update post if the current user is the author
     const updatedPost = await Post.findOneAndUpdate(
@@ -320,6 +393,14 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       res.status(404).json({
         message: "Post not found, deleted, or you are not the author",
       });
+      // Rollback uploads since update failed
+      for (const key of uploadedKeys) {
+        try {
+          await deleteFromR2(key);
+        } catch (deleteError) {
+          console.error('Rollback delete failed:', deleteError);
+        }
+      }
       return;
     }
 
@@ -343,6 +424,14 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
     });
   } catch (error: any) {
     console.error(error);
+    // Rollback uploads if update failed
+    for (const key of uploadedKeys) {
+      try {
+        await deleteFromR2(key);
+      } catch (deleteError) {
+        console.error('Rollback delete failed:', deleteError);
+      }
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -350,13 +439,13 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
 export const deletePost = async (req: Request, res: Response): Promise<void> => {
   try {
     const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserId = req.headers["x-user-uid"] as string;
     const currentUserType = req.headers["x-user-type"] as string;
 
     // Validate headers
     if (!currentUserId || !currentUserType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }
@@ -450,11 +539,11 @@ export const getFeed = async (req: Request, res: Response): Promise<void> => {
 export const toggleLikePost = async (req: Request, res: Response): Promise<void> => {
   try {
     const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserId = req.headers["x-user-uid"] as string;
 
     // Validate headers
     if (!currentUserId) {
-      res.status(400).json({ message: "x-user-id header is required" });
+      res.status(400).json({ message: "x-user-uid header is required" });
       return;
     }
 
@@ -503,12 +592,12 @@ export const toggleLikePost = async (req: Request, res: Response): Promise<void>
 export const addComment = async (req: Request, res: Response): Promise<void> => {
   try {
     const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserId = req.headers["x-user-uid"] as string;
     const { comment } = req.body;
 
     // Validate headers and body
     if (!currentUserId) {
-      res.status(400).json({ message: "x-user-id header is required" });
+      res.status(400).json({ message: "x-user-uid header is required" });
       return;
     }
 
@@ -569,7 +658,7 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
   try {
     const postId = req.params.postId as string;
     const commentId = req.params.commentId as string;
-    const currentUserId = req.headers["x-user-id"] as string;
+    const currentUserId = req.headers["x-user-uid"] as string;
 
     // Validate inputs
     if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
@@ -583,7 +672,7 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
     }
 
     if (!currentUserId) {
-      res.status(400).json({ message: "x-user-id header is required" });
+      res.status(400).json({ message: "x-user-uid header is required" });
       return;
     }
 
