@@ -218,7 +218,6 @@ app.patch(
 
 
 // CLUB ROUTES
-// group 1 - stduent  only
 //TODO: maybe we will add a club controller for the general list of clubs beacuse currently its fetching the user's schools clubs only 
 app.get("/api/clubs", verifyToken, userServiceProxy("/api/clubs"));
 app.get("/api/clubs/:id", verifyToken, userServiceProxy("/api/clubs"));
@@ -252,7 +251,8 @@ const studentClubMiddleware = [verifyToken, requireRole("STUDENT")];
 app.post("/api/clubs/:id/join", ...studentClubMiddleware, userServiceProxy("/api/clubs"));
 app.delete("/api/clubs/:id/leave", ...studentClubMiddleware, userServiceProxy("/api/clubs"));
 
-// ============================================
+
+
 // SKILL ROUTES
 // group 1 public skill list
 app.get("/api/skills", userServiceProxy("/api/skills"));
@@ -264,8 +264,23 @@ app.post(
   requireRole("SUPER_ADMIN"),
   userServiceProxy("/api/skills")
 );
+app.post("/api/skills/users"
+  , verifyToken
+  , requireRole("STUDENT")
+  , userServiceProxy("/api/skills"));
 
-// ============================================
+app.delete("/api/skills/users"
+  , verifyToken
+  , requireRole("STUDENT")
+  , userServiceProxy("/api/skills"));
+
+
+app.get("/api/skills/users"
+  , verifyToken
+  , requireRole("STUDENT"), userServiceProxy("/api/skills"));
+
+
+
 // EVENT HOST ROUTES (internal use)
 app.use(
   "/api/event-hosts",
