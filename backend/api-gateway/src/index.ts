@@ -85,6 +85,41 @@ const userServiceProxy = (pathRewriteKey: string) =>
     },
   });
 
+const contentServiceProxy = (pathRewriteKey: string) =>
+  createProxyMiddleware({
+    target: process.env.CONTENT_SERVICE_URL,
+    changeOrigin: true,
+    // Enable multipart/form-data support for file uploads (e.g., post attachments to R2)
+    pathRewrite: { "^/": `${pathRewriteKey}/` }, // pass-through, no rewrite needed
+    on: {
+      proxyReq: (proxyReq, req: Request) => {
+        // Forward authenticated user info as headers to Content Service
+
+        if (req.user) {
+          proxyReq.setHeader("x-user-uid", req.user.uid);
+          proxyReq.setHeader("x-user-type", req.user.role || "");
+          if (req.user.schoolId) {
+            proxyReq.setHeader("x-school-id", req.user.schoolId);
+          }
+          if (req.user.organizationId) {
+            proxyReq.setHeader("x-organization-id", req.user.organizationId);
+          }
+        }
+        // Preserve original content-type header for multipart file uploads
+        if (req.headers['content-type']) {
+          proxyReq.setHeader('content-type', req.headers['content-type']);
+        }
+      },
+      error: (err, req, res) => {
+        console.error("Content Service proxy error:", err);
+        (res as Response).status(503).json({
+          error: "Content service unavailable",
+          message: "Please try again later",
+        });
+      },
+    },
+  });
+
 // health checks
 app.get("/health", (req: Request, res: Response) => {
   res.json({
@@ -288,6 +323,14 @@ app.use(
   userServiceProxy("/api/event-hosts")
 );
 
+// POST/CONTENT ROUTES (proxied to content-service)
+// Handles post CRUD, likes, comments, and file uploads (e.g., attachments to R2)
+// All routes require authentication via verifyToken
+app.use(
+  "/api/posts",
+  verifyToken,
+  contentServiceProxy("/api/posts")
+);
 
 app.use(express.json());
 
