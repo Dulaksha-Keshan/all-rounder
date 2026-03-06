@@ -6,6 +6,11 @@ import {
   getPostById,
   updatePost,
   deletePost,
+  getFeed,
+  toggleLikePost,
+  addComment,
+  deleteComment,
+  getPostComments
 } from "../controllers/postController.js";
 
 const router = Router();
@@ -28,6 +33,10 @@ router.get("/me", getMyPosts);
 // Query: userType, category
 router.get("/user/:userId", getPostsByUser);
 
+// Get home feed posts (latest public posts)
+// No headers required
+router.get("/feed", getFeed);
+
 // Get a single post by ID
 // Params: id
 // Optional header: x-user-id (for private post access)
@@ -42,5 +51,36 @@ router.put("/:id", updatePost);
 // Params: id
 // Headers: x-user-id, x-user-type
 router.delete("/:id", deletePost);
+
+
+// ====================
+// LIKE ROUTES
+// ====================
+
+// Like or unlike a post
+// Params: id (postId)
+// Headers: x-user-id
+router.post("/:id/like", toggleLikePost);
+
+
+// ====================
+// COMMENT ROUTES
+// ====================
+
+// Add a comment to a post
+// Params: id (postId)
+// Headers: x-user-id
+// Body: { comment }
+router.post("/:id/comment", addComment);
+
+// Delete a comment from a post
+// Params: postId, commentId
+// Headers: x-user-id
+router.delete("/:postId/comment/:commentId", deleteComment);
+
+// Get comments of a post (paginated)
+// Params: id (postId)
+// Query: page, limit
+router.get("/:id/comments", getPostComments);
 
 export default router;
