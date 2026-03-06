@@ -5,3 +5,6 @@ postman
 
 .postman
 /generated/prisma
+/.github/*
+
+skills-lock.json
