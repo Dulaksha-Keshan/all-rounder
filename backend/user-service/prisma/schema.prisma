@@ -39,7 +39,7 @@ model Student {
   school_id String
   school    School @relation(fields: [school_id], references: [school_id])
 
-  skills Skill[]
+  skills  Skill[]
   clubIds String[] @default([])
 }
 
@@ -56,6 +56,7 @@ model Teacher {
 
   // Teacher Specifics
   subject     String?
+  grade       String?
   designation String?
   // staff_id is often used as a visible ID, distinct from the database PK
   staff_id    String?
@@ -101,8 +102,12 @@ model School {
   school_id      String   @id @default(uuid())
   name           String
   address        String
+  province       String
   district       String
+  zone           String
+  school_level   String
   student_count  Int?
+  gender         Gender
   email          String
   contact_number String
   principal_name String?
@@ -124,8 +129,8 @@ model Organization {
   website           String?
   admins            Admin[]
   eventHosts        EventHost[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
 }
 
 // ==========================================
@@ -134,8 +139,8 @@ model Organization {
 
 model Skill {
   skill_id   Int       @id @default(autoincrement())
-  skill_name String
-  category   String
+  skill_name String    @unique
+  category   String?
   students   Student[]
 }
 
@@ -175,4 +180,10 @@ enum UserType {
   SCHOOL_ADMIN
   ORG_ADMIN
   SUPER_ADMIN
+}
+
+enum Gender {
+  Boys
+  Girls
+  Mixed
 }

@@ -59,15 +59,14 @@ const userServiceProxy = (pathRewriteKey: string) =>
   createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: { [pathRewriteKey]: pathRewriteKey }, // pass-through, no rewrite needed
+    //pathRewrite: { "^/": `${pathRewriteKey}/` }, // pass-through, no rewrite needed
     on: {
       proxyReq: (proxyReq, req: Request) => {
         // forwarding the authenticated user info as headers to User Service
         if (req.user) {
-          proxyReq.setHeader("x-user-id", req.user.uid);
-          proxyReq.setHeader("x-user-role", req.user.role || "");
+          proxyReq.setHeader("x-user-uid", req.user.uid);
           proxyReq.setHeader("x-user-email", req.user.email || "");
-          proxyReq.setHeader("x-user-type", req.user.userType || "");
+          proxyReq.setHeader("x-user-type", req.user.role || "");
           if (req.user.schoolId) {
             proxyReq.setHeader("x-school-id", req.user.schoolId);
           }
@@ -135,7 +134,7 @@ app.use(
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-      "^/": "/api/users/",
+      "^/": "/api/users/"
     },
     on: {
       proxyReq: (proxyReq, req: Request) => {
@@ -162,8 +161,8 @@ app.use(
 
 
 // group 1 Public school reads
-app.get("/api/schools", userServiceProxy("^/api/schools"));
-app.get("/api/schools/:id", userServiceProxy("^/api/schools"));
+app.get("/api/schools", userServiceProxy("/api/schools"));
+app.get("/api/schools/:id", userServiceProxy("/api/schools"));
 
 // group 2 SUPER_ADMIN only operations
 // coupled POST and DELETE share same role middleware
@@ -171,7 +170,7 @@ app.post(
   "/api/schools",
   verifyToken,
   requireRole("SUPER_ADMIN"),
-  userServiceProxy("^/api/schools")
+  userServiceProxy("/api/schools")
 );
 
 
@@ -186,6 +185,11 @@ app.patch("/api/schools/:id", ...schoolScopedMiddleware, userServiceProxy("^/api
 app.get("/api/schools/:id/students", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/teachers", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/statistics", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
+
+
+
+
+
 
 // ORGANIZATION ROUTES
 
@@ -209,40 +213,56 @@ app.patch(
   userServiceProxy("^/api/organizations")
 );
 
+
+
+
+
 // CLUB ROUTES
 // group 1 - stduent  only
 //TODO: maybe we will add a club controller for the general list of clubs beacuse currently its fetching the user's schools clubs only 
-app.get("/api/clubs", verifyToken, userServiceProxy("^/api/clubs"));
-app.get("/api/clubs/:id", verifyToken, userServiceProxy("^/api/clubs"));
+app.get("/api/clubs", verifyToken, userServiceProxy("/api/clubs"));
+app.get("/api/clubs/:id", verifyToken, userServiceProxy("/api/clubs"));
+
+
+app.get("/api/clubs/members/:id", verifyToken, userServiceProxy("/api/clubs"));
+
+
+app.get("/api/clubs/myClubs", verifyToken, userServiceProxy("/api/clubs"));
+
+app.patch("/api/clubs/join/:id", verifyToken, requireRole("STUDENT", "TEACHER"), userServiceProxy("/api/clubs"));
+
+app.patch("/api/clubs/leave/:id", verifyToken, requireRole("STUDENT", "TEACHER"), userServiceProxy("/api/clubs"));
+
+
 
 const clubAdminMiddleware = [
   verifyToken,
-  requireRole("SCHOOL_ADMIN"),
+  requireRole("SCHOOL_ADMIN", "SUPER_ADMIN"),
 ];
 
 // group 2  schoold admin + school ownership
-app.post("/api/clubs", ...clubAdminMiddleware, userServiceProxy("^/api/clubs"));
-app.patch("/api/clubs/:id", ...clubAdminMiddleware, userServiceProxy("^/api/clubs"));
-app.delete("/api/clubs/:id", ...clubAdminMiddleware, userServiceProxy("^/api/clubs"));
+app.post("/api/clubs", ...clubAdminMiddleware, userServiceProxy("/api/clubs"));
+app.patch("/api/clubs/:id", ...clubAdminMiddleware, userServiceProxy("/api/clubs"));
+app.delete("/api/clubs/:id", ...clubAdminMiddleware, userServiceProxy("/api/clubs"));
 
 // group 3 Student membership
 // coupled  join and leave share same role middleware
 const studentClubMiddleware = [verifyToken, requireRole("STUDENT")];
 
-app.post("/api/clubs/:id/join", ...studentClubMiddleware, userServiceProxy("^/api/clubs"));
-app.delete("/api/clubs/:id/leave", ...studentClubMiddleware, userServiceProxy("^/api/clubs"));
+app.post("/api/clubs/:id/join", ...studentClubMiddleware, userServiceProxy("/api/clubs"));
+app.delete("/api/clubs/:id/leave", ...studentClubMiddleware, userServiceProxy("/api/clubs"));
 
 // ============================================
 // SKILL ROUTES
 // group 1 public skill list
-app.get("/api/skills", userServiceProxy("^/api/skills"));
+app.get("/api/skills", userServiceProxy("/api/skills"));
 
 // group 2 super admin creates new skill badges
 app.post(
   "/api/skills",
   verifyToken,
   requireRole("SUPER_ADMIN"),
-  userServiceProxy("^/api/skills")
+  userServiceProxy("/api/skills")
 );
 
 // ============================================
@@ -250,7 +270,7 @@ app.post(
 app.use(
   "/api/event-hosts",
   verifyToken,
-  userServiceProxy("^/api/event-hosts")
+  userServiceProxy("/api/event-hosts")
 );
 
 

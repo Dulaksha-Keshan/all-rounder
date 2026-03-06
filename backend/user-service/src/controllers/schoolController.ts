@@ -20,7 +20,7 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
 
     const createdSchool = await prisma.school.create({
       data: {
-        name: school.name,
+        name: school.name as string,
         address: school.address,
         district: school.district,
         email: school.email,
@@ -209,7 +209,7 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
   }
 };
 
-
+//TODO: add the fucntionality fetcht the admins 
 export const getSchoolStatistics = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
