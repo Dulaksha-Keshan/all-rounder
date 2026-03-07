@@ -36,7 +36,7 @@ app.use("/api/schools", schoolRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/clubs", clubRoutes);
 app.use("/api/skills", skillRoutes)
-app.use("/api/event-hots", eventHostsRoutes)
+app.use("/api/event-hosts", eventHostsRoutes)
 
 const PORT = process.env.PORT || 3001;
 
