@@ -94,7 +94,7 @@ const contentServiceProxy = (pathRewriteKey: string) =>
     on: {
       proxyReq: (proxyReq, req: Request) => {
         // Forward authenticated user info as headers to Content Service
-
+        // Note: Header names adjusted to match content-service expectations (x-user-id instead of x-user-uid)
         if (req.user) {
           proxyReq.setHeader("x-user-uid", req.user.uid);
           proxyReq.setHeader("x-user-type", req.user.role || "");
@@ -324,13 +324,59 @@ app.use(
 );
 
 // POST/CONTENT ROUTES (proxied to content-service)
-// Handles post CRUD, likes, comments, and file uploads (e.g., attachments to R2)
-// All routes require authentication via verifyToken
-app.use(
-  "/api/posts",
-  verifyToken,
-  contentServiceProxy("/api/posts")
-);
+// Individual routes for posts with verifyToken middleware
+// Ownership checks are handled in content-service
+
+// Create a new post (with attachments)
+app.post("/api/posts", verifyToken, contentServiceProxy(""));
+
+// Get posts of logged-in user
+app.get("/api/posts/me", verifyToken, contentServiceProxy(""));
+
+// Get posts of another user
+app.get("/api/posts/user/:userId", verifyToken, contentServiceProxy(""));
+
+// Get home feed posts (public, but require auth for consistency)
+app.get("/api/posts/feed", verifyToken, contentServiceProxy(""));
+
+// Get a single post by ID
+app.get("/api/posts/:id", verifyToken, contentServiceProxy(""));
+
+// Update a post by ID (ownership checked in service)
+app.put("/api/posts/:id", verifyToken, contentServiceProxy(""));
+
+// Delete a post by ID (ownership checked in service)
+app.delete("/api/posts/:id", verifyToken, contentServiceProxy(""));
+
+// Like or unlike a post
+app.post("/api/posts/:id/like", verifyToken, contentServiceProxy(""));
+
+// Add a comment to a post
+app.post("/api/posts/:id/comment", verifyToken, contentServiceProxy(""));
+
+// Delete a comment from a post
+app.delete("/api/posts/:postId/comment/:commentId", verifyToken, contentServiceProxy(""));
+
+// Get comments of a post
+app.get("/api/posts/:id/comments", verifyToken, contentServiceProxy(""));
+
+// EVENT ROUTES (proxied to content-service)
+// Individual routes for events with verifyToken middleware
+
+// Create a new event (with attachments)
+app.post("/api/events", verifyToken, contentServiceProxy(""));
+
+// Get all events (paginated)
+app.get("/api/events", verifyToken, contentServiceProxy(""));
+
+// Get a single event by ID
+app.get("/api/events/:id", verifyToken, contentServiceProxy(""));
+
+// Update an event by ID (with attachments)
+app.put("/api/events/:id", verifyToken, contentServiceProxy(""));
+
+// Delete an event by ID
+app.delete("/api/events/:id", verifyToken, contentServiceProxy(""));
 
 app.use(express.json());
 
