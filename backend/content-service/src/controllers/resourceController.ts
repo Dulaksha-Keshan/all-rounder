@@ -7,18 +7,11 @@ export const createResource = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const creatorId = req.headers["x-user-id"] as string;
+    const creatorId = req.headers["x-user-uid"] as string;
 
     if (!creatorId) {
       res.status(400).json({
-        message: "x-user-id header is required",
-      });
-      return;
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(creatorId)) {
-      res.status(400).json({
-        message: "Invalid user ID",
+        message: "x-user-uid header is required",
       });
       return;
     }

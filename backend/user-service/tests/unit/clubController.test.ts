@@ -101,7 +101,7 @@ describe('Club Controller', () => {
 
       await getAllClubs(req, res);
 
-      expect(Club.find).toHaveBeenCalledWith({ schoolId: 'school1' });
+      expect(Club.find).toHaveBeenCalledWith({ schoolId: 'school1', isDeleted: false });
       expect(mockSort).toHaveBeenCalledWith({ createdAt: -1 });
       expect(res.status).toHaveBeenCalledWith(200);
     });
@@ -173,7 +173,8 @@ describe('Club Controller', () => {
         teacherInCharge: { name: 'T1' }
       }, {
         'x-user-type': UserType.SCHOOL_ADMIN,
-        'x-user-id': 'admin1'
+        'x-user-uid': 'admin1',
+        'x-school-id': 'S1'
       });
       const res = mockResponse();
 
@@ -195,7 +196,8 @@ describe('Club Controller', () => {
         teacherInCharge: { name: 'T1' }
       }, {
         'x-user-type': UserType.SCHOOL_ADMIN,
-        'x-user-id': 'admin1'
+        'x-user-uid': 'admin1',
+        'x-school-id': 'S1'
       });
       const res = mockResponse();
       (Club.findOne as jest.Mock).mockResolvedValue({ name: 'Math Club' });
@@ -375,7 +377,7 @@ describe('Club Controller', () => {
   describe('getUserClubs', () => {
     it('should fetch clubs for a student', async () => {
       const req = mockRequest({}, {
-        'x-user-id': 'u1',
+        'x-user-uid': 'u1',
         'x-user-type': 'STUDENT'
       });
       const res = mockResponse();
@@ -410,7 +412,7 @@ describe('Club Controller', () => {
 
     it('should return empty list if user has no clubs', async () => {
       const req = mockRequest({}, {
-        'x-user-id': 'u1',
+        'x-user-uid': 'u1',
         'x-user-type': 'TEACHER'
       });
       const res = mockResponse();

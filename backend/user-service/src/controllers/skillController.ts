@@ -174,7 +174,7 @@ export const removeSkillFromUser = async (req: Request, res: Response): Promise<
 
     if (!userId || !userType) {
       res.status(400).json({
-        message: "x-user-id and x-user-type headers are required",
+        message: "x-user-uid and x-user-type headers are required",
       });
       return;
     }

@@ -4,14 +4,9 @@ import Notification from "../mongoose/notificationModel.js";
 
 export const createNotification = async (req: Request, res: Response): Promise<void> => {
   try {
-    const recipientId = req.headers["x-User-id"] as string; 
+    const recipientId = req.headers["x-user-uid"] as string; 
     if (!recipientId) {
-      res.status(400).json({ message: "x-user-id header is required" });
-      return;
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(recipientId)) {
-      res.status(400).json({ message: "Invalid recipient ID" });
+      res.status(400).json({ message: "x-user-uid header is required" });
       return;
     }
 
