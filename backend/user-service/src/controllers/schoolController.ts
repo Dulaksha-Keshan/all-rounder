@@ -93,6 +93,7 @@ export const getSchoolById = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    const dbStart = process.hrtime();
     const school = await prisma.school.findUnique({
       where: { school_id: id as string },
       select: {
@@ -102,6 +103,9 @@ export const getSchoolById = async (req: Request, res: Response): Promise<void> 
         web_link: true,
       },
     });
+    const dbEnd = process.hrtime(dbStart);
+    const dbTime = (dbEnd[0] * 1000 + dbEnd[1] / 1000000).toFixed(2);
+    console.log(`[Performance] PostgreSQL Retrieval Latency: ${dbTime}ms`);
 
     if (!school) {
       res.status(404).json({ message: "School not found" });

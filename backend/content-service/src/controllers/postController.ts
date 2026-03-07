@@ -10,6 +10,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
+  const start = process.hrtime();
+  
   try {
     const authorId = req.headers["x-user-uid"] as string;
     const authorType = req.headers["x-user-type"] as string;
@@ -46,8 +48,13 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    const validationEnd = process.hrtime(start);
+    const validationTime = (validationEnd[0] * 1000 + validationEnd[1] / 1000000).toFixed(2);
+    console.log(`[Performance] Post Validation & Formatting: ${validationTime}ms`);
+
     // Handle file uploads
     const attachmentUrls: string[] = [];
+    // ... (rest of the upload logic stays the same)
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
         try {
@@ -73,6 +80,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
+    const dbStart = process.hrtime();
     // Create the post
     const post: any = await Post.create({
       title,
@@ -91,6 +99,9 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       commentCount: 0,
       isDeleted: false,
     });
+    const dbEnd = process.hrtime(dbStart);
+    const dbTime = (dbEnd[0] * 1000 + dbEnd[1] / 1000000).toFixed(2);
+    console.log(`[Performance] MongoDB Creation Latency: ${dbTime}ms`);
 
     res.status(201).json({
       message: "Post created successfully",
@@ -108,6 +119,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       },
     });
   } catch (error: any) {
+    // ... rest of the catch block
     console.error(error);
     // Rollback uploads if post creation failed
     for (const key of uploadedKeys) {
