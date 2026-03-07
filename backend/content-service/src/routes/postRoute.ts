@@ -22,11 +22,11 @@ const upload = multer({ storage: multer.memoryStorage() });
 // ====================
 
 // Create a new post
-// Headers: x-user-id, x-user-type
+// Headers: x-user-uid, x-user-type
 router.post("/", upload.array('attachments', 10), createPost);
 
 // Get posts of logged-in user (my profile)
-// Headers: x-user-id, x-user-type
+// Headers: x-user-uid, x-user-type
 // Optional query: category, visibility
 router.get("/me", getMyPosts);
 
@@ -41,17 +41,17 @@ router.get("/feed", getFeed);
 
 // Get a single post by ID
 // Params: id
-// Optional header: x-user-id (for private post access)
+// Optional header: x-user-uid (for private post access)
 router.get("/:id", getPostById);
 
 // Update a post by ID
 // Params: id
-// Headers: x-user-id, x-user-type
+// Headers: x-user-uid, x-user-type
 router.put("/:id", upload.array('attachments', 10), updatePost);
 
 // Delete (soft delete) a post by ID
 // Params: id
-// Headers: x-user-id, x-user-type
+// Headers: x-user-uid, x-user-type
 router.delete("/:id", deletePost);
 
 
@@ -61,7 +61,7 @@ router.delete("/:id", deletePost);
 
 // Like or unlike a post
 // Params: id (postId)
-// Headers: x-user-id
+// Headers: x-user-uid
 router.post("/:id/like", toggleLikePost);
 
 
@@ -71,13 +71,13 @@ router.post("/:id/like", toggleLikePost);
 
 // Add a comment to a post
 // Params: id (postId)
-// Headers: x-user-id
+// Headers: x-user-uid
 // Body: { comment }
 router.post("/:id/comment", addComment);
 
 // Delete a comment from a post
 // Params: postId, commentId
-// Headers: x-user-id
+// Headers: x-user-uid
 router.delete("/:postId/comment/:commentId", deleteComment);
 
 // Get comments of a post (paginated)

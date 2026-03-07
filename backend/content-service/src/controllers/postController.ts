@@ -698,6 +698,9 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+
+    //TODO: Post Author also can delete commenst
+
     // Only the comment author can delete
     if (comment.userId !== currentUserId) {
       res.status(403).json({ message: "You are not allowed to delete this comment" });
@@ -719,6 +722,9 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ message: error.message });
   }
 };
+
+
+//TODO: Add a reply array to the commenents
 
 export const getPostComments = async (req: Request, res: Response): Promise<void> => {
   try {
