@@ -237,11 +237,11 @@ export const removeSkillFromUser = async (req: Request, res: Response): Promise<
 // Get user skills
 export const getUserSkills = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userUid = req.headers["x-user-uid"] as string;
+    const userUid = req.params.id || (req.headers["x-user-uid"] as string);
     const userType = req.headers["x-user-type"] as string;
 
     if (!userUid || !userType) {
-      res.status(400).json({ message: "x-user-uid and x-user-type headers are required" });
+      res.status(400).json({ message: "User UID and x-user-type header are required" });
       return;
     }
 

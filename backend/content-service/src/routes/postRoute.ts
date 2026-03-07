@@ -4,35 +4,26 @@ import {
   getMyPosts,
   getPostsByUser,
   getPostById,
+  getAllPosts,
   updatePost,
   deletePost,
   getFeed,
-<<<<<<< HEAD
   toggleLikePost,
   addComment,
   deleteComment,
   getPostComments
-=======
->>>>>>> 1bf4944 (changed postController getFeed function to get feed based on the postModel postType enum values. updated postRoute to get the updated getFeed function.)
 } from "../controllers/postController.js";
 import multer from 'multer';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-<<<<<<< HEAD
 // ====================
 // POSTS CRUD ROUTES
 // ====================
-=======
-// CRUD for posts
-router.post("/", createPost);           // Create new post
-router.get("/feed", getFeed);          // Get personalized feed
-router.get("/", getAllPosts);          // List all posts
-router.get("/:id", getPostById);       // Get single post by ID
-router.put("/:id", updatePost);        // Update post by ID
-router.delete("/:id", deletePost);     // Delete post by ID
->>>>>>> 1bf4944 (changed postController getFeed function to get feed based on the postModel postType enum values. updated postRoute to get the updated getFeed function.)
+
+// List all posts
+router.get("/", getAllPosts);
 
 // Create a new post
 // Headers: x-user-uid, x-user-type

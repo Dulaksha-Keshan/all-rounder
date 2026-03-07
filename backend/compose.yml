@@ -49,6 +49,13 @@ services:
     container_name: all-rounder-content-service
     ports:
       - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/contentdb?authSource=admin
+      - USER_SERVICE_URL=http://user-service:3001
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:29092
     env_file:
       - ./content-service/.env
     volumes:
