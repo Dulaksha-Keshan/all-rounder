@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Post from "../mongoose/postModel.js"
+import Post from "../mongoose/postModel.js";
 import mongoose from "mongoose";
 import multer from 'multer';
 import { uploadToR2, deleteFromR2 } from '../utils/r2Upload.js';
@@ -28,7 +28,15 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { title, content, category, visibility, tags } = req.body;
+    const {
+      title,
+      content,
+      category,
+      postType,
+      visibility,
+      attachments,
+      tags,
+    } = req.body;
 
     // Validate required body fields
     if (!title || !content || !category) {
@@ -115,240 +123,288 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// x-user-uid use karala thamange porfile ekt giyama ena post tika
-
-export const getMyPosts = async (req: Request, res: Response): Promise<void> => {
+export const getAllPosts = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const authorId = req.headers["x-user-uid"] as string;
-    const authorType = req.headers["x-user-type"] as string;
-
-    // Validate headers
-    if (!authorId || !authorType) {
-      res.status(400).json({
-        message: "x-user-uid and x-user-type headers are required",
-      });
-      return;
-    }
-
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
-      res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
-      });
-      return;
-    }
-
     const { category, visibility } = req.query;
-    const filter: any = {
-      isDeleted: false,
-      authorId,
-      authorType,
-    };
 
-    if (category) filter.category = category;
-    if (visibility) filter.visibility = visibility;
+    export const getMyPosts = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const authorId = req.headers["x-user-uid"] as string;
+        const authorType = req.headers["x-user-type"] as string;
 
-    // Fetch posts
-    const posts = await Post.find(filter)
-      .sort({ createdAt: -1 })
-      .lean();
+        // Validate headers
+        if (!authorId || !authorType) {
+          res.status(400).json({
+            message: "x-user-uid and x-user-type headers are required",
+          });
+          return;
+        }
 
-    const safePosts = posts.map(post => ({
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+        if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
+          res.status(400).json({
+            message: "x-user-type must be student, school admin, or organization admin",
+          });
+          return;
+        }
 
-    res.status(200).json({
-      message: "Your posts fetched successfully",
-      posts: safePosts,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
+        const { category, visibility } = req.query;
+        const filter: any = {
+          isDeleted: false,
+          authorId,
+          authorType,
+        };
 
-//user id ek req.params, thwa kenekge posts
-export const getPostsByUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const userId = req.params.userId as string;
-    const userType = req.query.userType as string; 
-    const { category } = req.query;
+        if (category) filter.category = category;
+        if (visibility) filter.visibility = visibility;
 
-    // Validate inputs
-    if (!userId || !userType) {
-      res.status(400).json({
-        message: "userId and userType are required",
-      });
-      return;
-    }
+        // Fetch posts
+        const posts = await Post.find(filter)
+          .sort({ createdAt: -1 })
+          .lean();
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(userType)) {
-      res.status(400).json({
-        message: "userType must be student, school admin, or organization admin",
-      });
-      return;
-    }
+        const safePosts = posts.map(post => ({
+          id: post._id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          visibility: post.visibility,
+          attachments: post.attachments,
+          tags: post.tags,
+          likeCount: post.likes?.count || 0,
+          commentCount: post.commentCount || 0,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        }));
 
-    const filter: any = {
-      authorId: userId,
-      authorType: userType,
-      isDeleted: false,
-      visibility: "public", // only public posts
-    };
-
-    if (category) filter.category = category;
-
-    const posts = await Post.find(filter).sort({ createdAt: -1 }).lean();
-
-    // Sanitize response
-    const safePosts = posts.map(post => ({
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
-
-    res.status(200).json({
-      message: "User posts fetched successfully",
-      posts: safePosts,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-};
-
-
-export const getPostById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-uid"] as string; // optional, can be undefined
-
-    // Validate post ID
-    if (!postId) {
-      res.status(400).json({ message: "Post ID is required" });
-      return;
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
-
-    // Find post
-    const post = await Post.findOne({ _id: postId, isDeleted: false }).lean();
-
-    if (!post) {
-      res.status(404).json({ message: "Post not found" });
-      return;
-    }
-
-    if (post.visibility === "private") {
-      // Only author can see private posts
-      if (!currentUserId || post.authorId !== currentUserId) {
-        res.status(403).json({
-          message: "You are not allowed to view this post",
+        res.status(200).json({
+          message: "Your posts fetched successfully",
+          posts: safePosts,
         });
-        return;
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({
+          message: error.message,
+        });
       }
-    }
-
-    const safePost = {
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
     };
 
-    res.status(200).json({
-      message: "Post fetched successfully",
-      post: safePost,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+    //user id ek req.params, thwa kenekge posts
+    export const getPostsByUser = async (
+      req: Request,
+      res: Response
+    ): Promise<void> => {
+      try {
+        const userId = req.params.userId as string;
+        const userType = req.query.userType as string;
+        const { category } = req.query;
 
+        // Validate inputs
+        if (!userId || !userType) {
+          res.status(400).json({
+            message: "userId and userType are required",
+          });
+          return;
+        }
 
-export const updatePost = async (req: Request, res: Response): Promise<void> => {
-  const uploadedKeys: string[] = []; // For rollback
-  try {
-    const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-uid"] as string;
-    const currentUserType = req.headers["x-user-type"] as string;
+        if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(userType)) {
+          res.status(400).json({
+            message: "userType must be student, school admin, or organization admin",
+          });
+          return;
+        }
 
-    // Validate headers
-    if (!currentUserId || !currentUserType) {
-      res.status(400).json({
-        message: "x-user-uid and x-user-type headers are required",
-      });
-      return;
-    }
+        const filter: any = {
+          authorId: userId,
+          authorType: userType,
+          isDeleted: false,
+          visibility: "public", // only public posts
+        };
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
-      res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
-      });
-      return;
-    }
+        if (category) filter.category = category;
 
-    // Validate post ID
-    if (!postId) {
-      res.status(400).json({ message: "Post ID is required" });
-      return;
-    }
+        const posts = await Post.find(filter).sort({ createdAt: -1 }).lean();
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
+        // Sanitize response
+        const safePosts = posts.map(post => ({
+          id: post._id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          visibility: post.visibility,
+          attachments: post.attachments,
+          tags: post.tags,
+          likeCount: post.likes?.count || 0,
+          commentCount: post.commentCount || 0,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        }));
 
-    // Handle file uploads (replace attachments if new files provided)
-    const attachmentUrls: string[] = [];
-    if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
-        try {
-          const key = `posts/${currentUserId}/${Date.now()}-${file.originalname}`;
-          const url = await uploadToR2(file.buffer, key, file.mimetype);
-          attachmentUrls.push(url);
-          uploadedKeys.push(key); // Track for rollback
-        } catch (uploadError) {
-          console.error('Upload failed:', uploadError);
-          // Rollback previous uploads
+        res.status(200).json({
+          message: "User posts fetched successfully",
+          posts: safePosts,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({
+          message: error.message,
+        });
+      }
+    };
+
+    export const getPostById = async (
+      req: Request,
+      res: Response
+    ): Promise<void> => {
+      try {
+        const postId = req.params.id as string;
+        const currentUserId = req.headers["x-user-uid"] as string; // optional, can be undefined
+
+        // Validate post ID
+        if (!postId) {
+          res.status(400).json({ message: "Post ID is required" });
+          return;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
+
+        // Find post
+        const post = await Post.findOne({ _id: postId, isDeleted: false }).lean();
+
+        if (!post) {
+          res.status(404).json({ message: "Post not found" });
+          return;
+        }
+
+        if (post.visibility === "private") {
+          // Only author can see private posts
+          if (!currentUserId || post.authorId !== currentUserId) {
+            res.status(403).json({
+              message: "You are not allowed to view this post",
+            });
+            return;
+          }
+        }
+
+        const safePost = {
+          id: post._id,
+          title: post.title,
+          content: post.content,
+          category: post.category,
+          visibility: post.visibility,
+          attachments: post.attachments,
+          tags: post.tags,
+          likeCount: post.likes?.count || 0,
+          commentCount: post.commentCount || 0,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        };
+
+        res.status(200).json({
+          message: "Post fetched successfully",
+          post: safePost,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
+    };
+
+    export const updatePost = async (req: Request, res: Response): Promise<void> => {
+      const uploadedKeys: string[] = []; // For rollback
+      try {
+        const postId = req.params.id as string;
+        const currentUserId = req.headers["x-user-uid"] as string;
+        const currentUserType = req.headers["x-user-type"] as string;
+
+        // Validate headers
+        if (!currentUserId || !currentUserType) {
+          res.status(400).json({
+            message: "x-user-uid and x-user-type headers are required",
+          });
+          return;
+        }
+
+        if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
+          res.status(400).json({
+            message: "x-user-type must be student, school admin, or organization admin",
+          });
+          return;
+        }
+
+        // Validate post ID
+        if (!postId) {
+          res.status(400).json({ message: "Post ID is required" });
+          return;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
+
+        // Handle file uploads (replace attachments if new files provided)
+        const attachmentUrls: string[] = [];
+        if (req.files && Array.isArray(req.files)) {
+          for (const file of req.files) {
+            try {
+              const key = `posts/${currentUserId}/${Date.now()}-${file.originalname}`;
+              const url = await uploadToR2(file.buffer, key, file.mimetype);
+              attachmentUrls.push(url);
+              uploadedKeys.push(key); // Track for rollback
+            } catch (uploadError) {
+              console.error('Upload failed:', uploadError);
+              // Rollback previous uploads
+              for (const key of uploadedKeys) {
+                try {
+                  await deleteFromR2(key);
+                } catch (deleteError) {
+                  console.error('Rollback delete failed:', deleteError);
+                }
+              }
+              res.status(500).json({
+                message: "File upload failed",
+              });
+              return;
+            }
+          }
+        }
+
+        // Prevent updates to protected fields
+        const updateData = { ...req.body };
+        delete updateData._id;
+        delete updateData.createdAt;
+        delete updateData.isDeleted;
+        delete updateData.authorId;
+        delete updateData.authorType;
+
+        // If new attachments uploaded, replace them
+        if (attachmentUrls.length > 0) {
+          updateData.attachments = attachmentUrls;
+        }
+
+        // Find and update post if the current user is the author
+        const updatedPost = await Post.findOneAndUpdate(
+          {
+            _id: postId,
+            isDeleted: false,
+            authorId: currentUserId,
+            authorType: currentUserType,
+          },
+          updateData,
+          { new: true }
+        ).lean();
+
+        if (!updatedPost) {
+          res.status(404).json({
+            message: "Post not found, deleted, or you are not the author",
+          });
+          // Rollback uploads since update failed
           for (const key of uploadedKeys) {
             try {
               await deleteFromR2(key);
@@ -356,416 +412,374 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
               console.error('Rollback delete failed:', deleteError);
             }
           }
-          res.status(500).json({
-            message: "File upload failed",
+          return;
+        }
+
+        const safePost = {
+          id: updatedPost._id,
+          title: updatedPost.title,
+          content: updatedPost.content,
+          category: updatedPost.category,
+          visibility: updatedPost.visibility,
+          attachments: updatedPost.attachments,
+          tags: updatedPost.tags,
+          likeCount: updatedPost.likes?.count || 0,
+          commentCount: updatedPost.commentCount || 0,
+          createdAt: updatedPost.createdAt,
+          updatedAt: updatedPost.updatedAt,
+        };
+
+        res.status(200).json({
+          message: "Post updated successfully",
+          post: safePost,
+        });
+      } catch (error: any) {
+        console.error(error);
+        // Rollback uploads if update failed
+        for (const key of uploadedKeys) {
+          try {
+            await deleteFromR2(key);
+          } catch (deleteError) {
+            console.error('Rollback delete failed:', deleteError);
+          }
+        }
+        res.status(500).json({ message: error.message });
+      }
+    };
+
+    export const deletePost = async (
+      req: Request,
+      res: Response,
+    ): Promise<void> => {
+      try {
+        const postId = req.params.id as string;
+        const currentUserId = req.headers["x-user-uid"] as string;
+        const currentUserType = req.headers["x-user-type"] as string;
+
+        // Validate headers
+        if (!currentUserId || !currentUserType) {
+          res.status(400).json({
+            message: "x-user-uid and x-user-type headers are required",
           });
           return;
         }
-      }
-    }
 
-    // Prevent updates to protected fields
-    const updateData = { ...req.body };
-    delete updateData._id;
-    delete updateData.createdAt;
-    delete updateData.isDeleted;
-    delete updateData.authorId;
-    delete updateData.authorType;
-
-    // If new attachments uploaded, replace them
-    if (attachmentUrls.length > 0) {
-      updateData.attachments = attachmentUrls;
-    }
-
-    // Find and update post if the current user is the author
-    const updatedPost = await Post.findOneAndUpdate(
-      {
-        _id: postId,
-        isDeleted: false,
-        authorId: currentUserId,
-        authorType: currentUserType,
-      },
-      updateData,
-      { new: true }
-    ).lean();
-
-    if (!updatedPost) {
-      res.status(404).json({
-        message: "Post not found, deleted, or you are not the author",
-      });
-      // Rollback uploads since update failed
-      for (const key of uploadedKeys) {
-        try {
-          await deleteFromR2(key);
-        } catch (deleteError) {
-          console.error('Rollback delete failed:', deleteError);
+        if (!["STUDENT", "SCHOOL", "ORGANIZATION"].includes(currentUserType)) {
+          res.status(400).json({
+            message: "x-user-type must be student, school, or organization",
+          });
+          return;
         }
-      }
-      return;
-    }
 
-    const safePost = {
-      id: updatedPost._id,
-      title: updatedPost.title,
-      content: updatedPost.content,
-      category: updatedPost.category,
-      visibility: updatedPost.visibility,
-      attachments: updatedPost.attachments,
-      tags: updatedPost.tags,
-      likeCount: updatedPost.likes?.count || 0,
-      commentCount: updatedPost.commentCount || 0,
-      createdAt: updatedPost.createdAt,
-      updatedAt: updatedPost.updatedAt,
+        // Validate post ID
+        if (!postId) {
+          res.status(400).json({ message: "Post ID is required" });
+          return;
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
+
+        // Soft delete only if the current user is the author
+        const deletedPost = await Post.findOneAndUpdate(
+          {
+            _id: postId,
+            isDeleted: false,
+            authorId: currentUserId,
+            authorType: currentUserType,
+          },
+          { isDeleted: true },
+          { new: true }
+        ).lean();
+
+        if (!deletedPost) {
+          res.status(404).json({
+            message: "Post not found, already deleted, or you are not the author",
+          });
+          return;
+        }
+
+        const safePost = {
+          id: deletedPost._id,
+          title: deletedPost.title,
+          content: deletedPost.content,
+          category: deletedPost.category,
+          visibility: deletedPost.visibility,
+          attachments: deletedPost.attachments,
+          tags: deletedPost.tags,
+          likeCount: deletedPost.likes?.count || 0,
+          commentCount: deletedPost.commentCount || 0,
+          createdAt: deletedPost.createdAt,
+          updatedAt: deletedPost.updatedAt,
+        };
+
+        res.status(200).json({
+          message: "Post deleted successfully",
+          post: safePost,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
     };
 
-    res.status(200).json({
-      message: "Post updated successfully",
-      post: safePost,
-    });
-  } catch (error: any) {
-    console.error(error);
-    // Rollback uploads if update failed
-    for (const key of uploadedKeys) {
+    // To fetch a mix of posts for the home screen
+    export const getFeed = async (req: Request, res: Response): Promise<void> => {
       try {
-        await deleteFromR2(key);
-      } catch (deleteError) {
-        console.error('Rollback delete failed:', deleteError);
+        // Basic feed: return latest public posts that are not deleted
+        const posts = await Post.find({ isDeleted: false, visibility: "public" })
+          .sort({ createdAt: -1 })
+          .limit(20);
+
+        res.status(200).json({
+          message: "Feed fetched successfully",
+          posts,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({
+          message: "Error fetching feed",
+          error: error.message,
+        });
       }
-    }
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const deletePost = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-uid"] as string;
-    const currentUserType = req.headers["x-user-type"] as string;
-
-    // Validate headers
-    if (!currentUserId || !currentUserType) {
-      res.status(400).json({
-        message: "x-user-uid and x-user-type headers are required",
-      });
-      return;
-    }
-
-    if (!["STUDENT", "SCHOOL", "ORGANIZATION"].includes(currentUserType)) {
-      res.status(400).json({
-        message: "x-user-type must be student, school, or organization",
-      });
-      return;
-    }
-
-    // Validate post ID
-    if (!postId) {
-      res.status(400).json({ message: "Post ID is required" });
-      return;
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
-
-    // Soft delete only if the current user is the author
-    const deletedPost = await Post.findOneAndUpdate(
-      {
-        _id: postId,
-        isDeleted: false,
-        authorId: currentUserId,
-        authorType: currentUserType,
-      },
-      { isDeleted: true },
-      { new: true }
-    ).lean();
-
-    if (!deletedPost) {
-      res.status(404).json({
-        message: "Post not found, already deleted, or you are not the author",
-      });
-      return;
-    }
-
-    const safePost = {
-      id: deletedPost._id,
-      title: deletedPost.title,
-      content: deletedPost.content,
-      category: deletedPost.category,
-      visibility: deletedPost.visibility,
-      attachments: deletedPost.attachments,
-      tags: deletedPost.tags,
-      likeCount: deletedPost.likes?.count || 0,
-      commentCount: deletedPost.commentCount || 0,
-      createdAt: deletedPost.createdAt,
-      updatedAt: deletedPost.updatedAt,
     };
 
-    res.status(200).json({
-      message: "Post deleted successfully",
-      post: safePost,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
 
-// To fetch a mix of posts for the home screen
-export const getFeed = async (req: Request, res: Response): Promise<void> => {
-  try {
-    // Basic feed: return latest public posts that are not deleted
-    const posts = await Post.find({ isDeleted: false, visibility: "public" })
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    res.status(200).json({
-      message: "Feed fetched successfully",
-      posts,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error fetching feed",
-      error: error.message,
-    });
-  }
-};
+    //Post interactions sepcific functions
 
 
-//Post interactions sepcific functions
+    export const toggleLikePost = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const postId = req.params.id as string;
+        const currentUserId = req.headers["x-user-uid"] as string;
 
+        // Validate headers
+        if (!currentUserId) {
+          res.status(400).json({ message: "x-user-uid header is required" });
+          return;
+        }
 
-export const toggleLikePost = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-uid"] as string;
+        // Validate postId
+        if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
 
-    // Validate headers
-    if (!currentUserId) {
-      res.status(400).json({ message: "x-user-uid header is required" });
-      return;
-    }
+        // Find post
+        const post = await Post.findOne({ _id: postId, isDeleted: false });
+        if (!post) {
+          res.status(404).json({ message: "Post not found" });
+          return;
+        }
 
-    // Validate postId
-    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
+        const userIndex = post.likes.userIds.indexOf(currentUserId);
 
-    // Find post
-    const post = await Post.findOne({ _id: postId, isDeleted: false });
-    if (!post) {
-      res.status(404).json({ message: "Post not found" });
-      return;
-    }
+        if (userIndex === -1) {
+          // User hasn't liked yet, add like
+          post.likes.userIds.push(currentUserId);
+          post.likes.count = post.likes.userIds.length;
+          await post.save();
 
-    const userIndex = post.likes.userIds.indexOf(currentUserId);
+          res.status(200).json({
+            message: "Post liked successfully",
+            likeCount: post.likes.count,
+          });
+        } else {
+          // User already liked, remove like
+          post.likes.userIds.splice(userIndex, 1);
+          post.likes.count = post.likes.userIds.length;
+          await post.save();
 
-    if (userIndex === -1) {
-      // User hasn't liked yet, add like
-      post.likes.userIds.push(currentUserId);
-      post.likes.count = post.likes.userIds.length;
-      await post.save();
-
-      res.status(200).json({
-        message: "Post liked successfully",
-        likeCount: post.likes.count,
-      });
-    } else {
-      // User already liked, remove like
-      post.likes.userIds.splice(userIndex, 1);
-      post.likes.count = post.likes.userIds.length;
-      await post.save();
-
-      res.status(200).json({
-        message: "Post unliked successfully",
-        likeCount: post.likes.count,
-      });
-    }
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const addComment = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const postId = req.params.id as string;
-    const currentUserId = req.headers["x-user-uid"] as string;
-    const { comment } = req.body;
-
-    // Validate headers and body
-    if (!currentUserId) {
-      res.status(400).json({ message: "x-user-uid header is required" });
-      return;
-    }
-
-    if (!comment || comment.trim().length === 0) {
-      res.status(400).json({ message: "Comment cannot be empty" });
-      return;
-    }
-
-    // Validate postId
-    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
-
-    // Find the post
-    const post = await Post.findOne({ _id: postId, isDeleted: false });
-    if (!post) {
-      res.status(404).json({ message: "Post not found" });
-      return;
-    }
-
-    // Add the comment
-    const newComment = {
-      userId: currentUserId,
-      comment: comment.trim(),
-      createdAt: new Date(),
+          res.status(200).json({
+            message: "Post unliked successfully",
+            likeCount: post.likes.count,
+          });
+        }
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
     };
 
-    post.comments.push(newComment);
-    post.commentCount = post.comments.length;
+    export const addComment = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const postId = req.params.id as string;
+        const currentUserId = req.headers["x-user-uid"] as string;
+        const { comment } = req.body;
 
-    await post.save();
+        // Validate headers and body
+        if (!currentUserId) {
+          res.status(400).json({ message: "x-user-uid header is required" });
+          return;
+        }
 
-    // Get the last added comment safely
-    const addedComment = post.comments[post.comments.length - 1];
-    if (!addedComment) {
-      res.status(500).json({ message: "Failed to add comment" });
-      return;
-    }
+        if (!comment || comment.trim().length === 0) {
+          res.status(400).json({ message: "Comment cannot be empty" });
+          return;
+        }
 
-    // Safe response
-    res.status(201).json({
-      message: "Comment added successfully",
-      comment: {
-        id: addedComment._id,
-        comment: addedComment.comment,
-        createdAt: addedComment.createdAt,
-      },
-      commentCount: post.commentCount,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+        // Validate postId
+        if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
 
-export const deleteComment = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const postId = req.params.postId as string;
-    const commentId = req.params.commentId as string;
-    const currentUserId = req.headers["x-user-uid"] as string;
+        // Find the post
+        const post = await Post.findOne({ _id: postId, isDeleted: false });
+        if (!post) {
+          res.status(404).json({ message: "Post not found" });
+          return;
+        }
 
-    // Validate inputs
-    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
+        // Add the comment
+        const newComment = {
+          userId: currentUserId,
+          comment: comment.trim(),
+          createdAt: new Date(),
+        };
 
-    if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
-      res.status(400).json({ message: "Invalid Comment ID" });
-      return;
-    }
+        post.comments.push(newComment);
+        post.commentCount = post.comments.length;
 
-    if (!currentUserId) {
-      res.status(400).json({ message: "x-user-uid header is required" });
-      return;
-    }
+        await post.save();
 
-    // Find the post
-    const post = await Post.findOne({ _id: postId, isDeleted: false });
-    if (!post) {
-      res.status(404).json({ message: "Post not found" });
-      return;
-    }
+        // Get the last added comment safely
+        const addedComment = post.comments[post.comments.length - 1];
+        if (!addedComment) {
+          res.status(500).json({ message: "Failed to add comment" });
+          return;
+        }
 
-    // Find the comment index
-    const commentIndex = post.comments.findIndex(c => c._id.toString() === commentId);
+        // Safe response
+        res.status(201).json({
+          message: "Comment added successfully",
+          comment: {
+            id: addedComment._id,
+            comment: addedComment.comment,
+            createdAt: addedComment.createdAt,
+          },
+          commentCount: post.commentCount,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
+    };
 
-    if (commentIndex === -1) {
-      res.status(404).json({ message: "Comment not found" });
-      return;
-    }
+    export const deleteComment = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const postId = req.params.postId as string;
+        const commentId = req.params.commentId as string;
+        const currentUserId = req.headers["x-user-uid"] as string;
 
-    const comment = post.comments[commentIndex];
+        // Validate inputs
+        if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
 
-    if (!comment) {
-      res.status(404).json({ message: "Comment not found" });
-      return;
-    }
+        if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
+          res.status(400).json({ message: "Invalid Comment ID" });
+          return;
+        }
+
+        if (!currentUserId) {
+          res.status(400).json({ message: "x-user-uid header is required" });
+          return;
+        }
+
+        // Find the post
+        const post = await Post.findOne({ _id: postId, isDeleted: false });
+        if (!post) {
+          res.status(404).json({ message: "Post not found" });
+          return;
+        }
+
+        // Find the comment index
+        const commentIndex = post.comments.findIndex(c => c._id.toString() === commentId);
+
+        if (commentIndex === -1) {
+          res.status(404).json({ message: "Comment not found" });
+          return;
+        }
+
+        const comment = post.comments[commentIndex];
+
+        if (!comment) {
+          res.status(404).json({ message: "Comment not found" });
+          return;
+        }
 
 
-    //TODO: Post Author also can delete commenst
+        //TODO: Post Author also can delete commenst
 
-    // Only the comment author can delete
-    if (comment.userId !== currentUserId) {
-      res.status(403).json({ message: "You are not allowed to delete this comment" });
-      return;
-    }
+        // Only the comment author can delete
+        if (comment.userId !== currentUserId) {
+          res.status(403).json({ message: "You are not allowed to delete this comment" });
+          return;
+        }
 
-    // Remove the comment
-    post.comments.splice(commentIndex, 1);
-    post.commentCount = post.comments.length;
+        // Remove the comment
+        post.comments.splice(commentIndex, 1);
+        post.commentCount = post.comments.length;
 
-    await post.save();
+        await post.save();
 
-    res.status(200).json({
-      message: "Comment deleted successfully",
-      commentCount: post.commentCount,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+        res.status(200).json({
+          message: "Comment deleted successfully",
+          commentCount: post.commentCount,
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
+    };
 
 
-//TODO: Add a reply array to the commenents
+    //TODO: Add a reply array to the commenents
 
-export const getPostComments = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const postId = req.params.id as string;
-    const page = parseInt((req.query.page as string) || "1", 10);
-    const limit = parseInt((req.query.limit as string) || "10", 10);
+    export const getPostComments = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const postId = req.params.id as string;
+        const page = parseInt((req.query.page as string) || "1", 10);
+        const limit = parseInt((req.query.limit as string) || "10", 10);
 
-    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
-      res.status(400).json({ message: "Invalid Post ID" });
-      return;
-    }
+        if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+          res.status(400).json({ message: "Invalid Post ID" });
+          return;
+        }
 
-    const post = await Post.findOne({ _id: postId, isDeleted: false }).lean();
-    if (!post) {
-      res.status(404).json({ message: "Post not found" });
-      return;
-    }
+        const post = await Post.findOne({ _id: postId, isDeleted: false }).lean();
+        if (!post) {
+          res.status(404).json({ message: "Post not found" });
+          return;
+        }
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
 
-    const paginatedComments = post.comments
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) // newest first
-      .slice(startIndex, endIndex)
-      .map(comment => ({
-        id: comment._id,
-        comment: comment.comment,
-        userId: comment.userId,
-        createdAt: comment.createdAt,
-      }));
+        const paginatedComments = post.comments
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) // newest first
+          .slice(startIndex, endIndex)
+          .map(comment => ({
+            id: comment._id,
+            comment: comment.comment,
+            userId: comment.userId,
+            createdAt: comment.createdAt,
+          }));
 
-    res.status(200).json({
-      message: "Comments fetched successfully",
-      comments: paginatedComments,
-      totalComments: post.comments.length,
-      page,
-      totalPages: Math.ceil(post.comments.length / limit),
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
+        res.status(200).json({
+          message: "Comments fetched successfully",
+          comments: paginatedComments,
+          totalComments: post.comments.length,
+          page,
+          totalPages: Math.ceil(post.comments.length / limit),
+        });
+      } catch (error: any) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+      }
+    };
 
