@@ -315,6 +315,7 @@ export const getAllPosts = async (
       }
     };
 
+<<<<<<< HEAD
     export const updatePost = async (req: Request, res: Response): Promise<void> => {
       const uploadedKeys: string[] = []; // For rollback
       try {
@@ -783,3 +784,47 @@ export const getAllPosts = async (
       }
     };
 
+=======
+// To fetch a mix of posts for the home screen
+export const getFeed = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const { postTypes } = req.query;
+
+    const filter: any = { isDeleted: false, visibility: "public" };
+
+    if (postTypes) {
+      const typesArray = (postTypes as string).split(",");
+      filter.postType = { $in: typesArray };
+    }
+
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPosts = await Post.countDocuments(filter);
+
+    res.status(200).json({
+      message: "Feed fetched successfully",
+      posts,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalPosts,
+        totalPages: Math.ceil(totalPosts / limit),
+        hasNextPage: page * limit < totalPosts,
+      },
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error fetching feed",
+      error: error.message,
+    });
+  }
+};
+>>>>>>> 1bf4944 (changed postController getFeed function to get feed based on the postModel postType enum values. updated postRoute to get the updated getFeed function.)
