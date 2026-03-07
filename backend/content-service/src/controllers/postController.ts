@@ -22,9 +22,9 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(authorType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -33,7 +33,6 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       title,
       content,
       category,
-      postType,
       visibility,
       attachments,
       tags,
@@ -75,11 +74,10 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
     }
 
     // Create the post
-    const post = await Post.create({
+    const post: any = await Post.create({
       title,
       content,
       category,
-      postType: postType || "POST",
       visibility: visibility || "public",
       attachments: attachmentUrls,
       tags: tags || [],
@@ -164,9 +162,9 @@ export const getMyPosts = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(authorType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -230,9 +228,9 @@ export const getPostsByUser = async (
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(userType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(userType)) {
       res.status(400).json({
-        message: "userType must be student, school admin, or organization admin",
+        message: "userType must be student, teacher, school admin, or organization admin",
       });
       return;
     }
@@ -351,9 +349,9 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(currentUserType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -485,9 +483,9 @@ export const deletePost = async (
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(currentUserType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }

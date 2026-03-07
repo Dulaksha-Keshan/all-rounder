@@ -67,7 +67,7 @@ export const getSchoolEventIds = async (req: Request, res: Response): Promise<vo
     });
 
     // Return just the IDs - Content Service will fetch full event data
-    const eventIds = eventHosts.map(eh => eh.eventId);
+    const eventIds = eventHosts.map((eh: any) => eh.eventId);
 
     res.json({ eventIds, total: eventIds.length });
   } catch (error) {
@@ -86,7 +86,7 @@ export const getOrganizationEventIds = async (req: Request, res: Response): Prom
       orderBy: { createdAt: "desc" },
     });
 
-    const eventIds = eventHosts.map(eh => eh.eventId);
+    const eventIds = eventHosts.map((eh: any) => eh.eventId);
 
     res.json({ eventIds, total: eventIds.length });
   } catch (error) {

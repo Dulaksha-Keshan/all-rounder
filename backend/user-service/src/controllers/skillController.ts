@@ -237,7 +237,7 @@ export const removeSkillFromUser = async (req: Request, res: Response): Promise<
 // Get user skills
 export const getUserSkills = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userUid = req.params.id || (req.headers["x-user-uid"] as string);
+    const userUid = (req.params.id as string) || (req.headers["x-user-uid"] as string);
     const userType = req.headers["x-user-type"] as string;
 
     if (!userUid || !userType) {
@@ -250,7 +250,7 @@ export const getUserSkills = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const student = await prisma.student.findUnique({
+    const student: any = await prisma.student.findUnique({
       where: { uid: userUid },
       include: { skills: true },
     });

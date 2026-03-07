@@ -22,7 +22,11 @@ export const createSchool = async (req: Request, res: Response): Promise<void> =
       data: {
         name: school.name as string,
         address: school.address,
+        province: school.province || "N/A",
         district: school.district,
+        zone: school.zone || "N/A",
+        school_level: school.school_level || "N/A",
+        gender: school.gender || "Mixed",
         email: school.email,
         contact_number: school.contact_number,
         principal_name: school.principal_name ?? null,
