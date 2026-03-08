@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 
+import { useUserStore } from "@/context/useUserStore";
+
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -49,20 +51,33 @@ function PageBackground() {
 export default function LoginPage() {
   const router = useRouter();
 
+  // 1. Pulled Google Login out here as per best practices!
+  const loginWithEmail = useUserStore((state) => state.loginWithEmail);
+  const loginWithGoogle = useUserStore((state) => state.loginWithGoogle);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const error = useUserStore((state) => state.error);
+
   const [showPassword, setShowPassword] = useState(false);
+  
+  // 2. Removed the 2FA state completely
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    twoFactorCode: "",
   });
-  const [show2FA, setShow2FA] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!show2FA) {
-      setShow2FA(true);
-    } else {
-      router.push("/home");
+
+    try {
+      await loginWithEmail(formData.email, formData.password);
+
+      // FIX: Check the store directly to see if an error was saved during the await
+      // If there is NO error, then we redirect safely.
+      if (!useUserStore.getState().error) {
+        router.push("/home");
+      }
+    } catch (err) {
+      console.error("Login failed", err);
     }
   };
 
@@ -80,12 +95,12 @@ export default function LoginPage() {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="mb-8">
-            <Image 
-              src="/icons/logoForPages.png" 
-              alt="Logo" 
-              width={80} 
-              height={80} 
-              priority 
+            <Image
+              src="/icons/logoForPages.png"
+              alt="Logo"
+              width={80}
+              height={80}
+              priority
             />
           </div>
           {/* Header Text */}
@@ -99,6 +114,14 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
@@ -118,7 +141,7 @@ export default function LoginPage() {
             </div>
 
             {/* Password */}
-            <div>
+            <div className="relative">
               <label htmlFor="password" className="block text-sm mb-2 text-primary-dark">
                 Password
               </label>
@@ -143,41 +166,35 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Two-Factor Authentication */}
-            {show2FA && (
-              <div
-                className="p-4 rounded-lg border border-secondary-lavender"
-                style={{ background: "var(--secondary-pale-lavender)" }}
-              >
-                <label htmlFor="twoFactorCode" className="block text-sm mb-2 text-primary-dark">
-                  Two-Factor Authentication Code
-                </label>
-                <input
-                  type="text"
-                  id="twoFactorCode"
-                  value={formData.twoFactorCode}
-                  onChange={(e) => setFormData({ ...formData, twoFactorCode: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
-                  style={{ "--tw-ring-color": "var(--primary-purple)" } as React.CSSProperties}
-                  placeholder="Enter 6-digit code"
-                  maxLength={6}
-                  required
-                />
-                <p className="text-xs text-muted mt-2">
-                  Enter the code from your authenticator app
-                </p>
-              </div>
-            )}
-
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-3 text-white rounded-lg hover:opacity-90 transition shadow-md hover:shadow-lg font-medium"
+              disabled={isLoading}
+              className="w-full py-3 text-white rounded-lg hover:opacity-90 transition shadow-md hover:shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "var(--primary-blue)" }}
             >
-              {show2FA ? "Verify & Sign In" : "Continue"}
+              {isLoading ? "Signing in..." : "Continue"}
             </button>
-          </form>
+          </form> 
+          {/* 3. MOVED FORM CLOSING TAG UP HERE */}
+
+          {/* Google Sign In Divider */}
+          <div className="mt-6 flex items-center justify-between">
+            <span className="w-1/5 border-b border-gray-300 lg:w-1/4"></span>
+            <p className="text-xs text-center text-gray-500 uppercase">or login with</p>
+            <span className="w-1/5 border-b border-gray-300 lg:w-1/4"></span>
+          </div>
+
+          {/* Google Sign In Button */}
+          <button
+            type="button"
+            // 4. Using the extracted hook and passing undefined!
+            onClick={() => loginWithGoogle(undefined as any)} 
+            className="w-full mt-6 py-3 px-4 border border-gray-300 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 transition bg-white text-gray-700 font-medium shadow-sm"
+          >
+            <Image src="/icons/google.svg" alt="Google" width={20} height={20} />
+            Google
+          </button>
 
           {/* Forgot Password */}
           <div className="mt-4 text-center">
