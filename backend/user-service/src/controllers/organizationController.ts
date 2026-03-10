@@ -123,6 +123,53 @@ export const createOrganization = async (req: Request, res: Response): Promise<v
   }
 };
 
+// Add a new admin to an existing organization
+export const addAdminToOrganization = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { organization_id, admin } = req.body;
+
+    if (!organization_id || !admin) {
+      res.status(400).json({ message: "Organization ID and admin data are required" });
+      return;
+    }
+
+    // Check if the organization exists
+    const existingOrg = await prisma.organization.findUnique({
+      where: { organization_id },
+    });
+
+    if (!existingOrg) {
+      res.status(404).json({ message: "Organization not found" });
+      return;
+    }
+
+    // Prepare request for createUser
+    const adminReq = {
+      body: {
+        ...admin,
+        userType: "ORG_ADMIN",
+        organization_id: existingOrg.organization_id,
+        verificationOption: "DOCUMENT", // or whatever logic you want
+      },
+    } as Request;
+
+    await createUser(
+      adminReq,
+      {
+        status: () => ({ json: () => {} }),
+      } as unknown as Response
+    );
+
+    res.status(201).json({
+      message: "Admin added to the existing organization successfully",
+      organization: existingOrg,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const updateOrganization = async (
   req: Request,
   res: Response
