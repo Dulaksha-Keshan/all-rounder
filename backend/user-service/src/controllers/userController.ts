@@ -457,3 +457,60 @@ export const softDeleteUser = async (
 };
 
 //TODO: Social actions 
+
+export const followUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const followerId = req.headers["x-user-uid"] as string;
+    const followingId = req.params.uid as string;
+
+    if (!followerId) {
+      res.status(400).json({
+        message: "x-user-uid header is required",
+      });
+      return;
+    }
+
+    if (!followingId) {
+      res.status(400).json({
+        message: "Target user uid is required",
+      });
+      return;
+    }
+
+    // Prevent self follow
+    if (followerId === followingId) {
+      res.status(400).json({
+        message: "You cannot follow yourself",
+      });
+      return;
+    }
+
+    // Create follow (unique constraint will prevent duplicates)
+    const follow = await prisma.follow.create({
+      data: {
+        followerId,
+        followingId,
+      },
+    });
+
+    res.status(201).json({
+      message: "User followed successfully",
+      follow,
+    });
+
+  } catch (error: any) {
+
+    // Prisma duplicate follow protection
+    if (error.code === "P2002") {
+      res.status(400).json({
+        message: "You are already following this user",
+      });
+      return;
+    }
+
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
