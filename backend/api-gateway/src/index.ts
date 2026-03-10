@@ -218,7 +218,7 @@ const schoolScopedMiddleware = [
 
 app.patch("/api/schools/:id", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/students", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
-app.get("/api/schools/:id/teachers", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
+app.get("/api/schools/:id/teachers",  userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/statistics", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 
 
@@ -317,66 +317,63 @@ app.get("/api/skills/users"
 
 
 // EVENT HOST ROUTES (internal use)
-app.use(
-  "/api/event-hosts",
-  verifyToken,
-  userServiceProxy("/api/event-hosts")
-);
+// app.use(
+//   "/api/event-hosts",
+//   verifyToken,
+//   userServiceProxy("/api/event-hosts")
+// );
 
 // POST/CONTENT ROUTES (proxied to content-service)
-// Individual routes for posts with verifyToken middleware
-// Ownership checks are handled in content-service
-
 // Create a new post (with attachments)
-app.post("/api/posts", verifyToken, contentServiceProxy(""));
+app.post("/api/posts", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+
 
 // Get posts of logged-in user
 app.get("/api/posts/me", verifyToken, contentServiceProxy(""));
-
-// Get posts of another user
 app.get("/api/posts/user/:userId", verifyToken, contentServiceProxy(""));
+app.get("/api/posts/:id", verifyToken, contentServiceProxy(""));
+
 
 // Get home feed posts (public, but require auth for consistency)
 app.get("/api/posts/feed", verifyToken, contentServiceProxy(""));
 
-// Get a single post by ID
-app.get("/api/posts/:id", verifyToken, contentServiceProxy(""));
 
-// Update a post by ID (ownership checked in service)
-app.put("/api/posts/:id", verifyToken, contentServiceProxy(""));
 
-// Delete a post by ID (ownership checked in service)
-app.delete("/api/posts/:id", verifyToken, contentServiceProxy(""));
+app.put("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+app.delete("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
 
-// Like or unlike a post
+
+// Like And comment routes 
 app.post("/api/posts/:id/like", verifyToken, contentServiceProxy(""));
-
-// Add a comment to a post
 app.post("/api/posts/:id/comment", verifyToken, contentServiceProxy(""));
-
-// Delete a comment from a post
 app.delete("/api/posts/:postId/comment/:commentId", verifyToken, contentServiceProxy(""));
-
-// Get comments of a post
 app.get("/api/posts/:id/comments", verifyToken, contentServiceProxy(""));
 
+
+
+
+
 // EVENT ROUTES (proxied to content-service)
-// Individual routes for events with verifyToken middleware
 
-// Create a new event (with attachments)
-app.post("/api/events", verifyToken, contentServiceProxy(""));
+const eventAdminMiddleware = [
+  verifyToken,
+  requireRole("SUPER_ADMIN", "SCHOOL_ADMIN", "ORG_ADMIN"),
+];
 
-// Get all events (paginated)
+// Create a new event (with attachments
+app.post("/api/events", ...eventAdminMiddleware, contentServiceProxy(""));
+
+// Get all events
 app.get("/api/events", verifyToken, contentServiceProxy(""));
-
 // Get a single event by ID
 app.get("/api/events/:id", verifyToken, contentServiceProxy(""));
 
-// Update an event by ID (with attachments)
-app.put("/api/events/:id", verifyToken, contentServiceProxy(""));
-
+// Update an event by ID 
+app.put("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
 // Delete an event by ID
-app.delete("/api/events/:id", verifyToken, contentServiceProxy(""));
+app.delete("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
+
+
 
 app.use(express.json());
 

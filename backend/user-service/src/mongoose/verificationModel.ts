@@ -26,7 +26,7 @@ const verificationSchema = new mongoose.Schema(
     },
 
     verificationRequestedBy: {
-      type: Number,
+      type: String,
       default: null,
     },
 

@@ -25,6 +25,7 @@ model Student {
   email           String   @unique
   date_of_birth   DateTime
   contact_number  String?
+  gender          String
   profile_picture String?
   is_active       Boolean  @default(true)
   is_frozen       Boolean  @default(false)
