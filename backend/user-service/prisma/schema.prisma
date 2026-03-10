@@ -69,6 +69,7 @@ model Teacher {
   school    School @relation(fields: [school_id], references: [school_id])
 
   clubIds String[] @default([])
+  verificationIds String[] @default([])
 }
 
 model Admin {
@@ -168,6 +169,19 @@ model EventHost {
   @@index([schoolId])
   @@index([organizationId])
   @@map("event_hosts")
+}
+
+model Follow {
+  id String @id @default(uuid())
+
+  followerId String
+  followingId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 enum HostType {
