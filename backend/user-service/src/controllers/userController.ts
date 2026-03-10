@@ -571,3 +571,56 @@ export const unfollowUser = async (req: Request, res: Response): Promise<void> =
     });
   }
 };
+
+export const getFollowers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { uid } = req.params;
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const skip = (page - 1) * limit;
+
+    if (!uid) {
+      res.status(400).json({
+        message: "User uid is required",
+      });
+      return;
+    }
+
+    const followers = await prisma.follow.findMany({
+      where: {
+        followingId: uid,
+      },
+      select: {
+        followerId: true,
+        createdAt: true,
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const totalFollowers = await prisma.follow.count({
+      where: {
+        followingId: uid,
+      },
+    });
+
+    res.status(200).json({
+      message: "Followers fetched successfully",
+      totalFollowers,
+      page,
+      limit,
+      followers,
+    });
+
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
