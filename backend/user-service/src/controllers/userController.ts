@@ -60,11 +60,24 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        await Verification.create({
+        const verification = await Verification.create({
           userId: user.uid,
           userType: "STUDENT",
           ...verificationPayload,
         });
+
+        // If teacher approval, push verification ID into teacher
+        if (verificationOption === "TEACHER_REQUEST") {
+          await prisma.teacher.update({
+            where: { uid: teacher_id },
+            data: {
+              pendingVerificationIds: {
+                push: verification._id.toString(),
+              },
+            },
+          });
+        }
+
         break;
 
       case UserType.TEACHER:
