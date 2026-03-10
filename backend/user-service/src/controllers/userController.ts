@@ -624,3 +624,65 @@ export const getFollowers = async (req: Request, res: Response): Promise<void> =
     });
   }
 };
+
+export const getFollowing = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { uid } = req.params;
+    const requesterId = req.headers["x-user-id"] as string;
+
+    if (!requesterId) {
+      res.status(401).json({
+        message: "User authentication required",
+      });
+      return;
+    }
+
+    // Only allow user to see their own following list
+    if (requesterId !== uid) {
+      res.status(403).json({
+        message: "You are not allowed to view this user's following list",
+      });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const skip = (page - 1) * limit;
+
+    const following = await prisma.follow.findMany({
+      where: {
+        followerId: uid,
+      },
+      select: {
+        followingId: true,
+        createdAt: true,
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const totalFollowing = await prisma.follow.count({
+      where: {
+        followerId: uid,
+      },
+    });
+
+    res.status(200).json({
+      message: "Following fetched successfully",
+      totalFollowing,
+      page,
+      limit,
+      following,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
