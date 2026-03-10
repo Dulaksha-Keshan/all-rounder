@@ -514,3 +514,60 @@ export const followUser = async (req: Request, res: Response): Promise<void> => 
     });
   }
 };
+
+export const unfollowUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const followerId = req.headers["x-user-uid"] as string;
+    const followingId = req.params.uid as string;
+
+    if (!followerId) {
+      res.status(400).json({
+        message: "x-user-uid header is required",
+      });
+      return;
+    }
+
+    if (!followingId) {
+      res.status(400).json({
+        message: "Target user uid is required",
+      });
+      return;
+    }
+
+    if (followerId === followingId) {
+      res.status(400).json({
+        message: "You cannot follow or unfollow yourself",
+      });
+      return;
+    }
+
+    // Delete follow relation
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId,
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "User unfollowed successfully",
+    });
+
+  } catch (error: any) {
+
+    // Follow relationship does not exist
+    if (error.code === "P2025") {
+      res.status(404).json({
+        message: "You are not following this user",
+      });
+      return;
+    }
+
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
