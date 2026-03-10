@@ -69,7 +69,8 @@ model Teacher {
   school    School @relation(fields: [school_id], references: [school_id])
 
   clubIds String[] @default([])
-  verificationIds String[] @default([])
+  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  approvedVerificationIds String[] @default([]) // requests accepted
 }
 
 model Admin {
