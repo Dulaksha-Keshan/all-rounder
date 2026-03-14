@@ -16,18 +16,18 @@ export default function DashboardPage() {
         }
 
         switch (userRole) {
-            case "Student":
+            case "STUDENT":
                 // Students might not have a dashboard, send to home or profile
                 router.push("/home");
                 break;
-            case "Teacher":
+            case "TEACHER":
                 router.push("/home");
                 break;
-            case "School":
+            case "SCHOOL_ADMIN":
                 // Based on structure: /dashboard/schools/[schoolId]
                 router.push(`/dashboard/schools/${(currentUser as any).school_id}`);
                 break;
-            case "Organization":
+            case "ORG_ADMIN":
                 router.push(`/dashboard/orgs/${(currentUser as any).organization_id}`);
                 break;
             default:
