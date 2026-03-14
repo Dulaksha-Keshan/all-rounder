@@ -1,12 +1,8 @@
 import { Request, Response } from "express";
 import Post from "../mongoose/postModel.js";
 import mongoose from "mongoose";
-import multer from 'multer';
 import { uploadToR2, deleteFromR2 } from '../utils/r2Upload.js';
 import { RecommendationEngine } from "../services/RecommendationEngine.js";
-
-const upload = multer({ storage: multer.memoryStorage() });
-
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
@@ -333,7 +329,6 @@ export const getPostById = async (
       likeCount: post.likes?.count || 0,
       commentCount: post.commentCount || 0,
       createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
     };
 
     res.status(200).json({

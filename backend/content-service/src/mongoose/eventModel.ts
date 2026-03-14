@@ -62,11 +62,15 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
     organizer: {
-      type: String,
-      required: true,
+      type: String
     },
     hosts: {
       type: [HostSchema],
+      required: true,
+    },
+    attachments: {
+      type: [String], // URLs for event attachments (images, documents, etc.)
+      default: [],
     },
     eligibility: {
       type: String,
@@ -85,8 +89,7 @@ const eventSchema = new mongoose.Schema(
       default: "public",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
     isDeleted: {

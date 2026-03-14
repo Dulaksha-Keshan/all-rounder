@@ -60,11 +60,24 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
           },
         });
 
-        await Verification.create({
+        const verification = await Verification.create({
           userId: user.uid,
           userType: "STUDENT",
           ...verificationPayload,
         });
+
+        // If teacher approval, push verification ID into teacher
+        if (verificationOption === "TEACHER_REQUEST") {
+          await prisma.teacher.update({
+            where: { uid: teacher_id },
+            data: {
+              pendingVerificationIds: {
+                push: verification._id.toString(),
+              },
+            },
+          });
+        }
+
         break;
 
       case UserType.TEACHER:
@@ -457,3 +470,232 @@ export const softDeleteUser = async (
 };
 
 //TODO: Social actions 
+
+export const followUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const followerId = req.headers["x-user-uid"] as string;
+    const followingId = req.params.uid as string;
+
+    if (!followerId) {
+      res.status(400).json({
+        message: "x-user-uid header is required",
+      });
+      return;
+    }
+
+    if (!followingId) {
+      res.status(400).json({
+        message: "Target user uid is required",
+      });
+      return;
+    }
+
+    // Prevent self follow
+    if (followerId === followingId) {
+      res.status(400).json({
+        message: "You cannot follow yourself",
+      });
+      return;
+    }
+
+    // Create follow (unique constraint will prevent duplicates)
+    const follow = await prisma.follow.create({
+      data: {
+        followerId,
+        followingId,
+      },
+    });
+
+    res.status(201).json({
+      message: "User followed successfully",
+      follow,
+    });
+
+  } catch (error: any) {
+
+    // Prisma duplicate follow protection
+    if (error.code === "P2002") {
+      res.status(400).json({
+        message: "You are already following this user",
+      });
+      return;
+    }
+
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const unfollowUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const followerId = req.headers["x-user-uid"] as string;
+    const followingId = req.params.uid as string;
+
+    if (!followerId) {
+      res.status(400).json({
+        message: "x-user-uid header is required",
+      });
+      return;
+    }
+
+    if (!followingId) {
+      res.status(400).json({
+        message: "Target user uid is required",
+      });
+      return;
+    }
+
+    if (followerId === followingId) {
+      res.status(400).json({
+        message: "You cannot follow or unfollow yourself",
+      });
+      return;
+    }
+
+    // Delete follow relation
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId,
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "User unfollowed successfully",
+    });
+
+  } catch (error: any) {
+
+    // Follow relationship does not exist
+    if (error.code === "P2025") {
+      res.status(404).json({
+        message: "You are not following this user",
+      });
+      return;
+    }
+
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getFollowers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { uid } = req.params;
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const skip = (page - 1) * limit;
+
+    if (!uid) {
+      res.status(400).json({
+        message: "User uid is required",
+      });
+      return;
+    }
+
+    const followers = await prisma.follow.findMany({
+      where: {
+        followingId: uid,
+      },
+      select: {
+        followerId: true,
+        createdAt: true,
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const totalFollowers = await prisma.follow.count({
+      where: {
+        followingId: uid,
+      },
+    });
+
+    res.status(200).json({
+      message: "Followers fetched successfully",
+      totalFollowers,
+      page,
+      limit,
+      followers,
+    });
+
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getFollowing = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { uid } = req.params;
+    const requesterId = req.headers["x-user-id"] as string;
+
+    if (!requesterId) {
+      res.status(401).json({
+        message: "User authentication required",
+      });
+      return;
+    }
+
+    // Only allow user to see their own following list
+    if (requesterId !== uid) {
+      res.status(403).json({
+        message: "You are not allowed to view this user's following list",
+      });
+      return;
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const skip = (page - 1) * limit;
+
+    const following = await prisma.follow.findMany({
+      where: {
+        followerId: uid,
+      },
+      select: {
+        followingId: true,
+        createdAt: true,
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const totalFollowing = await prisma.follow.count({
+      where: {
+        followerId: uid,
+      },
+    });
+
+    res.status(200).json({
+      message: "Following fetched successfully",
+      totalFollowing,
+      page,
+      limit,
+      following,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};

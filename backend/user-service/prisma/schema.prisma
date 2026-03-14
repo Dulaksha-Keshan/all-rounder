@@ -25,6 +25,7 @@ model Student {
   email           String   @unique
   date_of_birth   DateTime
   contact_number  String?
+  gender          String
   profile_picture String?
   is_active       Boolean  @default(true)
   is_frozen       Boolean  @default(false)
@@ -68,6 +69,8 @@ model Teacher {
   school    School @relation(fields: [school_id], references: [school_id])
 
   clubIds String[] @default([])
+  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  approvedVerificationIds String[] @default([]) // requests accepted
 }
 
 model Admin {
@@ -167,6 +170,19 @@ model EventHost {
   @@index([schoolId])
   @@index([organizationId])
   @@map("event_hosts")
+}
+
+model Follow {
+  id String @id @default(uuid())
+
+  followerId String
+  followingId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 enum HostType {

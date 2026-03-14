@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth } = req.body;
+    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id } = req.body;
 
     if (!email || !password || !name || !role) {
       res.status(400).json({
@@ -59,6 +59,10 @@ router.post('/register', async (req: Request, res: Response) => {
       if (role === "STUDENT" || role === "TEACHER") {
         userPayload.grade = grade ? grade : null;
       }
+      if(verificationOption === "TEACHER_REQUEST"){
+        userPayload.teacher_id = teacher_id ? teacher_id : null;
+      }
+      console.log("User Payload for User Service:", userPayload);
 
       const userServiceResponse = await axios.post(
         `${process.env.USER_SERVICE_URL}/api/users`,
@@ -92,9 +96,9 @@ router.post('/register', async (req: Request, res: Response) => {
     } catch (dbError: any) {
       // Rollback for Firebase user if database creation failed
       if (dbError.response) {
-        console.error("❌ User Service Rejected Request:", dbError.response.data);
+        console.error(" User Service Rejected Request:", dbError.response.data);
       } else {
-        console.error("❌ Network/Connection Error:", dbError.message);
+        console.error("Network/Connection Error:", dbError.message);
       }
 
       // Rollback
@@ -127,17 +131,89 @@ router.post('/register', async (req: Request, res: Response) => {
 //TODO:GOOGLE SIGN IN
 //infornt end it should be google sign in first and then after that relavant register details according to the selected the use type school..etc(if there are new users)
 
-router.post('/google-signin', async (req: Request, res: Response,) => {
+// router.post('/google-signin', async (req: Request, res: Response,) => {
+//   try {
+//     const { idtoken, role, schoolId, organizationId } = req.body;
+
+//     if (!idtoken || !role) {
+//       res.status(400).json({
+//         error: 'Missing required fields',
+//         message: "Required Idtoken, Role"
+
+//       })
+//       return
+//     }
+
+//     const decodeToken = await firebaseAuth.verifyToken(idtoken);
+//     const { name, email, uid } = decodeToken;
+
+//     let dbUser;
+
+//     try {
+//       const dbCheck = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/firebase/${uid}`);
+
+//       dbUser = dbCheck.data;
+//     } catch {
+//       dbUser = null;
+
+//     }
+
+//     const newUser = !dbUser;
+
+//     if (newUser) {
+//       const userServiceResponse = await axios.post(
+//         `${process.env.USER_SERVICE_URL}/api/users`,
+//         {
+//           email,
+//           name,
+//           role,
+//           ...(schoolId && { schoolId }),
+//           ...(organizationId && { organizationId })
+//         }
+//       );
+//       dbUser = userServiceResponse.data;
+
+
+//       // Set custom claims in Firebase
+//       const customClaims: any = {
+//         role,
+//         userType: role.replace("_ADMIN", "")
+//       };
+
+//       if (schoolId) customClaims.schoolId = schoolId;
+//       if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
+
+//       await firebaseAuth.setCustomClaims(uid, customClaims);
+
+//       // Return success (user needs to login to get token)
+//       res.json({
+//         message: newUser ? "User created Sucessfully " : "Login Sucessful",
+//         user: dbUser,
+//       });
+
+//     }
+//   } catch (error: any) {
+//     console.error("Google-Sign In Error: ", error)
+//     res.status(500).json({
+//       error: "Google-Sign In Failed",
+//       message: error.message
+
+//     })
+//   }
+// })
+
+//TODO:GOOGLE SIGN IN
+router.post('/google-signin', async (req: Request, res: Response) => {
   try {
     const { idtoken, role, schoolId, organizationId } = req.body;
 
-    if (!idtoken || !role) {
+    // 1. Only require the idtoken initially
+    if (!idtoken) {
       res.status(400).json({
         error: 'Missing required fields',
-        message: "Required Idtoken, Role"
-
-      })
-      return
+        message: "Required Idtoken"
+      });
+      return;
     }
 
     const decodeToken = await firebaseAuth.verifyToken(idtoken);
@@ -146,17 +222,25 @@ router.post('/google-signin', async (req: Request, res: Response,) => {
     let dbUser;
 
     try {
+      // 2. Check if the user already exists in PostgreSQL
       const dbCheck = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/firebase/${uid}`);
-
       dbUser = dbCheck.data;
     } catch {
       dbUser = null;
-
     }
 
     const newUser = !dbUser;
 
     if (newUser) {
+      // 3. If they are NEW, we absolutely need a role to create their profile
+      if (!role) {
+         res.status(400).json({
+           error: 'Role required for registration',
+           message: 'New users must register through a specific role sign-up page, not the general login page.'
+         });
+         return;
+      }
+
       const userServiceResponse = await axios.post(
         `${process.env.USER_SERVICE_URL}/api/users`,
         {
@@ -169,7 +253,6 @@ router.post('/google-signin', async (req: Request, res: Response,) => {
       );
       dbUser = userServiceResponse.data;
 
-
       // Set custom claims in Firebase
       const customClaims: any = {
         role,
@@ -180,24 +263,22 @@ router.post('/google-signin', async (req: Request, res: Response,) => {
       if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
 
       await firebaseAuth.setCustomClaims(uid, customClaims);
-
-      // Return success (user needs to login to get token)
-      res.json({
-        message: newUser ? "User created Sucessfully " : "Login Sucessful",
-        user: dbUser,
-      });
-
     }
+
+    // 4. Return success (works for both existing users logging in, and new users signing up!)
+    res.json({
+      message: newUser ? "User created Successfully " : "Login Successful",
+      user: dbUser,
+    });
+
   } catch (error: any) {
     console.error("Google-Sign In Error: ", error)
     res.status(500).json({
       error: "Google-Sign In Failed",
       message: error.message
-
-    })
+    });
   }
-})
-
+});
 
 
 //refresh token
@@ -220,12 +301,12 @@ router.post('/refresh', verifyToken, async (req: Request, res: Response) => {
 });
 
 //get the current user
-router.get('/me', async (req: Request, res: Response) => {
+router.get('/me', verifyToken, async (req: Request, res: Response) => {
   try {
-    const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/${req.user!.uid}`, {
+    const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/`, {
       headers: {
-        "x-user-id": req.user!.uid,
-        "x-user-role": req.user!.role
+        "x-user-uid": req.user!.uid,
+        "x-user-type": req.user!.role
       }
     });
 

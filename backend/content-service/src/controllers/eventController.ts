@@ -1,102 +1,12 @@
-import { Request, Response } from "express";
-import mongoose from "mongoose";
-import Event from "../mongoose/eventModel.js";
 import axios from 'axios';
+import { Request, Response } from "express";
+import mongoose, { InferSchemaType } from "mongoose";
+import Event from "../mongoose/eventModel.js";
+import { deleteFromR2, uploadToR2 } from '../utils/r2Upload.js';
+import { create } from 'node:domain';
 
-//export const createEvent = async (
-//  req: Request,
-//  res: Response,
-//): Promise<void> => {
-//  try {
-//    console.log("All headers:", req.headers);
-//
-//    const creatorId = req.headers["x-user-id"] as string;
-//
-//    const schoolId = req.headers["x-school-id"] as string;
-//    const orgId = req.headers["x-organization-id"] as string;
-//    console.log("creatorId:", creatorId);
-//    if (!creatorId) {
-//      res.status(400).json({
-//        message: "x-user-id header is required",
-//      });
-//      return;
-//    }
-//
-//    if (!schoolId && !orgId) {
-//      res.status(400).json({
-//        message: "Invalid School ID OR Organization ID",
-//      });
-//      return;
-//    }
-//
-//    const {
-//      title,
-//      description,
-//      category,
-//      eventType,
-//      startDate,
-//      endDate,
-//      location,
-//      organizer,
-//      eligibility,
-//      registrationUrl,
-//      isOnline,
-//      visibility,
-//    } = req.body;
-//
-//    if (
-//      !title ||
-//      !description ||
-//      !(schoolId && orgId) ||
-//      !category ||
-//      !eventType ||
-//      !startDate ||
-//      !endDate ||
-//      !location ||
-//      !organizer ||
-//      !eligibility
-//    ) {
-//      res.status(400).json({
-//        message: "Missing required event fields",
-//      });
-//      return;
-//    }
-//
-//    if (new Date(startDate) > new Date(endDate)) {
-//      res.status(400).json({
-//        message: "Start date cannot be after end date",
-//      });
-//      return;
-//    }
-//
-//    const event = await Event.create({
-//      title,
-//      description,
-//      category,
-//      eventType,
-//      startDate,
-//      endDate,
-//      location,
-//      organizer,
-//      eligibility,
-//      registrationUrl,
-//      isOnline,
-//      visibility,
-//      createdBy: creatorId,
-//    });
-//
-//    res.status(201).json({
-//      message: "Event created successfully",
-//      event,
-//    });
-//  } catch (error) {
-//    console.error(error);
-//    res.status(500).json({
-//      message: "Internal server error",
-//    });
-//  }
-//};
 
+type Host = InferSchemaType<typeof Event.schema>["hosts"][number];
 
 //HELPER FUNCTION
 //common use case would be user sees an event and user sees details and click on the event hosts like school or organization to see details 
@@ -115,14 +25,13 @@ async function fetchHostDetails(hostId: string, hostType: string) {
 
 
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
+  const uploadedKeys: string[] = []; // For rollback
   try {
-    const creatorId = req.headers["x-user-uid"] as string;    // Firebase UID ✅
+    const creatorId = req.headers["x-user-uid"] as string;    // Firebase UID 
     const schoolId = req.headers["x-school-id"] as string;
     const orgId = req.headers["x-organization-id"] as string; // methana school id and organization id wenama ganne nathuwa creator id ek map karamud
 
-    
-
-    const {
+    let {
       title,
       description,
       category,
@@ -137,6 +46,16 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       visibility,
       hosts,   // ← ADD THIS to destructuring
     } = req.body;
+
+
+    if (hosts && typeof hosts === 'string') {
+      try {
+        hosts = JSON.parse(hosts);
+      } catch (error) {
+        res.status(400).json({ message: "Invalid JSON format for hosts" });
+        return;
+      }
+    }
 
     // Validation (keep as is)
     if (!title || !description || !category || !eventType ||
@@ -179,13 +98,52 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       }
     }
 
+    // Handle file uploads
+    const attachmentUrls: string[] = [];
+    if (req.files && Array.isArray(req.files)) {
+
+
+      // Determine key prefix based on primary host or default
+      let keyPrefix = 'events';
+      if (hosts && hosts.length > 0) {
+        const primaryHost = hosts.find((h: Host) => h.isPrimary) || hosts[0];
+        keyPrefix = `events/${primaryHost.hostType === 'school' ? 'School' : 'Organizations'}/${primaryHost.hostId}`;
+      } else if (schoolId) {
+        keyPrefix = `events/School/${schoolId}`;
+      } else if (orgId) {
+        keyPrefix = `events/Organizations/${orgId}`;
+      }
+
+      for (const file of req.files) {
+        try {
+          const key = `${keyPrefix}/${Date.now()}-${file.originalname}`;
+          const url = await uploadToR2(file.buffer, key, file.mimetype);
+          attachmentUrls.push(url);
+          uploadedKeys.push(key); // Track for rollback
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          // Rollback previous uploads
+          for (const key of uploadedKeys) {
+            try {
+              await deleteFromR2(key);
+            } catch (deleteError) {
+              console.error('Rollback delete failed:', deleteError);
+            }
+          }
+          res.status(500).json({
+            message: "File upload failed",
+          });
+          return;
+        }
+      }
+    }
 
     const event = await Event.create({
       title,
       description,
       category,
       eventType,
-      startDate : start,
+      startDate: start,
       endDate: end,
       location,
       organizer,
@@ -195,6 +153,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       visibility,
       createdBy: creatorId,
       hosts: hosts || [],
+      attachments: attachmentUrls,
     });
 
     let hostMappingSuccessCount = 0;
@@ -236,6 +195,14 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
     }
 
     if (hostMappingSuccessCount === 0) {
+      // Rollback uploads and delete event
+      for (const key of uploadedKeys) {
+        try {
+          await deleteFromR2(key);
+        } catch (deleteError) {
+          console.error('Rollback delete failed:', deleteError);
+        }
+      }
       await Event.findByIdAndDelete(event._id);
       res.status(500).json({
         message: "Event creation failed due to host registration error",
@@ -245,11 +212,37 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
 
     res.status(201).json({
       message: "Event created successfully",
-      event,
+      event: {
+        id: event._id,
+        title: event.title,
+        description: event.description,
+        category: event.category,
+        eventType: event.eventType,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        location: event.location,
+        organizer: event.organizer,
+        eligibility: event.eligibility,
+        registrationUrl: event.registrationUrl,
+        isOnline: event.isOnline,
+        visibility: event.visibility,
+        attachments: event.attachments,
+        hosts: event.hosts,
+        createdBy: event.createdBy,
+        createdAt: event.createdAt,
+      },
     });
 
   } catch (error) {
     console.error(error);
+    // Rollback uploads on error
+    for (const key of uploadedKeys) {
+      try {
+        await deleteFromR2(key);
+      } catch (deleteError) {
+        console.error('Rollback delete failed:', deleteError);
+      }
+    }
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -260,14 +253,43 @@ export const getAllEvents = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
     const events = await Event.find({ isDeleted: false })
       .sort({ startDate: 1 })
-    //.populate("createdBy", "name email"); because this gives error since it cannot find User
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Event.countDocuments({ isDeleted: false });
+
+    const safeEvents = events.map(event => ({
+      id: event._id,
+      title: event.title,
+      description: event.description,
+      category: event.category,
+      eventType: event.eventType,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      location: event.location,
+      organizer: event.organizer,
+      eligibility: event.eligibility,
+      registrationUrl: event.registrationUrl,
+      isOnline: event.isOnline,
+      visibility: event.visibility,
+      attachments: event.attachments,
+      hosts: event.hosts,
+      createdAt: event.createdAt,
+    }));
 
     res.status(200).json({
       success: true,
-      count: events.length,
-      data: events,
+      count: safeEvents.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: safeEvents,
     });
   } catch (error) {
     res.status(500).json({
@@ -346,8 +368,25 @@ export const getEventById = async (req: Request, res: Response): Promise<void> =
     }
 
     res.status(200).json({
-      event,
-      hostDetails: hostDetails || event.hosts, // Use fresh or stored
+      event: {
+        id: event._id,
+        title: event.title,
+        description: event.description,
+        category: event.category,
+        eventType: event.eventType,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        location: event.location,
+        organizer: event.organizer,
+        eligibility: event.eligibility,
+        registrationUrl: event.registrationUrl,
+        isOnline: event.isOnline,
+        visibility: event.visibility,
+        attachments: event.attachments,
+        hosts: event.hosts,
+        createdAt: event.createdAt,
+      },
+      hostDetails: hostDetails || event.hosts,
     });
 
   } catch (error) {
@@ -362,6 +401,7 @@ export const updateEvent = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
+  const uploadedKeys: string[] = []; // For rollback
   try {
     const eventId = req.params.id as string;
 
@@ -372,9 +412,54 @@ export const updateEvent = async (
       return;
     }
 
+    // Handle file uploads (replace attachments if new files provided)
+    const attachmentUrls: string[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      // Use existing event's primary host for key prefix
+      const existingEvent = await Event.findById(eventId);
+      if (!existingEvent) {
+        res.status(404).json({ message: "Event not found" });
+        return;
+      }
+
+      let keyPrefix = 'events';
+      if (existingEvent.hosts && existingEvent.hosts.length > 0) {
+        const primaryHost = existingEvent.hosts.find(h => h.isPrimary) || existingEvent.hosts[0]!;
+        keyPrefix = `events/${primaryHost.hostType === 'school' ? 'School' : 'Organizations'}/${primaryHost.hostId}`;
+      }
+
+      for (const file of req.files) {
+        try {
+          const key = `${keyPrefix}/${Date.now()}-${file.originalname}`;
+          const url = await uploadToR2(file.buffer, key, file.mimetype);
+          attachmentUrls.push(url);
+          uploadedKeys.push(key);
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          // Rollback
+          for (const key of uploadedKeys) {
+            try {
+              await deleteFromR2(key);
+            } catch (deleteError) {
+              console.error('Rollback delete failed:', deleteError);
+            }
+          }
+          res.status(500).json({
+            message: "File upload failed",
+          });
+          return;
+        }
+      }
+    }
+
+    const updateData = { ...req.body };
+    if (attachmentUrls.length > 0) {
+      updateData.attachments = attachmentUrls;
+    }
+
     const updatedEvent = await Event.findOneAndUpdate(
       { _id: eventId, isDeleted: false },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -382,15 +467,48 @@ export const updateEvent = async (
       res.status(404).json({
         message: "Event not found",
       });
+      // Rollback uploads
+      for (const key of uploadedKeys) {
+        try {
+          await deleteFromR2(key);
+        } catch (deleteError) {
+          console.error('Rollback delete failed:', deleteError);
+        }
+      }
       return;
     }
 
     res.status(200).json({
       message: "Event updated successfully",
-      event: updatedEvent,
+      event: {
+        id: updatedEvent._id,
+        title: updatedEvent.title,
+        description: updatedEvent.description,
+        category: updatedEvent.category,
+        eventType: updatedEvent.eventType,
+        startDate: updatedEvent.startDate,
+        endDate: updatedEvent.endDate,
+        location: updatedEvent.location,
+        organizer: updatedEvent.organizer,
+        eligibility: updatedEvent.eligibility,
+        registrationUrl: updatedEvent.registrationUrl,
+        isOnline: updatedEvent.isOnline,
+        visibility: updatedEvent.visibility,
+        attachments: updatedEvent.attachments,
+        hosts: updatedEvent.hosts,
+        updatedAt: updatedEvent.updatedAt,
+      },
     });
   } catch (error) {
     console.error(error);
+    // Rollback uploads
+    for (const key of uploadedKeys) {
+      try {
+        await deleteFromR2(key);
+      } catch (deleteError) {
+        console.error('Rollback delete failed:', deleteError);
+      }
+    }
     res.status(500).json({
       message: "Internal server error",
     });
@@ -435,13 +553,3 @@ export const deleteEvent = async (
   }
 };
 
-// RSVP stands for "Répondez s'il vous plaît" (Please Respond)
-// To handle student registration for an event
-export const rsvpToEvent = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  // Current Event model does not support attendees list.
-  // This feature requires schema update or separate RSVP model.
-  res.status(501).json({ message: "RSVP feature not implemented yet (requires model update)" });
-};

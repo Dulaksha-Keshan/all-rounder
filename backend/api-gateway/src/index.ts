@@ -101,7 +101,7 @@ const contentServiceProxy = (pathRewriteKey: string) =>
     on: {
       proxyReq: (proxyReq, req: Request) => {
         // Forward authenticated user info as headers to Content Service
-
+        // Note: Header names adjusted to match content-service expectations (x-user-id instead of x-user-uid)
         if (req.user) {
           proxyReq.setHeader("x-user-uid", req.user.uid);
           proxyReq.setHeader("x-user-type", req.user.role || "");
@@ -225,7 +225,7 @@ const schoolScopedMiddleware = [
 
 app.patch("/api/schools/:id", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/students", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
-app.get("/api/schools/:id/teachers", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
+app.get("/api/schools/:id/teachers",  userServiceProxy("^/api/schools"));
 app.get("/api/schools/:id/statistics", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
 
 
@@ -324,20 +324,63 @@ app.get("/api/skills/users"
 
 
 // EVENT HOST ROUTES (internal use)
-app.use(
-  "/api/event-hosts",
-  verifyToken,
-  userServiceProxy("/api/event-hosts")
-);
+// app.use(
+//   "/api/event-hosts",
+//   verifyToken,
+//   userServiceProxy("/api/event-hosts")
+// );
 
 // POST/CONTENT ROUTES (proxied to content-service)
-// Handles post CRUD, likes, comments, and file uploads (e.g., attachments to R2)
-// All routes require authentication via verifyToken
-app.use(
-  "/api/posts",
+// Create a new post (with attachments)
+app.post("/api/posts", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+
+
+// Get posts of logged-in user
+app.get("/api/posts/me", verifyToken, contentServiceProxy(""));
+app.get("/api/posts/user/:userId", verifyToken, contentServiceProxy(""));
+app.get("/api/posts/:id", verifyToken, contentServiceProxy(""));
+
+
+// Get home feed posts (public, but require auth for consistency)
+app.get("/api/posts/feed", verifyToken, contentServiceProxy(""));
+
+
+
+app.put("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+app.delete("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+
+
+// Like And comment routes 
+app.post("/api/posts/:id/like", verifyToken, contentServiceProxy(""));
+app.post("/api/posts/:id/comment", verifyToken, contentServiceProxy(""));
+app.delete("/api/posts/:postId/comment/:commentId", verifyToken, contentServiceProxy(""));
+app.get("/api/posts/:id/comments", verifyToken, contentServiceProxy(""));
+
+
+
+
+
+// EVENT ROUTES (proxied to content-service)
+
+const eventAdminMiddleware = [
   verifyToken,
-  contentServiceProxy("/api/posts")
-);
+  requireRole("SUPER_ADMIN", "SCHOOL_ADMIN", "ORG_ADMIN"),
+];
+
+// Create a new event (with attachments
+app.post("/api/events", ...eventAdminMiddleware, contentServiceProxy(""));
+
+// Get all events
+app.get("/api/events", verifyToken, contentServiceProxy(""));
+// Get a single event by ID
+app.get("/api/events/:id", verifyToken, contentServiceProxy(""));
+
+// Update an event by ID 
+app.put("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
+// Delete an event by ID
+app.delete("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
+
+
 
 app.use(express.json());
 
