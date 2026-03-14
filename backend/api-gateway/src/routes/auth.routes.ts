@@ -60,7 +60,7 @@ const handleRegisterUpload = (req: Request, res: Response, next: () => void): vo
 
 router.post('/register', handleRegisterUpload, async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id } = req.body;
+    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id,gender} = req.body;
     const verificationAttachment = req.file;
     console.log(req.file)
     const selectedVerificationOption = verificationOption || 'DOCUMENT';
@@ -129,6 +129,10 @@ router.post('/register', handleRegisterUpload, async (req: Request, res: Respons
 
       if (organizationId) {
         userPayload.append('organization_id', organizationId);
+      }
+
+      if(role === "STUDENT" && gender){
+        userPayload.append('gender', gender);
       }
 
       if ((role === 'STUDENT' || role === 'TEACHER') && grade) {

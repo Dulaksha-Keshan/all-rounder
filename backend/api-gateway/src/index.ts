@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
 
-console.log(`Port: ${PORT} | User Service: ${process.env.USER_SERVICE_URL}`);
+console.log(`Port: ${PORT} Api agteway`);
 
 //firebase initialization
 try {
@@ -168,6 +168,74 @@ app.get("/health/services", async (req: Request, res: Response) => {
 
 
 // USER ROUTES
+// Verification request routes (specific role + ownership checks)
+const verificationRequestBaseMiddleware = [
+  verifyToken,
+  requireRole("TEACHER", "SCHOOL_ADMIN"),
+];
+
+const schoolVerificationRequestMiddleware = [
+  verifyToken,
+  requireRole("SCHOOL_ADMIN"),
+  requireSchoolAccess("schoolId"),
+];
+
+// Teacher / school-admin own pending list
+app.get(
+  "/api/users/requests/pending",
+  ...verificationRequestBaseMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// School-admin scoped pending list
+app.get(
+  "/api/users/requests/pending/:schoolId",
+  ...schoolVerificationRequestMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// Teacher / school-admin grouped all requests
+app.get(
+  "/api/users/requests/all-requests",
+  ...verificationRequestBaseMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// School-admin scoped grouped all requests
+app.get(
+  "/api/users/requests/all-requests/:schoolId",
+  ...schoolVerificationRequestMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// Accept request
+app.patch(
+  "/api/users/requests/:verificationId/accept",
+  ...verificationRequestBaseMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// Accept request with school scope
+app.patch(
+  "/api/users/requests/:verificationId/accept/:schoolId",
+  ...schoolVerificationRequestMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// Decline request
+app.patch(
+  "/api/users/requests/:verificationId/decline",
+  ...verificationRequestBaseMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
+// Decline request with school scope
+app.patch(
+  "/api/users/requests/:verificationId/decline/:schoolId",
+  ...schoolVerificationRequestMiddleware,
+  userServiceProxy("/api/users/requests")
+);
+
 // All user routes require authentication
 app.use(
   "/api/users",
