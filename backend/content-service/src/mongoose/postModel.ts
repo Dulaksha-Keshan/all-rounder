@@ -64,7 +64,7 @@ const postSchema = new mongoose.Schema(
 
     authorType: {
       type: String,
-      enum: ["STUDENT", "SCHOOL", "ORGANIZATION"],
+      enum: ["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"],
       required: true,
     },
 

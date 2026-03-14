@@ -38,10 +38,17 @@ app.use(
   })
 );
 
-// Request logger
+// Request logger with response time
 app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = process.hrtime();
   const ts = new Date().toISOString();
-  console.log(`[${ts}] ${req.method} => ${req.path}`);
+  
+  res.on("finish", () => {
+    const diff = process.hrtime(start);
+    const timeInMs = (diff[0] * 1000 + diff[1] / 1000000).toFixed(2);
+    console.log(`[${ts}] ${req.method} ${req.path} - ${timeInMs}ms`);
+  });
+  
   next();
 });
 

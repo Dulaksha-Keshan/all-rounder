@@ -2,9 +2,12 @@ import { Request, Response } from "express";
 import Post from "../mongoose/postModel.js";
 import mongoose from "mongoose";
 import { uploadToR2, deleteFromR2 } from '../utils/r2Upload.js';
+import { RecommendationEngine } from "../services/RecommendationEngine.js";
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
+  const start = process.hrtime();
+  
   try {
     const authorId = req.headers["x-user-uid"] as string;
     const authorType = req.headers["x-user-type"] as string;
@@ -17,14 +20,21 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(authorType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
 
-    const { title, content, category, visibility, tags } = req.body;
+    const {
+      title,
+      content,
+      category,
+      visibility,
+      attachments,
+      tags,
+    } = req.body;
 
     // Validate required body fields
     if (!title || !content || !category) {
@@ -34,8 +44,13 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    const validationEnd = process.hrtime(start);
+    const validationTime = (validationEnd[0] * 1000 + validationEnd[1] / 1000000).toFixed(2);
+    console.log(`[Performance] Post Validation & Formatting: ${validationTime}ms`);
+
     // Handle file uploads
     const attachmentUrls: string[] = [];
+    // ... (rest of the upload logic stays the same)
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
         try {
@@ -61,8 +76,9 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
+    const dbStart = process.hrtime();
     // Create the post
-    const post = await Post.create({
+    const post: any = await Post.create({
       title,
       content,
       category,
@@ -79,6 +95,9 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       commentCount: 0,
       isDeleted: false,
     });
+    const dbEnd = process.hrtime(dbStart);
+    const dbTime = (dbEnd[0] * 1000 + dbEnd[1] / 1000000).toFixed(2);
+    console.log(`[Performance] MongoDB Creation Latency: ${dbTime}ms`);
 
     res.status(201).json({
       message: "Post created successfully",
@@ -96,6 +115,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       },
     });
   } catch (error: any) {
+    // ... rest of the catch block
     console.error(error);
     // Rollback uploads if post creation failed
     for (const key of uploadedKeys) {
@@ -111,7 +131,31 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// x-user-uid use karala thamange porfile ekt giyama ena post tika
+export const getAllPosts = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { category, visibility } = req.query;
+
+    const filter: any = { isDeleted: false };
+    if (category) filter.category = category;
+    if (visibility) filter.visibility = visibility;
+
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "Posts fetched successfully",
+      posts,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 export const getMyPosts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -126,9 +170,9 @@ export const getMyPosts = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(authorType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(authorType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -192,9 +236,9 @@ export const getPostsByUser = async (
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(userType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(userType)) {
       res.status(400).json({
-        message: "userType must be student, school admin, or organization admin",
+        message: "userType must be student, teacher, school admin, or organization admin",
       });
       return;
     }
@@ -236,7 +280,6 @@ export const getPostsByUser = async (
     });
   }
 };
-
 
 export const getPostById = async (
   req: Request,
@@ -298,7 +341,6 @@ export const getPostById = async (
   }
 };
 
-
 export const updatePost = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
   try {
@@ -314,9 +356,9 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL_ADMIN", "ORG_ADMIN"].includes(currentUserType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(currentUserType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school admin, or organization admin",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -431,7 +473,10 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const deletePost = async (req: Request, res: Response): Promise<void> => {
+export const deletePost = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const postId = req.params.id as string;
     const currentUserId = req.headers["x-user-uid"] as string;
@@ -445,9 +490,9 @@ export const deletePost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (!["STUDENT", "SCHOOL", "ORGANIZATION"].includes(currentUserType)) {
+    if (!["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"].includes(currentUserType)) {
       res.status(400).json({
-        message: "x-user-type must be student, school, or organization",
+        message: "x-user-type header is invalid",
       });
       return;
     }
@@ -506,20 +551,28 @@ export const deletePost = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// To fetch a mix of posts for the home screen
+// To fetch a mix of posts and events for the home screen
 export const getFeed = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Basic feed: return latest public posts that are not deleted
-    const posts = await Post.find({ isDeleted: false, visibility: "public" })
-      .sort({ createdAt: -1 })
-      .limit(20);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    
+    const userUid = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
+
+    const result = await RecommendationEngine.getPersonalizedFeed(
+      userUid,
+      userType,
+      page,
+      limit
+    );
 
     res.status(200).json({
       message: "Feed fetched successfully",
-      posts,
+      ...result
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("[PostController] Error in getFeed:", error);
     res.status(500).json({
       message: "Error fetching feed",
       error: error.message,
@@ -693,11 +746,8 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-
-    //TODO: Post Author also can delete commenst
-
-    // Only the comment author can delete
-    if (comment.userId !== currentUserId) {
+    // Only the comment author or post author can delete
+    if (comment.userId !== currentUserId && post.authorId !== currentUserId) {
       res.status(403).json({ message: "You are not allowed to delete this comment" });
       return;
     }
@@ -718,8 +768,6 @@ export const deleteComment = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-
-//TODO: Add a reply array to the commenents
 
 export const getPostComments = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -742,9 +790,9 @@ export const getPostComments = async (req: Request, res: Response): Promise<void
     const endIndex = startIndex + limit;
 
     const paginatedComments = post.comments
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) // newest first
+      .sort((a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime()) // newest first
       .slice(startIndex, endIndex)
-      .map(comment => ({
+      .map((comment: any) => ({
         id: comment._id,
         comment: comment.comment,
         userId: comment.userId,
@@ -763,4 +811,3 @@ export const getPostComments = async (req: Request, res: Response): Promise<void
     res.status(500).json({ message: error.message });
   }
 };
-

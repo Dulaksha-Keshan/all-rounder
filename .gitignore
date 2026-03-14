@@ -5,6 +5,16 @@ postman
 
 .postman
 /generated/prisma
+<<<<<<< HEAD
 /.github/*
 
 skills-lock.json
+=======
+
+.gemini/
+gha-creds-*.json
+
+GEMINI.md
+
+.github
+>>>>>>> af625bc (changed postController getFeed function to get feed based on the postModel postType enum values. updated postRoute to get the updated getFeed function.)

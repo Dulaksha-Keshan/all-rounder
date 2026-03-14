@@ -4,6 +4,7 @@ import {
   getMyPosts,
   getPostsByUser,
   getPostById,
+  getAllPosts,
   updatePost,
   deletePost,
   getFeed,
@@ -20,6 +21,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 // ====================
 // POSTS CRUD ROUTES
 // ====================
+
+// List all posts
+router.get("/", getAllPosts);
 
 // Create a new post
 // Headers: x-user-uid, x-user-type
