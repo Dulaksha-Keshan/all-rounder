@@ -26,7 +26,7 @@ interface SchoolState {
     updateSchool: (school_id: string, updates: Partial<School>) => Promise<void>;
     deleteSchool: (school_id: string) => Promise<void>;
     setActiveSchool: (school: School | null) => void;
-    getSchoolById: (school_id: string) => School | undefined;
+    getSchoolById: (school_id: string) => School | null;
 
     // NEW: Actions matching your controller endpoints
     fetchSchoolTeachers: (school_id: string) => Promise<void>;
@@ -113,7 +113,7 @@ export const useSchoolStore = create<SchoolState>()(
             setActiveSchool: (school) => set({ activeSchool: school }),
 
             getSchoolById: (school_id: string) => {
-                return get().schools.find(s => s.school_id === school_id);
+                return get().schools.find(s => s.school_id === school_id) || null;
             },
 
 

@@ -10,7 +10,8 @@ interface ConfirmationModalProps {
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
-    variant?: 'danger' | 'primary';
+    // Added 'success' to support the Green Accept button
+    variant?: 'danger' | 'primary' | 'success'; 
 }
 
 export default function ConfirmationModal({
@@ -57,10 +58,13 @@ export default function ConfirmationModal({
                             onConfirm();
                             onClose();
                         }}
-                        className={`px-6 py-2.5 rounded-xl font-semibold text-white transition-all transform hover:scale-105 active:scale-95 shadow-lg ${variant === 'danger'
+                        className={`px-6 py-2.5 rounded-xl font-semibold text-white transition-all transform hover:scale-105 active:scale-95 shadow-lg ${
+                            variant === 'danger'
                                 ? 'bg-red-600 hover:bg-red-700 shadow-red-200'
+                                : variant === 'success'
+                                ? 'bg-green-600 hover:bg-green-700 shadow-green-200'
                                 : 'bg-[var(--primary-purple)] hover:bg-[var(--primary-dark-purple)] shadow-purple-200'
-                            }`}
+                        }`}
                     >
                         {confirmLabel}
                     </button>

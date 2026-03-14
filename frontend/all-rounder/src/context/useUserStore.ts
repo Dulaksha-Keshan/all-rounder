@@ -6,6 +6,7 @@ import { Student, Teacher, Organization } from '@/app/_type/type';
 import api from '@/lib/axios';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
+import { useSchoolStore } from "@/context/useSchoolStore";
 
 // Updated to match the exact roles your backend Express controller expects
 type UserRole = 'STUDENT' | 'TEACHER' | 'SCHOOL_ADMIN' | 'ORG_ADMIN' | 'SUPER_ADMIN';
@@ -40,8 +41,7 @@ interface UserState {
     followRequests: string[];
     sentRequests: string[];
 
-    // --- Legacy / Dummy Action ---
-    // Kept so your existing UI components don't break during the transition
+
 
     // --- Real Backend Actions ---
     registerWithEmail: (data: RegisterPayload) => Promise<void>;
@@ -171,7 +171,7 @@ export const useUserStore = create<UserState>()(
                     const idtoken = await result.user.getIdToken();
 
                     // 3. Send token and role data to API Gateway
-                    const response = await api.post('/google-signin', {
+                    const response = await api.post('/auth/google-signin', {
                         idtoken,
                         role,
                         schoolId,
@@ -195,18 +195,35 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
-            // --- 4. GET CURRENT USER (Aligned with router.get('/me')) ---
             fetchBackendProfile: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    // The Axios interceptor automatically attaches the Firebase token
-                    const response = await api.get('/auth/me');
-
+                    const response = await api.get('/users/');
                     const userData = response.data.user;
+
+                    if (userData.school_id) {
+                        const schoolStore = useSchoolStore.getState();
+
+                        let matchingSchool = schoolStore.schools.find(s => s.school_id === userData.school_id);
+
+                        if (!matchingSchool) {
+                            try {
+                                const schoolRes = await api.get(`/schools/${userData.school_id}`);
+                                matchingSchool = schoolRes.data.school; // Matches your getSchoolById controller
+                            } catch (err) {
+                                console.warn("Could not fetch the specific school for the user:", err);
+                            }
+                        }
+
+                        // 3. Set it if we successfully found/fetched it
+                        if (matchingSchool) {
+                            schoolStore.setActiveSchool(matchingSchool);
+                        }
+                    }
 
                     set({
                         currentUser: userData,
-                        userRole: userData.userType,
+                        userRole: response.data.userType,
                         isAuthenticated: true,
                         error: null
                     });
@@ -217,32 +234,38 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
-            // --- 5. LOGOUT (Aligned with router.post('/logout')) ---
+            // --- 5. LOGOUT ---
             logout: async () => {
                 set({ isLoading: true, error: null });
-                try {
-                   
-                    // We do this first so the interceptor can still attach the token
-                    await api.post('/logout');
 
-                    // 2. Clear the local Firebase session
-                    await auth.signOut();
+                // Safe-call the backend to revoke tokens
+                try { await api.post('/auth/logout'); }
+                catch (err) { console.warn("Backend logout issue:", err); }
 
-                    // 3. Clear Zustand store
-                    set({
-                        currentUser: null,
-                        userRole: null,
-                        isAuthenticated: false,
-                        error: null,
-                        following: [],
-                        followers: [],
-                        followRequests: [],
-                        sentRequests: []
-                    });
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Logout failed' });
-                } finally {
-                    set({ isLoading: false });
+                // Safe-call Firebase to sign out locally
+                try { await auth.signOut(); }
+                catch (err) { console.warn("Firebase logout issue:", err); }
+
+                // THIS WILL RUN 100% OF THE TIME
+                set({
+                    currentUser: null,
+                    userRole: null,
+                    isAuthenticated: false,
+                    error: null,
+                    following: [],
+                    followers: [],
+                    followRequests: [],
+                    sentRequests: [],
+                    isLoading: false
+                });
+
+                // Clear the school store
+                useSchoolStore.getState().setActiveSchool(null);
+
+                // Bulletproof fallback: manually clear the persistence cache
+                // just in case Zustand's middleware acts up during the render cycle
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('user-storage');
                 }
             },
 

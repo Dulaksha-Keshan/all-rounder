@@ -40,14 +40,14 @@ export function Navbar() {
   const getProfilePath = () => {
     switch (userRole) {
       case "TEACHER":
-        return "/user/teacher";
+        return `/user/teacher/${useUserStore.getState().currentUser?.uid}`;
       case "SCHOOL_ADMIN":
-        return "/user/school";
+        return `/user/school/${useUserStore.getState().currentUser?.school_id}`;
       case "ORG_ADMIN":
         return "/user/organization";
       default:
         // Default covers STUDENT or SUPER_ADMIN
-        return "/user/student";
+        return `/user/student/${useUserStore.getState().currentUser?.uid}`;
     }
   };
 
@@ -309,7 +309,7 @@ export function Navbar() {
                     <User className="w-4 h-4" />
                   </div>
                   <span className="text-sm capitalize text-[#34365C] font-semibold hidden lg:block">
-                    {displayRole}
+                    {useUserStore.getState().currentUser?.name || 'User'} ({displayRole})
                   </span>
                   <ChevronDown className="w-4 h-4 text-[#34365C] hidden lg:block" />
                 </button>
@@ -326,12 +326,12 @@ export function Navbar() {
                           Signed in as
                         </div>
                         <div className="text-sm capitalize text-[#34365C] font-semibold">
-                          {displayRole}
+                          {useUserStore.getState().currentUser?.name || 'User'} 
                         </div>
                       </div>
 
                       <Link
-                        href={getProfilePath()}
+                        href={`${getProfilePath()}`}
                         onClick={() => setAccountDropdown(false)}
                         className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C]"
                       >
