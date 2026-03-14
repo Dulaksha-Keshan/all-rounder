@@ -1,39 +1,27 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, Calendar, School, Phone, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Calendar, School, Phone, Eye, EyeOff, ChevronDown, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+
+import { useUserStore } from "@/context/useUserStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase";
 
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* === Gradient Orbs === */}
-      <div
-        className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl"
-        style={{ background: "var(--primary-purple)" }}
-      />
-      <div
-        className="absolute -top-20 right-0 w-[380px] h-[380px] rounded-full opacity-20 blur-3xl"
-        style={{ background: "var(--primary-blue)" }}
-      />
-      <div
-        className="absolute bottom-0 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl"
-        style={{ background: "var(--secondary-light-lavender)" }}
-      />
-      <div
-        className="absolute -bottom-20 left-10 w-[300px] h-[300px] rounded-full opacity-20 blur-2xl"
-        style={{ background: "var(--primary-dark-purple)" }}
-      />
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl"
-        style={{ background: "var(--secondary-purple-light)" }}
-      />
-
-      {/* === Stars === */}
+      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl" style={{ background: "var(--primary-purple)" }} />
+      <div className="absolute -top-20 right-0 w-[380px] h-[380px] rounded-full opacity-20 blur-3xl" style={{ background: "var(--primary-blue)" }} />
+      <div className="absolute bottom-0 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl" style={{ background: "var(--secondary-light-lavender)" }} />
+      <div className="absolute -bottom-20 left-10 w-[300px] h-[300px] rounded-full opacity-20 blur-2xl" style={{ background: "var(--primary-dark-purple)" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl" style={{ background: "var(--secondary-purple-light)" }} />
+      
+      {/* Stars... */}
       <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl opacity-40" style={{ color: "var(--primary-dark-purple)" }}>★</div>
       <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl opacity-30" style={{ color: "var(--primary-dark-purple)" }}>★</div>
       <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl opacity-25" style={{ color: "var(--primary-dark-purple)" }}>★</div>
@@ -48,10 +36,33 @@ function PageBackground() {
 
 export default function StudentSignup() {
   const router = useRouter();
+  
+  const registerWithEmail = useUserStore((state) => state.registerWithEmail);
+  const registerWithGoogle = useUserStore((state) => state.registerWithGoogle);
+  const isAuthLoading = useUserStore((state) => state.isLoading);
+  const authError = useUserStore((state) => state.error);
+  
+  // NEW: Pull teachers and the fetch action from the store
+  const { schools, fetchSchools, schoolTeachers, fetchSchoolTeachers } = useSchoolStore();
+
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [schoolSearchTerm, setSchoolSearchTerm] = useState("");
+  const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
+  
+  // NEW: Search state for the teacher dropdown
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
+  const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
+  const [teacherError, setTeacherError] = useState("");
+
+  const [isGoogleFlow, setIsGoogleFlow] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -60,30 +71,76 @@ export default function StudentSignup() {
     phone: "",
     dateOfBirth: "",
     gender: "",
-    schoolName: "",
+    schoolId: "", 
     grade: "",
     studentId: "",
     password: "",
     confirmPassword: "",
-    teacherEmail: "",
-    teacherName: "",
+    teacher_id: "", // Replaced teacherName and teacherEmail with ID
+    googleIdToken: "",
   });
 
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const filteredSchools = Array.isArray(schools) ? schools.filter(school => 
+    (school.name || "").toLowerCase().includes(schoolSearchTerm.toLowerCase())
+  ) : [];
+
+  // NEW: Filter logic for teachers
+  const filteredTeachers = Array.isArray(schoolTeachers) ? schoolTeachers.filter(teacher => 
+    (teacher.name || "").toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
+    (teacher.subject || "").toLowerCase().includes(teacherSearchTerm.toLowerCase())
+  ) : [];
+
+  const handleGoogleInitiate = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+      
+      const displayName = result.user.displayName || "";
+      const nameParts = displayName.split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+      setFormData(prev => ({
+        ...prev,
+        firstName,
+        lastName,
+        email: result.user.email || "",
+        googleIdToken: token
+      }));
+      
+      setIsGoogleFlow(true);
+      setCurrentStep(2); 
+    } catch (error) {
+      console.error("Google Initiation failed", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      currentStep === 2 &&
-      formData.password &&
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
-      setPasswordError("Passwords do not match");
-      return;
+    if (currentStep === 2) {
+      if (!isGoogleFlow) {
+        if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+          setPasswordError("Passwords do not match");
+          return;
+        }
+      }
+      if (!formData.schoolId) {
+        setPasswordError("Please select a valid school from the dropdown list.");
+        return;
+      }
+    }
+
+    if (currentStep === 3) {
+       if (!formData.teacher_id) {
+           setTeacherError("Please select a teacher to verify your account.");
+           return;
+       }
+       setTeacherError("");
     }
 
     setPasswordError("");
@@ -91,49 +148,53 @@ export default function StudentSignup() {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      alert("Student account created! Awaiting teacher verification.");
-      router.push("/login");
+      try {
+        const payload = {
+            email: formData.email,
+            password: formData.password,
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
+            role: "STUDENT" as const,
+            grade: formData.grade,
+            dateOfBirth: formData.dateOfBirth,
+            schoolId: formData.schoolId,
+            contact_number: formData.phone,
+            gender: formData.gender,
+            studentId: formData.studentId,
+            // Pass the selected teacher's UID for the backend to create the request
+            teacher_id: formData.teacher_id, 
+            verificationOption: "TEACHER_REQUEST" 
+        };
+
+        if (isGoogleFlow) {
+          await registerWithGoogle({ idtoken: formData.googleIdToken, ...payload });
+        } else {
+          await registerWithEmail(payload);
+        }
+
+        if (!useUserStore.getState().error) {
+          alert("Student account created! Awaiting teacher verification.");
+          router.push("/home"); 
+        }
+      } catch (err) {
+        console.error("Registration failed", err);
+      }
     }
   };
 
-  const inputClass =
-    "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
+  const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
   const inputStyle = { "--tw-ring-color": "var(--primary-purple)" } as React.CSSProperties;
-  const iconInputClass =
-    "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
+  const iconInputClass = "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700";
   const labelClass = "block text-sm mb-2 text-primary-dark";
 
   return (
-    <div
-      className="min-h-screen py-40 px-4 relative overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 50%, var(--secondary-pale-lavender) 100%)",
-      }}
-    >
+    <div className="min-h-screen py-40 px-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 50%, var(--secondary-pale-lavender) 100%)" }}>
       <PageBackground />
 
       <div className="max-w-2xl mx-auto relative z-10">
-        {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="mb-6">
-            <Image
-              src="/icons/logoForPages.png"
-              alt="Logo"
-              width={80}
-              height={80}
-              priority
-            />
-          </div>
-          <h1 className="text-primary-dark text-3xl font-bold tracking-tight mb-2">
-            Student Registration
-          </h1>
-          <p className="text-muted text-sm max-w-[280px]">
-            Create your talent portfolio account on<br />
-            <span className="font-semibold" style={{ color: "var(--primary-blue)" }}>
-              All-Rounder
-            </span>
-          </p>
+          <div className="mb-6"><Image src="/icons/logoForPages.png" alt="Logo" width={80} height={80} priority /></div>
+          <h1 className="text-primary-dark text-3xl font-bold tracking-tight mb-2">Student Registration</h1>
+          <p className="text-muted text-sm max-w-[280px]">Create your talent portfolio account on<br /><span className="font-semibold" style={{ color: "var(--primary-blue)" }}>All-Rounder</span></p>
         </div>
 
         {/* Step Indicator */}
@@ -141,74 +202,46 @@ export default function StudentSignup() {
           <div className="flex items-center justify-between max-w-md mx-auto">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors"
-                  style={
-                    step <= currentStep
-                      ? { background: "var(--primary-purple)", color: "#fff" }
-                      : { background: "#D1D5DB", color: "#6B7280" }
-                  }
-                >
-                  {step}
-                </div>
-                {step < 3 && (
-                  <div
-                    className="w-20 h-1 transition-colors"
-                    style={
-                      step < currentStep
-                        ? { background: "var(--primary-purple)" }
-                        : { background: "#D1D5DB" }
-                    }
-                  />
-                )}
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-colors" style={step <= currentStep ? { background: "var(--primary-purple)", color: "#fff" } : { background: "#D1D5DB", color: "#6B7280" }}>{step}</div>
+                {step < 3 && <div className="w-20 h-1 transition-colors" style={step < currentStep ? { background: "var(--primary-purple)" } : { background: "#D1D5DB" }} />}
               </div>
             ))}
           </div>
           <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-muted">
-            <span>Personal</span>
-            <span>Academic</span>
-            <span>Verification</span>
+            <span>Personal</span><span>Academic</span><span>Verification</span>
           </div>
         </div>
 
-        {/* Form Card */}
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+          {authError && <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">{authError}</div>}
+
           <form onSubmit={handleSubmit}>
 
             {/* ── Step 1: Personal Information ── */}
             {currentStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
-                  Personal Information
-                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
-                </h3>
+                <button type="button" onClick={handleGoogleInitiate} className="w-full mb-6 py-3 px-4 border border-gray-300 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 transition bg-white text-gray-700 font-medium shadow-sm">
+                  <Image src="/icons/google.svg" alt="Google" width={20} height={20} />
+                  Continue with Google
+                </button>
+
+                <div className="flex items-center justify-between mb-6">
+                  <span className="w-1/5 border-b border-gray-300 lg:w-1/4"></span>
+                  <p className="text-xs text-center text-gray-500 uppercase">or register with email</p>
+                  <span className="w-1/5 border-b border-gray-300 lg:w-1/4"></span>
+                </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>First Name *</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => updateField("firstName", e.target.value)}
-                        className={iconInputClass}
-                        style={inputStyle}
-                        required
-                      />
+                      <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)} className={iconInputClass} style={inputStyle} required />
                     </div>
                   </div>
-
                   <div>
                     <label className={labelClass}>Last Name *</label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => updateField("lastName", e.target.value)}
-                      className={inputClass}
-                      style={inputStyle}
-                      required
-                    />
+                    <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)} className={inputClass} style={inputStyle} required />
                   </div>
                 </div>
 
@@ -216,14 +249,7 @@ export default function StudentSignup() {
                   <label className={labelClass}>Email Address *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => updateField("email", e.target.value)}
-                      className={iconInputClass}
-                      style={inputStyle}
-                      required
-                    />
+                    <input type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} className={iconInputClass} style={inputStyle} required />
                   </div>
                 </div>
 
@@ -231,14 +257,7 @@ export default function StudentSignup() {
                   <label className={labelClass}>Phone Number *</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => updateField("phone", e.target.value)}
-                      className={iconInputClass}
-                      style={inputStyle}
-                      required
-                    />
+                    <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={iconInputClass} style={inputStyle} required />
                   </div>
                 </div>
 
@@ -247,26 +266,12 @@ export default function StudentSignup() {
                     <label className={labelClass}>Date of Birth *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="date"
-                        value={formData.dateOfBirth}
-                        onChange={(e) => updateField("dateOfBirth", e.target.value)}
-                        className={iconInputClass}
-                        style={inputStyle}
-                        required
-                      />
+                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required />
                     </div>
                   </div>
-
                   <div>
                     <label className={labelClass}>Gender *</label>
-                    <select
-                      value={formData.gender}
-                      onChange={(e) => updateField("gender", e.target.value)}
-                      className={inputClass}
-                      style={inputStyle}
-                      required
-                    >
+                    <select value={formData.gender} onChange={(e) => updateField("gender", e.target.value)} className={inputClass} style={inputStyle} required>
                       <option value="" disabled>Select</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -281,212 +286,212 @@ export default function StudentSignup() {
             {/* ── Step 2: Academic & Password Information ── */}
             {currentStep === 2 && (
               <div className="space-y-4">
-                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
-                  Academic Information
-                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
-                </h3>
+                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">Academic Information<span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} /></h3>
 
-                <div>
+                <div className="relative">
                   <label className={labelClass}>School Name *</label>
                   <div className="relative">
-                    <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
                     <input
                       type="text"
-                      value={formData.schoolName}
-                      onChange={(e) => updateField("schoolName", e.target.value)}
-                      className={iconInputClass}
+                      value={schoolSearchTerm}
+                      onChange={(e) => {
+                        setSchoolSearchTerm(e.target.value);
+                        setIsSchoolDropdownOpen(true);
+                        if (formData.schoolId) {
+                          updateField("schoolId", "");
+                          updateField("teacherId", ""); // Reset teacher if school changes
+                          setTeacherSearchTerm("");
+                        }
+                      }}
+                      onFocus={() => setIsSchoolDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setIsSchoolDropdownOpen(false), 200)}
+                      className={`${iconInputClass} pr-10 cursor-text bg-white`}
                       style={inputStyle}
-                      placeholder="Enter your school name"
+                      placeholder="Search for your school..."
                       required
                     />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   </div>
+
+                  {isSchoolDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                      {filteredSchools.length > 0 ? (
+                        filteredSchools.map((school, i) => (
+                          <div
+                            key={school.school_id || `school-${i}`}
+                            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${formData.schoolId === school.school_id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
+                            onMouseDown={(e) => {
+                              e.preventDefault(); 
+                              updateField("schoolId", school.school_id);
+                              setSchoolSearchTerm(school.name);
+                              setIsSchoolDropdownOpen(false);
+                              
+                              // NEW: Immediately fetch teachers for this school!
+                              fetchSchoolTeachers(school.school_id);
+                            }}
+                          >
+                            {school.name}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-gray-500 italic text-center">No schools found. Please contact support if your school is missing.</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Grade/Class *</label>
-                    <select
-                      value={formData.grade}
-                      onChange={(e) => updateField("grade", e.target.value)}
-                      className={inputClass}
-                      style={inputStyle}
-                      required
-                    >
+                    <select value={formData.grade} onChange={(e) => updateField("grade", e.target.value)} className={inputClass} style={inputStyle} required>
                       <option value="">Select Grade</option>
-                      {[...Array(12)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          Grade {i + 1}
-                        </option>
-                      ))}
+                      {[...Array(12)].map((_, i) => (<option key={i + 1} value={i + 1}>Grade {i + 1}</option>))}
                     </select>
                   </div>
-
                   <div>
                     <label className={labelClass}>Student ID</label>
-                    <input
-                      type="text"
-                      value={formData.studentId}
-                      onChange={(e) => updateField("studentId", e.target.value)}
-                      className={inputClass}
-                      style={inputStyle}
-                      placeholder="Optional"
-                    />
+                    <input type="text" value={formData.studentId} onChange={(e) => updateField("studentId", e.target.value)} className={inputClass} style={inputStyle} placeholder="Optional" />
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Password *</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={(e) => {
-                          updateField("password", e.target.value);
-                          if (formData.confirmPassword && e.target.value !== formData.confirmPassword) {
-                            setPasswordError("Passwords do not match");
-                          } else {
-                            setPasswordError("");
-                          }
-                        }}
-                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
-                        style={inputStyle}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((p) => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      >
-                        {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                      </button>
+                {!isGoogleFlow && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>Password *</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={formData.password}
+                          onChange={(e) => {
+                            updateField("password", e.target.value);
+                            if (formData.confirmPassword && e.target.value !== formData.confirmPassword) {
+                              setPasswordError("Passwords do not match");
+                            } else { setPasswordError(""); }
+                          }}
+                          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
+                          style={inputStyle}
+                          required={!isGoogleFlow}
+                        />
+                        <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                          {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className={labelClass}>Confirm Password *</label>
-                    <div className="relative">
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={formData.confirmPassword}
-                        onChange={(e) => {
-                          updateField("confirmPassword", e.target.value);
-                          if (formData.password && e.target.value !== formData.password) {
-                            setPasswordError("Passwords do not match");
-                          } else {
-                            setPasswordError("");
-                          }
-                        }}
-                        className="w-full px-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
-                        style={inputStyle}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword((p) => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                      >
-                        {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                      </button>
+                    <div>
+                      <label className={labelClass}>Confirm Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={(e) => {
+                            updateField("confirmPassword", e.target.value);
+                            if (formData.password && e.target.value !== formData.password) {
+                              setPasswordError("Passwords do not match");
+                            } else { setPasswordError(""); }
+                          }}
+                          className="w-full px-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-gray-700"
+                          style={inputStyle}
+                          required={!isGoogleFlow}
+                        />
+                        <button type="button" onClick={() => setShowConfirmPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                          {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                        </button>
+                      </div>
+                      {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
                     </div>
-                    {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
                   </div>
-                </div>
+                )}
               </div>
             )}
 
             {/* ── Step 3: Teacher Verification ── */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">
-                  Teacher Verification
-                  <span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} />
-                </h3>
-
-                <div
-                  className="p-4 border rounded-lg mb-4"
-                  style={{
-                    background: "var(--secondary-pale-lavender)",
-                    borderColor: "var(--secondary-light-lavender)",
-                  }}
-                >
-                  <p className="text-sm text-gray-700">
-                    To complete your registration, a verified teacher from your school must approve your account.
-                    Please provide your teacher's information below.
-                  </p>
+                <h3 className="text-primary-dark text-xl font-bold text-center mb-6">Teacher Verification<span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} /></h3>
+                
+                <div className="p-4 border rounded-lg mb-6" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
+                  <p className="text-sm text-gray-700">To complete your registration, select an active teacher from your school to approve your account request.</p>
                 </div>
 
-                <div>
-                  <label className={labelClass}>Teacher's Full Name *</label>
-                  <input
-                    type="text"
-                    value={formData.teacherName}
-                    onChange={(e) => updateField("teacherName", e.target.value)}
-                    className={inputClass}
-                    style={inputStyle}
-                    placeholder="Enter your teacher's name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>Teacher's Email Address *</label>
+                {/* NEW: Searchable Teacher Dropdown */}
+                <div className="relative">
+                  <label className={labelClass}>Select Your Teacher *</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
                     <input
-                      type="email"
-                      value={formData.teacherEmail}
-                      onChange={(e) => updateField("teacherEmail", e.target.value)}
-                      className={iconInputClass}
+                      type="text"
+                      value={teacherSearchTerm}
+                      onChange={(e) => {
+                        setTeacherSearchTerm(e.target.value);
+                        setIsTeacherDropdownOpen(true);
+                        if (formData.teacher_id) updateField("teacher_id", "");
+                      }}
+                      onFocus={() => setIsTeacherDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setIsTeacherDropdownOpen(false), 200)}
+                      className={`${iconInputClass} pr-10 cursor-text bg-white`}
                       style={inputStyle}
-                      placeholder="teacher@school.edu"
+                      placeholder="Search by name or subject..."
                       required
                     />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   </div>
+
+                  {isTeacherDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                      {filteredTeachers.length > 0 ? (
+                        filteredTeachers.map((teacher, i) => (
+                          <div
+                            key={teacher.uid || `teacher-${i}`}
+                            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${formData.teacher_id === teacher.uid ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                            onMouseDown={(e) => {
+                              e.preventDefault(); 
+                              updateField("teacher_id", teacher.uid);
+                              setTeacherSearchTerm(`${teacher.name} (${teacher.subject || 'Teacher'})`);
+                              setIsTeacherDropdownOpen(false);
+                            }}
+                          >
+                            <div className="font-medium">{teacher.name}</div>
+                            <div className="text-xs text-gray-500">{teacher.subject || teacher.designation}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-gray-500 italic text-center">
+                          {schoolTeachers.length === 0 ? "Loading teachers..." : "No matching teachers found."}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {teacherError && <p className="text-sm text-red-500 mt-1">{teacherError}</p>}
                 </div>
 
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    📧 A verification request will be sent to your teacher. You'll be able to access your account
-                    once they approve your request.
-                  </p>
-                </div>
+                {formData.teacher_id && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 mt-4">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-800">Teacher Selected</p>
+                      <p className="text-xs text-green-700 mt-1">A verification request will be sent directly to their portal once you submit.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Navigation Buttons */}
             <div className="flex gap-4 mt-8">
               {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex-1 py-3 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
-                >
-                  Back
-                </button>
+                <button type="button" onClick={() => setCurrentStep(currentStep - 1)} disabled={isAuthLoading} className="flex-1 py-3 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50">Back</button>
               )}
-              <button
-                type="submit"
-                className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg"
-                style={{ background: "var(--primary-purple)" }}
-              >
-                {currentStep === 3 ? "Submit for Verification" : "Next"}
+              <button type="submit" disabled={isAuthLoading} className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary-purple)" }}>
+                {isAuthLoading && currentStep === 3 ? "Creating Account..." : (currentStep === 3 ? "Submit for Verification" : "Next")}
               </button>
             </div>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-muted">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-medium hover:underline"
-                style={{ color: "var(--primary-blue)" }}
-              >
-                Sign in
-              </Link>
-            </p>
+            <p className="text-sm text-muted">Already have an account? <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--primary-blue)" }}>Sign in</Link></p>
           </div>
         </div>
       </div>

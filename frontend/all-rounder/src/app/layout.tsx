@@ -55,7 +55,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar isAuthenticated={isAuthenticated} userType={userType} />
+        <Navbar/>
         <main className="pt-20 md:pt-28">
           {children}
         </main>

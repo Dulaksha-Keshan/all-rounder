@@ -38,7 +38,7 @@ export const useOrganizationStore = create<OrganizationState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get('/organizations');
-                    set({ organizations: response.data });
+                    set({ organizations: response.data.organizations || [] });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch organizations' });
                 } finally {

@@ -17,14 +17,18 @@ export interface RegisterPayload {
     name: string;
     role: UserRole;
     grade?: string;
+    contact_number?: string;
+    gender: string;
     schoolId?: string;
     organizationId?: string;
-    verificationOption?: string;
-    dateOfBirth: string; 
+    verificationOption: string;
+    teacherName?: string,
+    teacherEmail?: string,
+    dateOfBirth: string;
 }
 
 interface UserState {
-    currentUser: Student | Teacher | Organization | any | null; 
+    currentUser: Student | Teacher | Organization | any | null;
     userRole: UserRole | null;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -38,10 +42,11 @@ interface UserState {
 
     // --- Legacy / Dummy Action ---
     // Kept so your existing UI components don't break during the transition
-    login: (user: Student | Teacher | Organization | any, role: UserRole) => Promise<void>;
-    
+
     // --- Real Backend Actions ---
     registerWithEmail: (data: RegisterPayload) => Promise<void>;
+    registerWithGoogle: (payload: any) => Promise<void>;
+    registerNewOrganization: (payload: FormData) => Promise<void>;
     loginWithEmail: (email: string, password: string) => Promise<void>;
     loginWithGoogle: (role: UserRole, schoolId?: string, organizationId?: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -70,34 +75,16 @@ export const useUserStore = create<UserState>()(
             // Initial Social State
             following: [],
             followers: [],
-            followRequests: [], 
+            followRequests: [],
             sentRequests: [],
 
-            // --- LEGACY DUMMY LOGIN ---
-            login: async (user, role) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    set({
-                        currentUser: user,
-                        userRole: role,
-                        isAuthenticated: true,
-                        error: null
-                    });
-                } catch (error) {
-                    set({ error: (error as Error).message });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
 
-            // --- 1. REGISTRATION (Aligned with router.post('/register')) ---
             registerWithEmail: async (data) => {
                 set({ isLoading: true, error: null });
                 try {
                     // 1. Send data to your API Gateway to create the user in Firebase Admin and PostgreSQL
-                    await api.post('/register', data);
-                    
+                    await api.post('/auth/register', data);
+
                     // 2. If successful, automatically log them into the local Firebase Client SDK
                     if (data.password) {
                         await get().loginWithEmail(data.email, data.password);
@@ -109,13 +96,59 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
+            registerWithGoogle: async (payload: any) => {
+                set({ isLoading: true, error: null });
+                try {
+                    // payload contains idtoken, role, schoolId, grade, etc.
+                    const response = await api.post('/auth/google-signin', payload);
+                    const userData = response.data.user;
+
+                    set({
+                        currentUser: userData,
+                        userRole: userData.userType || payload.role,
+                        isAuthenticated: true,
+                        error: null
+                    });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Google Registration failed' });
+                    throw error;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+            registerNewOrganization: async (payload: FormData) => {
+                set({ isLoading: true, error: null });
+                try {
+                    // This hits the specific endpoint for creating an org + admin simultaneously
+                    const response = await api.post('/organization/', payload);
+
+                    // Assuming your backend logs them in or returns the user data here.
+                    // If your backend JUST creates the org and requires them to log in separately,
+                    // we can adjust this to call get().loginWithEmail() automatically.
+                    const userData = response.data.admin; // Adjust based on your backend's exact return object
+
+                    if (userData) {
+                        set({
+                            currentUser: userData,
+                            userRole: "ORG_ADMIN",
+                            isAuthenticated: true,
+                            error: null
+                        });
+                    }
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Organization registration failed' });
+                    throw error;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
             // --- 2. EMAIL/PASSWORD LOGIN ---
             loginWithEmail: async (email, password) => {
                 set({ isLoading: true, error: null });
                 try {
                     // 1. Log into Firebase Client SDK. This sets the local session.
                     await signInWithEmailAndPassword(auth, email, password);
-                    
+
                     // 2. Now that Firebase is logged in, fetch the full profile from PostgreSQL.
                     // The Axios interceptor will automatically attach the new token.
                     await get().fetchBackendProfile();
@@ -133,7 +166,7 @@ export const useUserStore = create<UserState>()(
                 try {
                     // 1. Trigger Google Popup via Firebase
                     const result = await signInWithPopup(auth, googleProvider);
-                    
+
                     // 2. Grab the raw ID token directly from the Firebase result
                     const idtoken = await result.user.getIdToken();
 
@@ -150,7 +183,7 @@ export const useUserStore = create<UserState>()(
                     // 4. Update Zustand state with the data from PostgreSQL
                     set({
                         currentUser: userData,
-                        userRole: userData.userType || role, 
+                        userRole: userData.userType || role,
                         isAuthenticated: true,
                         error: null
                     });
@@ -167,13 +200,13 @@ export const useUserStore = create<UserState>()(
                 set({ isLoading: true, error: null });
                 try {
                     // The Axios interceptor automatically attaches the Firebase token
-                    const response = await api.get('/me'); 
-                    
+                    const response = await api.get('/auth/me');
+
                     const userData = response.data.user;
 
                     set({
                         currentUser: userData,
-                        userRole: userData.userType, 
+                        userRole: userData.userType,
                         isAuthenticated: true,
                         error: null
                     });
@@ -188,13 +221,13 @@ export const useUserStore = create<UserState>()(
             logout: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    // 1. Tell API Gateway to revoke refresh tokens via Firebase Admin
+                   
                     // We do this first so the interceptor can still attach the token
-                    await api.post('/logout'); 
-                    
+                    await api.post('/logout');
+
                     // 2. Clear the local Firebase session
                     await auth.signOut();
-                    
+
                     // 3. Clear Zustand store
                     set({
                         currentUser: null,
@@ -295,6 +328,15 @@ export const useUserStore = create<UserState>()(
         }),
         {
             name: 'user-storage',
+            partialize: (state) => ({
+                currentUser: state.currentUser,
+                userRole: state.userRole,
+                isAuthenticated: state.isAuthenticated,
+                following: state.following,
+                followers: state.followers,
+                followRequests: state.followRequests,
+                sentRequests: state.sentRequests,
+            })
         }
     )
 );

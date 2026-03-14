@@ -19,29 +19,16 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import NextImage from "next/image";
-// import { useAuthStore } from "@/stores/authStore";  EXAMPLE PART 
 
-interface NavbarProps {
-  isAuthenticated?: boolean;
-  userType?: "student" | "teacher" | "school" | "organization";
-  onLogout?: () => void;
-}
+// NEW: Import your global store
+import { useUserStore } from "@/context/useUserStore";
 
-//User logging out
-const logOut = (auth: boolean) => {
-  // e.g., clear cookies / localStorage / redirect
-  console.log("User logged out");
-  window.location.href = "/login";
-  // Redirect to login page after logout
-  auth = false;
-};
-
-export function Navbar({
-  isAuthenticated,
-  userType,
-}: NavbarProps) {
+export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  
+  const { isAuthenticated, userRole, logout } = useUserStore();
+
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [accountDropdown, setAccountDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,26 +36,30 @@ export function Navbar({
 
   const isActive = (path: string) => pathname === path;
 
-  // identifying the user type 
+  // Updated to match your backend roles (STUDENT, TEACHER, SCHOOL_ADMIN, ORG_ADMIN)
   const getProfilePath = () => {
-    switch (userType) {
-      case "teacher":
-        return "/teacher-profile";
-      case "school":
-        return "/school-profile";
-      case "organization":
-        return "/organization-profile";
+    switch (userRole) {
+      case "TEACHER":
+        return "/user/teacher";
+      case "SCHOOL_ADMIN":
+        return "/user/school";
+      case "ORG_ADMIN":
+        return "/user/organization";
       default:
-        return "/profile";
+        // Default covers STUDENT or SUPER_ADMIN
+        return "/user/student";
     }
   };
 
-  const handleLogout = () => {
-    // Call the onLogout callback if provided
-    logOut(isAuthenticated as boolean);
-
-    // Redirect to landing page after logging out
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      // Call the store's logout action (handles Firebase & API Gateway)
+      await logout();
+      // Redirect to landing page after successful logout
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // paths and icons for the main navigation - auth user
@@ -214,7 +205,7 @@ export function Navbar({
 
               <div className="flex items-center justify-end pt-3 border-t border-[#DCD0FF]/50">
                 <Link
-                  href="/login" /* works */
+                  href="/login" 
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-6 py-2 bg-gradient-to-r from-[#8387CC] via-[#6B73C8] to-[#4169E1] hover:from-[#6B73C8] hover:to-[#3557c1] text-white font-semibold rounded-full transition-all shadow-lg hover:shadow-xl"
                 >
@@ -229,6 +220,9 @@ export function Navbar({
   }
 
   /* ---------------- AUTHENTICATED NAVBAR ---------------- */
+
+  // Helper to format the role for display (e.g., "SCHOOL_ADMIN" -> "School Admin")
+  const displayRole = userRole ? userRole.replace('_', ' ').toLowerCase() : "User";
 
   return (
     <>
@@ -315,7 +309,7 @@ export function Navbar({
                     <User className="w-4 h-4" />
                   </div>
                   <span className="text-sm capitalize text-[#34365C] font-semibold hidden lg:block">
-                    {userType || "User"}
+                    {displayRole}
                   </span>
                   <ChevronDown className="w-4 h-4 text-[#34365C] hidden lg:block" />
                 </button>
@@ -332,7 +326,7 @@ export function Navbar({
                           Signed in as
                         </div>
                         <div className="text-sm capitalize text-[#34365C] font-semibold">
-                          {userType || "User"}
+                          {displayRole}
                         </div>
                       </div>
 
@@ -463,7 +457,6 @@ export function Navbar({
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 transition text-[#34365C] rounded-lg"
               >
-                {/* Implement my profile view after useStores */}
                 <User className="w-5 h-5" />
                 <span className="text-sm font-medium">My Profile</span>
               </Link>
