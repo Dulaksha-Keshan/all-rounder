@@ -70,7 +70,8 @@ model Teacher {
 
   clubIds String[] @default([])
   pendingVerificationIds  String[] @default([]) // requests waiting for approval
-  approvedVerificationIds String[] @default([]) // requests accepted
+  processedVerificationIds String[] @default([]) // requests accepted and rejected
+
 }
 
 model Admin {
@@ -117,6 +118,9 @@ model School {
   web_link       String?
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  processedVerificationIds String[] @default([]) // requests accepted and rejected
+
 
   // School now relates to these 3 independent tables separately
   students   Student[]
@@ -132,6 +136,8 @@ model Organization {
   website           String?
   admins            Admin[]
   eventHosts        EventHost[]
+  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  processedVerificationIds String[] @default([])
   created_at        DateTime    @default(now())
   updated_at        DateTime    @updatedAt
 }

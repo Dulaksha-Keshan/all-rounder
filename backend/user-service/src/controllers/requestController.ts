@@ -25,7 +25,7 @@ export const getPendingRequests = async (req: Request, res: Response): Promise<v
 
     // Fetch pending verifications from MongoDB, only needed fields
     const pendingVerifications = await Verification.find({
-      _id: { $in: teacher.verificationIds || [] }, // pending array in Prisma Teacher model
+      _id: { $in: teacher.pendingVerificationIds || [] }, // pending array in Prisma Teacher model
       verificationMethod: "TEACHER_APPROVAL",     // only teacher-approval requests
       verificationStatus: "PENDING",
     })
@@ -83,7 +83,7 @@ export const acceptRequest = async (req: Request, res: Response): Promise<void> 
         pendingVerificationIds: {
           set: (teacher.pendingVerificationIds || []).filter((id: string) => id !== verificationIdStr),
         },
-        approvedVerificationIds: {
+        processedVerificationIds: {
           push: verificationIdStr,
         },
       },

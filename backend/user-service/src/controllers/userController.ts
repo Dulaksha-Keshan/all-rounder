@@ -2,8 +2,18 @@ import { Request, Response } from "express";
 import Verification from "../mongoose/verificationModel.js";
 import { UserType } from "@prisma/client"
 import { prisma } from "../prisma.js";
+import { randomUUID } from "crypto";
+import { deleteFromR2, uploadToR2 } from "../utils/r2Upload.js";
+
+const sanitizeFileName = (fileName: string): string =>
+  fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
+  const uploadedKeys: string[] = [];
+  let createdUserType: UserType | null = null;
+  let createdUserUid: string | null = null;
+  let createdVerificationId: string | null = null;
+
   try {
     const {
       uid,
@@ -14,6 +24,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       organization_id,
       ...data
     } = req.body;
+    const verificationAttachmentFile = req.file;
 
     if (!uid || !userType) {
       res.status(400).json({
@@ -22,14 +33,51 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
+    if (
+      (userType === UserType.STUDENT || userType === UserType.TEACHER) &&
+      verificationOption === "DOCUMENT" &&
+      !verificationAttachmentFile
+    ) {
+      res.status(400).json({
+        message: "verificationAttachment is required for DOCUMENT verification",
+      });
+      return;
+    }
+
+    if (data.date_of_birth) {
+      const parsedDate = new Date(data.date_of_birth);
+      if (Number.isNaN(parsedDate.getTime())) {
+        res.status(400).json({
+          message: "Invalid date_of_birth",
+        });
+        return;
+      }
+      data.date_of_birth = parsedDate;
+    }
+
     let user: any;
     let verificationPayload: any;
+    let verification: any;
+    let attachmentUrl: string | undefined;
+
+    if (verificationAttachmentFile) {
+      const extension = sanitizeFileName(verificationAttachmentFile.originalname);
+      const key = `verifications/${uid}/${Date.now()}-${randomUUID()}-${extension}`;
+      attachmentUrl = await uploadToR2(
+        verificationAttachmentFile.buffer,
+        key,
+        verificationAttachmentFile.mimetype
+      );
+      uploadedKeys.push(key);
+    }
 
     switch (userType) {
       case UserType.STUDENT:
         if (verificationOption === "DOCUMENT") {
           verificationPayload = {
             verificationMethod: "DOCUMENT_AI",
+            verificationRequestedBy: uid,
+            attachment: attachmentUrl,
           };
         } else if (verificationOption === "TEACHER_REQUEST") {
           if (!school_id || !teacher_id) {
@@ -59,12 +107,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             }
           },
         });
+        createdUserType = UserType.STUDENT;
+        createdUserUid = user.uid;
 
-        const verification = await Verification.create({
+         verification = await Verification.create({
           userId: user.uid,
           userType: "STUDENT",
           ...verificationPayload,
         });
+        createdVerificationId = verification._id.toString();
 
         // If teacher approval, push verification ID into teacher
         if (verificationOption === "TEACHER_REQUEST") {
@@ -84,6 +135,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         if (verificationOption === "DOCUMENT") {
           verificationPayload = {
             verificationMethod: "DOCUMENT_AI",
+            attachment: attachmentUrl,
           };
         } else if (verificationOption === "ADMIN_APPROVAL") {
           if (!school_id) {
@@ -112,12 +164,26 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             }
           },
         });
+        createdUserType = UserType.TEACHER;
+        createdUserUid = user.uid;
 
-        await Verification.create({
+         verification = await Verification.create({
           userId: user.uid,
           userType: "TEACHER",
           ...verificationPayload,
         });
+        createdVerificationId = verification._id.toString();
+        // If admin approval, push verification ID into school
+        if (verificationOption === "ADMIN_APPROVAL") {
+          await prisma.school.update({
+            where: { school_id: school_id },
+            data: {
+              pendingVerificationIds: {
+                push: verification._id.toString(),
+              },
+            },
+          });
+        }
         break;
 
       case UserType.SCHOOL_ADMIN:
@@ -158,12 +224,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             })
           },
         });
+        createdUserType = userType;
+        createdUserUid = user.uid;
 
-        await Verification.create({
+        verification = await Verification.create({
           userId: user.uid,
           userType: "ADMIN",
           verificationMethod: "DOCUMENT_AI",
         });
+        createdVerificationId = verification._id.toString();
         break;
 
       default:
@@ -179,6 +248,45 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     });
   } catch (error: any) {
     console.error(error);
+
+    if (createdVerificationId) {
+      try {
+        await Verification.deleteOne({ _id: createdVerificationId });
+      } catch (verificationRollbackError) {
+        console.error("Verification rollback failed", verificationRollbackError);
+      }
+    }
+
+    if (createdUserUid && createdUserType) {
+      try {
+        switch (createdUserType) {
+          case UserType.STUDENT:
+            await prisma.student.delete({ where: { uid: createdUserUid } });
+            break;
+          case UserType.TEACHER:
+            await prisma.teacher.delete({ where: { uid: createdUserUid } });
+            break;
+          case UserType.SCHOOL_ADMIN:
+          case UserType.ORG_ADMIN:
+          case UserType.SUPER_ADMIN:
+            await prisma.admin.delete({ where: { uid: createdUserUid } });
+            break;
+          default:
+            break;
+        }
+      } catch (userRollbackError) {
+        console.error("User rollback failed", userRollbackError);
+      }
+    }
+
+    for (const key of uploadedKeys) {
+      try {
+        await deleteFromR2(key);
+      } catch (uploadRollbackError) {
+        console.error("R2 rollback failed", uploadRollbackError);
+      }
+    }
+
     res.status(500).json({
       message: error.message,
     });
@@ -603,7 +711,7 @@ export const getFollowers = async (req: Request, res: Response): Promise<void> =
 
     const followers = await prisma.follow.findMany({
       where: {
-        followingId: uid,
+        followingId: uid as string,
       },
       select: {
         followerId: true,
@@ -618,7 +726,7 @@ export const getFollowers = async (req: Request, res: Response): Promise<void> =
 
     const totalFollowers = await prisma.follow.count({
       where: {
-        followingId: uid,
+        followingId: uid as string,
       },
     });
 

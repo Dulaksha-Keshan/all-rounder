@@ -271,3 +271,5 @@ export const getSchoolStatistics = async (req: Request, res: Response): Promise<
     res.status(500).json({ message: error.message });
   }
 };
+
+export const handleVerificationRequest = async (req: Request, res: Response): Promise<void> => {};

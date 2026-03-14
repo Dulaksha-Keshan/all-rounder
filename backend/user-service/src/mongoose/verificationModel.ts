@@ -27,7 +27,17 @@ const verificationSchema = new mongoose.Schema(
 
     verificationRequestedBy: {
       type: String,
-      default: null,
+      required: function (this: { userType?: string }) {
+        return this.userType === "STUDENT";
+      },
+    },
+
+    attachment: {
+      type: String,
+      trim: true,
+      required: function (this: { verificationMethod?: string }) {
+        return this.verificationMethod === "DOCUMENT_AI";
+      },
     },
 
     verifiedAt: {

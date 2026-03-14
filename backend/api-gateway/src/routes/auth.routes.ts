@@ -2,17 +2,68 @@ import express, { Request, Response } from 'express'
 import { firebaseAuth } from '../config/firebase-admin.js'
 import { verifyToken } from '../middleware/auth.middleware.js'
 import axios from 'axios';
+import multer from 'multer';
+import FormData from 'form-data';
 
 
 
 const router = express.Router();
 
+const registerUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedMimeTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      cb(new Error('Invalid file type. Allowed types: PDF, JPEG, PNG, WEBP'));
+      return;
+    }
+
+    cb(null, true);
+  },
+});
+
+const handleRegisterUpload = (req: Request, res: Response, next: () => void): void => {
+  registerUpload.single('verificationAttachment')(req, res, (error: unknown) => {
+    if (!error) {
+      req.file?.size && console.log(`Received file: ${req.file.originalname} (${req.file.size} bytes)`);
+      next();
+      return;
+    }
+
+    if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({
+        error: 'Invalid file',
+        message: 'File too large. Maximum allowed size is 5MB',
+      });
+      return;
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'File upload failed';
+    res.status(400).json({
+      error: 'Invalid file',
+      message: errorMessage,
+    });
+  });
+};
+
 
 //Register with email and password
 
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', handleRegisterUpload, async (req: Request, res: Response) => {
   try {
     const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id } = req.body;
+    const verificationAttachment = req.file;
+    console.log(req.file)
+    const selectedVerificationOption = verificationOption || 'DOCUMENT';
 
     if (!email || !password || !name || !role) {
       res.status(400).json({
@@ -41,32 +92,70 @@ router.post('/register', async (req: Request, res: Response) => {
       return;
     }
 
+    if (
+      (role === 'STUDENT' || role === 'TEACHER') &&
+      selectedVerificationOption === 'DOCUMENT' &&
+      !verificationAttachment
+    ) {
+      res.status(400).json({
+        error: 'Missing required fields',
+        message: 'verificationAttachment is required for DOCUMENT verification',
+      });
+      return;
+    }
+
     const firebaseUser = await firebaseAuth.createUser(email, password, name);
 
     // Forward to User Service to create in PostgreSQL
     try {
-      const userPayload: any = {
-        uid: firebaseUser.uid,
-        email,
-        name,
-        date_of_birth: new Date(dateOfBirth),
-        userType: role,
-        school_id: schoolId ? schoolId : null,
-        organization_id: organizationId,
-        verificationOption: verificationOption || "DOCUMENT"
-      };
+      const userPayload = new FormData();
+      userPayload.append('uid', firebaseUser.uid);
+      userPayload.append('email', email);
+      userPayload.append('name', name);
+      userPayload.append('userType', role);
+      userPayload.append('verificationOption', selectedVerificationOption);
 
-      if (role === "STUDENT" || role === "TEACHER") {
-        userPayload.grade = grade ? grade : null;
+      if (dateOfBirth) {
+        const parsedDate = new Date(dateOfBirth);
+        if (Number.isNaN(parsedDate.getTime())) {
+          throw new Error('Invalid dateOfBirth');
+        }
+        userPayload.append('date_of_birth', parsedDate.toISOString());
       }
-      if(verificationOption === "TEACHER_REQUEST"){
-        userPayload.teacher_id = teacher_id ? teacher_id : null;
+
+      if (schoolId) {
+        userPayload.append('school_id', schoolId);
       }
-      console.log("User Payload for User Service:", userPayload);
+
+      if (organizationId) {
+        userPayload.append('organization_id', organizationId);
+      }
+
+      if ((role === 'STUDENT' || role === 'TEACHER') && grade) {
+        userPayload.append('grade', grade);
+      }
+
+      if (selectedVerificationOption === 'TEACHER_REQUEST' && teacher_id) {
+        userPayload.append('teacher_id', teacher_id);
+      }
+
+      if (verificationAttachment) {
+        userPayload.append('verificationAttachment', verificationAttachment.buffer, {
+          filename: verificationAttachment.originalname,
+          contentType: verificationAttachment.mimetype,
+        });
+      }
+
+      console.log('Forwarding register payload to User Service');
 
       const userServiceResponse = await axios.post(
         `${process.env.USER_SERVICE_URL}/api/users`,
-        userPayload
+        userPayload,
+        {
+          headers: userPayload.getHeaders(),
+          maxBodyLength: Infinity,
+          maxContentLength: Infinity,
+        }
       );
 
 
@@ -300,27 +389,29 @@ router.post('/refresh', verifyToken, async (req: Request, res: Response) => {
   }
 });
 
-//get the current user
-router.get('/me', verifyToken, async (req: Request, res: Response) => {
-  try {
-    const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/`, {
-      headers: {
-        "x-user-uid": req.user!.uid,
-        "x-user-type": req.user!.role
-      }
-    });
 
-    res.json({
-      user: userServiceResponse.data
-    })
-  } catch (error: any) {
-    console.error("Get Current user error: ", error);
-    res.status(500).json({
-      error: "Failed to get user Data",
-      message: error.message
-    })
-  }
-});
+//doesnt need jsut gonna pass the request to the user service directly 
+// //get the current user
+// router.get('/me', verifyToken, async (req: Request, res: Response) => {
+//   try {
+//     const userServiceResponse = await axios.get(`${process.env.USER_SERVICE_URL}/api/users/`, {
+//       headers: {
+//         "x-user-uid": req.user!.uid,
+//         "x-user-type": req.user!.role
+//       }
+//     });
+
+//     res.json({
+//       user: userServiceResponse.data
+//     })
+//   } catch (error: any) {
+//     console.error("Get Current user error: ", error);
+//     res.status(500).json({
+//       error: "Failed to get user Data",
+//       message: error.message
+//     })
+//   }
+// });
 
 
 //Logout
