@@ -8,19 +8,28 @@ import api from '@/lib/axios';
 
 // Define the shape of a Verification Request (from MongoDB)
 export interface VerificationRequest {
-    id: string; // The MongoDB _id
-    studentId: string;
-    studentName: string;
-    grade: string;
-    teacherId: string;
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    id: string;
+    verificationMethod: string;
+    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    remarks?: string;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
 }
+
+type VerificationDecision = 'APPROVED' | 'REJECTED';
+
+const normalizeVerificationRequest = (request: any): VerificationRequest => ({
+    id: request.id || request._id,
+    verificationMethod: request.verificationMethod || '',
+    verificationStatus: request.verificationStatus || request.status || 'PENDING',
+    remarks: request.remarks || '',
+    createdAt: request.createdAt,
+    updatedAt: request.verifiedAt || request.createdAt,
+});
 
 interface TeacherState {
     teachers: Teacher[];
-    
+
     // NEW: Verification Request States
     pendingRequests: VerificationRequest[];
     approvedRequests: VerificationRequest[];
@@ -39,7 +48,8 @@ interface TeacherState {
 
     // NEW: Verification Actions
     fetchVerificationRequests: (teacherId: string) => Promise<void>;
-    updateVerificationStatus: (requestId: string, status: 'ACCEPTED' | 'REJECTED') => Promise<void>;
+    updateVerificationStatus: (requestId: string, status: VerificationDecision) => Promise<void>;
+    getAllVerificationRequests: () => Promise<void>;
 }
 
 export const useTeacherStore = create<TeacherState>()(
@@ -57,7 +67,7 @@ export const useTeacherStore = create<TeacherState>()(
             fetchTeachers: async () => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.get('/teachers');
+                    const response = await api.get('/schools/teachers');
                     set({ teachers: response.data.teachers || response.data });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch teachers' });
@@ -129,17 +139,48 @@ export const useTeacherStore = create<TeacherState>()(
             fetchVerificationRequests: async (teacherId: string) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // Adjust this URL to match your Express routes!
-                    const response = await api.get(`/teachers/${teacherId}/requests`);
-                    
-                    const requests = response.data.requests || [];
-                    
-                    // Filter them into buckets
-                    const pending = requests.filter((r: VerificationRequest) => r.status === 'PENDING');
-                    const approved = requests.filter((r: VerificationRequest) => r.status === 'ACCEPTED');
-                    const rejected = requests.filter((r: VerificationRequest) => r.status === 'REJECTED');
+                    const response = await api.get(`/users/requests/pending`);
 
-                    set({ 
+                    const payload = response.data || {};
+                    const rawRequests = payload.pendingVerifications || [];
+
+                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
+                        ? rawRequests.map(normalizeVerificationRequest)
+                        : [];
+
+                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
+                    // const approved = normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED');
+                    // const rejected = normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED');
+
+                    set({
+                        pendingRequests: pending,
+                        // approvedRequests: approved,
+                        // rejectedRequests: rejected
+                    });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch verification requests' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            getAllVerificationRequests: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/users/requests/all-requests`);
+
+                    const payload = response.data || {};
+                    const rawRequests = payload.pendingVerifications || [];
+
+                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
+                        ? rawRequests.map(normalizeVerificationRequest)
+                        : [];
+
+                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
+                    const approved = normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED');
+                    const rejected = normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED');
+
+                    set({
                         pendingRequests: pending,
                         approvedRequests: approved,
                         rejectedRequests: rejected
@@ -149,30 +190,38 @@ export const useTeacherStore = create<TeacherState>()(
                 } finally {
                     set({ isLoading: false });
                 }
-            },
+            }, // Optional: Implement if you want to fetch all requests regardless of status
 
-            updateVerificationStatus: async (requestId: string, status: 'ACCEPTED' | 'REJECTED') => {
+            updateVerificationStatus: async (requestId: string, status: VerificationDecision) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // Note: Your backend should handle updating the MongoDB document AND 
-                    // pushing/pulling the ID from the Postgres Teacher array in one transaction.
-                    const response = await api.put(`/verification-requests/${requestId}`, { status });
-                    const updatedRequest = response.data.request;
+                    let response;
+                    if (status === 'APPROVED') {
+                        response = await api.patch(`/users/requests/${requestId}/accept`);
+                    } else {
+                        response = await api.patch(`/users/requests/${requestId}/reject`);
+                    }
 
-                    // Optimistically update the UI arrays
+                    const updatedRequest = normalizeVerificationRequest(
+                        response.data.verification
+                    );
+
                     set((state) => {
-                        // Remove from pending
                         const remainingPending = state.pendingRequests.filter(r => r.id !== requestId);
-                        
-                        if (status === 'ACCEPTED') {
+                        const remainingApproved = state.approvedRequests.filter(r => r.id !== requestId);
+                        const remainingRejected = state.rejectedRequests.filter(r => r.id !== requestId);
+
+                        if (updatedRequest.verificationStatus === 'APPROVED') {
                             return {
                                 pendingRequests: remainingPending,
-                                approvedRequests: [updatedRequest, ...state.approvedRequests]
+                                approvedRequests: [updatedRequest, ...remainingApproved],
+                                rejectedRequests: remainingRejected,
                             };
                         } else {
                             return {
                                 pendingRequests: remainingPending,
-                                rejectedRequests: [updatedRequest, ...state.rejectedRequests]
+                                approvedRequests: remainingApproved,
+                                rejectedRequests: [updatedRequest, ...remainingRejected],
                             };
                         }
                     });

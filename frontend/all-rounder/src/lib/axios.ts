@@ -1,32 +1,30 @@
-import axios from 'axios';
-import { auth } from '@/lib/firebase'; // Ensure this points to your Firebase initialization file
+import axios from "axios";
+import { auth } from "@/lib/firebase";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
+  // remove default Content-Type
 });
 
-// Request Interceptor: Automatically attach Firebase ID token to requests
 api.interceptors.request.use(
-    async (config) => {
-        // Grab the current user directly from the Firebase Client SDK
-        const user = auth.currentUser;
-
-        // Only attach the token if a user is locally logged into Firebase.
-        // This naturally skips attaching a token for public routes like /register
-        if (user) {
-            // getIdToken() automatically refreshes the token behind the scenes if expired
-            const token = await user.getIdToken();
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+  async (config) => {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Dynamic content type
+    if (config.data instanceof FormData) {
+      // Let browser set multipart/form-data with boundary automatically
+      delete config.headers["Content-Type"];
+    } else {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 export default api;

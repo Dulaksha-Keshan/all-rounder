@@ -6,6 +6,26 @@ import { School } from '@/app/_type/type';
 import { Schools } from '@/app/_data/data'; // Legacy static data if needed
 import api from '@/lib/axios';
 
+export interface VerificationRequest {
+    id: string;
+    verificationMethod: string;
+    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    remarks?: string;
+    createdAt: string;
+    updatedAt?: string;
+}
+
+type VerificationDecision = 'APPROVED' | 'REJECTED';
+
+const normalizeVerificationRequest = (request: any): VerificationRequest => ({
+    id: request.id || request._id,
+    verificationMethod: request.verificationMethod || '',
+    verificationStatus: request.verificationStatus || request.status || 'PENDING',
+    remarks: request.remarks || '',
+    createdAt: request.createdAt,
+    updatedAt: request.verifiedAt || request.createdAt,
+});
+
 // You can import real types for Teacher/Student if you have them in type.ts
 interface SchoolState {
     schools: School[];
@@ -15,6 +35,11 @@ interface SchoolState {
     schoolTeachers: any[]; 
     schoolStudents: any[];
     schoolStatistics: any | null;
+
+    // Verification request states (for school admins approving teachers)
+    pendingRequests: VerificationRequest[];
+    approvedRequests: VerificationRequest[];
+    rejectedRequests: VerificationRequest[];
 
     isLoading: boolean;
     error: string | null;
@@ -32,6 +57,11 @@ interface SchoolState {
     fetchSchoolTeachers: (school_id: string) => Promise<void>;
     fetchSchoolStudents: (school_id: string) => Promise<void>;
     fetchSchoolStatistics: (school_id: string) => Promise<void>;
+
+    // Verification actions
+    fetchVerificationRequests: (school_id: string) => Promise<void>;
+    getAllVerificationRequests: () => Promise<void>;
+    updateVerificationStatus: (requestId: string, status: VerificationDecision) => Promise<void>;
 }
 
 export const useSchoolStore = create<SchoolState>()(
@@ -42,6 +72,9 @@ export const useSchoolStore = create<SchoolState>()(
             schoolTeachers: [],
             schoolStudents: [],
             schoolStatistics: null,
+            pendingRequests: [],
+            approvedRequests: [],
+            rejectedRequests: [],
             isLoading: false,
             error: null,
 
@@ -121,7 +154,8 @@ export const useSchoolStore = create<SchoolState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get(`/schools/${school_id}/teachers`);
-                    set({ schoolTeachers: response.data.teachers || [] });
+                    const payload = response.data || {};
+                    set({ schoolTeachers: payload.teachers || payload.schoolTeachers || payload.data || [] });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch teachers' });
                 } finally {
@@ -133,7 +167,8 @@ export const useSchoolStore = create<SchoolState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get(`/schools/${school_id}/students`);
-                    set({ schoolStudents: response.data.students || [] });
+                    const payload = response.data || {};
+                    set({ schoolStudents: payload.students || payload.schoolStudents || payload.data || [] });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch students' });
                 } finally {
@@ -152,14 +187,106 @@ export const useSchoolStore = create<SchoolState>()(
                     set({ isLoading: false });
                 }
             },
+
+            fetchVerificationRequests: async (school_id: string) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/users/requests/pending/${get().activeSchool?.school_id}`);
+
+                    const payload = response.data || {};
+                    const rawRequests = payload.pendingVerifications || [];
+
+                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
+                        ? rawRequests.map(normalizeVerificationRequest)
+                        : [];
+
+                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
+
+                    set({
+                        pendingRequests: pending,
+                    });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch verification requests' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            getAllVerificationRequests: async () => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/users/requests/all-requests/${get().activeSchool?.school_id}`);
+
+                    const payload = response.data || {};
+                    const rawRequests = payload.pendingVerifications || [];
+
+                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
+                        ? rawRequests.map(normalizeVerificationRequest)
+                        : [];
+
+                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
+                    const approved = normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED');
+                    const rejected = normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED');
+
+                    set({
+                        pendingRequests: pending,
+                        approvedRequests: approved,
+                        rejectedRequests: rejected
+                    });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch verification requests' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            updateVerificationStatus: async (requestId: string, status: VerificationDecision) => {
+                set({ isLoading: true, error: null });
+                try {
+                    let response;
+                    if (status === 'APPROVED') {
+                        response = await api.patch(`/users/requests/${requestId}/accept/${get().activeSchool?.school_id}`);
+                    } else {
+                        response = await api.patch(`/users/requests/${requestId}/reject/${get().activeSchool?.school_id}`);
+                    }
+
+                    const updatedRequest = normalizeVerificationRequest(
+                        response.data.verification
+                    );
+
+                    set((state) => {
+                        const remainingPending = state.pendingRequests.filter(r => r.id !== requestId);
+                        const remainingApproved = state.approvedRequests.filter(r => r.id !== requestId);
+                        const remainingRejected = state.rejectedRequests.filter(r => r.id !== requestId);
+
+                        if (updatedRequest.verificationStatus === 'APPROVED') {
+                            return {
+                                pendingRequests: remainingPending,
+                                approvedRequests: [updatedRequest, ...remainingApproved],
+                                rejectedRequests: remainingRejected,
+                            };
+                        } else {
+                            return {
+                                pendingRequests: remainingPending,
+                                approvedRequests: remainingApproved,
+                                rejectedRequests: [updatedRequest, ...remainingRejected],
+                            };
+                        }
+                    });
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || `Failed to ${status.toLowerCase()} request` });
+                    throw error;
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
         }),
         {
             name: 'school-storage',
             partialize: (state) => ({
                 schools: state.schools,
                 activeSchool: state.activeSchool,
-                // We typically don't persist teachers/students either, 
-                // so they are freshly fetched when a user navigates to a school page
+                // We don't persist teachers/students/verification requests so they stay fresh.
             }),
         }
     )

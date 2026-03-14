@@ -19,14 +19,32 @@ export interface RegisterPayload {
     role: UserRole;
     grade?: string;
     contact_number?: string;
-    gender: string;
+    gender?: string;
     schoolId?: string;
     organizationId?: string;
-    verificationOption: string;
+    verificationOption?: string;
     teacherName?: string,
     teacherEmail?: string,
-    dateOfBirth: string;
+    teacher_id?: string,
+    dateOfBirth?: string;
+    idtoken?: string;
 }
+
+type RegisterInput = RegisterPayload | FormData;
+
+const isFormDataPayload = (payload: RegisterInput): payload is FormData => {
+    return typeof FormData !== 'undefined' && payload instanceof FormData;
+};
+
+const getPayloadValue = (payload: RegisterInput, key: string): string | undefined => {
+    if (isFormDataPayload(payload)) {
+        const value = payload.get(key);
+        return typeof value === 'string' ? value : undefined;
+    }
+
+    const value = payload[key as keyof RegisterPayload];
+    return typeof value === 'string' ? value : undefined;
+};
 
 interface UserState {
     currentUser: Student | Teacher | Organization | any | null;
@@ -44,8 +62,8 @@ interface UserState {
 
 
     // --- Real Backend Actions ---
-    registerWithEmail: (data: RegisterPayload) => Promise<void>;
-    registerWithGoogle: (payload: any) => Promise<void>;
+    registerWithEmail: (data: RegisterInput) => Promise<void>;
+    registerWithGoogle: (payload: RegisterInput) => Promise<void>;
     registerNewOrganization: (payload: FormData) => Promise<void>;
     loginWithEmail: (email: string, password: string) => Promise<void>;
     loginWithGoogle: (role: UserRole, schoolId?: string, organizationId?: string) => Promise<void>;
@@ -82,12 +100,15 @@ export const useUserStore = create<UserState>()(
             registerWithEmail: async (data) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // 1. Send data to your API Gateway to create the user in Firebase Admin and PostgreSQL
                     await api.post('/auth/register', data);
 
-                    // 2. If successful, automatically log them into the local Firebase Client SDK
-                    if (data.password) {
-                        await get().loginWithEmail(data.email, data.password);
+                    const email = getPayloadValue(data, 'email');
+                    const password = getPayloadValue(data, 'password');
+                    const verificationOption = getPayloadValue(data, 'verificationOption');
+
+                    // Auto-login is skipped for verification-first flows (DOCUMENT / TEACHER_REQUEST / ADMIN_APPROVAL).
+                    if (email && password && !verificationOption) {
+                        await get().loginWithEmail(email, password);
                     }
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed' });
@@ -96,19 +117,23 @@ export const useUserStore = create<UserState>()(
                 }
             },
 
-            registerWithGoogle: async (payload: any) => {
+            registerWithGoogle: async (payload) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // payload contains idtoken, role, schoolId, grade, etc.
-                    const response = await api.post('/auth/google-signin', payload);
+                    const response = await api.post('/auth/register', payload);
                     const userData = response.data.user;
 
-                    set({
-                        currentUser: userData,
-                        userRole: userData.userType || payload.role,
-                        isAuthenticated: true,
-                        error: null
-                    });
+                    if (userData) {
+                        set({
+                            currentUser: userData,
+                            userRole: userData.userType || (getPayloadValue(payload, 'role') as UserRole),
+                            isAuthenticated: true,
+                            error: null
+                        });
+                    } else {
+                        // Registration may return a queued/pending verification response without a session user payload.
+                        set({ error: null });
+                    }
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Google Registration failed' });
                     throw error;
