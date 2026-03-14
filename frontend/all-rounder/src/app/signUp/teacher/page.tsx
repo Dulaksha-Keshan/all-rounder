@@ -98,12 +98,9 @@ export default function TeacherSignup() {
   const addFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
     const allowed = Array.from(newFiles).filter((f) =>
-      ["application/pdf", "image/jpeg", "image/png"].includes(f.type)
+      ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(f.type) && f.size <= 5 * 1024 * 1024
     );
-    setUploadedFiles((prev) => {
-      const existing = new Set(prev.map((f) => f.name + f.size));
-      return [...prev, ...allowed.filter((f) => !existing.has(f.name + f.size))];
-    });
+    setUploadedFiles(allowed.length > 0 ? [allowed[0]] : []);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -182,52 +179,48 @@ export default function TeacherSignup() {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      if (uploadedFiles.length === 0) return;
+      if (formData.verificationType === "DOCUMENT" && uploadedFiles.length === 0) {
+        setPasswordError("Please upload a verification document.");
+        return;
+      }
 
       try {
-        // --- MULTIPART FORM DATA CONSTRUCTION ---
         const payload = new FormData();
         
-        // Append text fields
         payload.append("name", `${formData.firstName} ${formData.lastName}`.trim());
         payload.append("email", formData.email);
-        payload.append("date_of_birth", formData.dateOfBirth);
+        payload.append("dateOfBirth", formData.dateOfBirth);
         if (formData.phone) payload.append("contact_number", formData.phone);
         
-        // Auth & System Fields
         payload.append("role", "TEACHER");
         payload.append("schoolId", formData.schoolId);
         payload.append("verificationOption", formData.verificationType);
         
-        // Teacher Specifics
         if (formData.subject) payload.append("subject", formData.subject);
         if (formData.grade) payload.append("grade", formData.grade);
         if (formData.designation) payload.append("designation", formData.designation);
         if (formData.staffId) payload.append("staff_id", formData.staffId);
 
-        // Append Passwords/Tokens
         if (isGoogleFlow) {
           payload.append("idtoken", formData.googleIdToken);
         } else {
           payload.append("password", formData.password);
         }
 
-        // Append Files (Ensure 'files' matches your Multer upload.array('files') key!)
-        uploadedFiles.forEach((file) => {
-          payload.append("attachments", file); 
-        });
+        console.log(uploadedFiles.length)
+        if (formData.verificationType === "DOCUMENT" && uploadedFiles[0]) {
+          payload.append("verificationAttachment", uploadedFiles[0]);
+        }
 
-        // Submit directly using your store actions
-        // Axios will automatically recognize the FormData object and set the correct headers
         if (isGoogleFlow) {
           await registerWithGoogle(payload);
         } else {
-          await registerWithEmail(payload as any); // Type cast if your store interface expects generic JSON
+          await registerWithEmail(payload);
         }
 
         if (!useUserStore.getState().error) {
           alert("Teacher account created! Your verification documents are under review.");
-          router.push("/home");
+          router.push("/login");
         }
       } catch (err) {
         console.error("Registration failed", err);
@@ -476,20 +469,20 @@ export default function TeacherSignup() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Document Type *</label>
+                  <label className={labelClass}>Verification Method *</label>
                   <select value={formData.verificationType} onChange={(e) => updateField("verificationType", e.target.value)} className={inputClass} style={inputStyle} required>
-                    <option value="staff-id">Staff ID Card</option>
-                    <option value="appointment-letter">Appointment Letter</option>
-                    <option value="employment-contract">Employment Contract</option>
+                    <option value="DOCUMENT">Upload Document</option>
+                    <option value="ADMIN_APPROVAL">Request School/Admin Approval</option>
                   </select>
                 </div>
 
+                {formData.verificationType === "DOCUMENT" && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className={labelClass + " mb-0"}>Upload Document(s) *</label>
                     {uploadedFiles.length > 0 && (
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}>
-                        {uploadedFiles.length} file{uploadedFiles.length > 1 ? "s" : ""} added
+                        1 file selected
                       </span>
                     )}
                   </div>
@@ -505,16 +498,16 @@ export default function TeacherSignup() {
                     }}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <input ref={fileInputRef} type="file" onChange={(e) => addFiles(e.target.files)} accept=".pdf,.jpg,.jpeg,.png" className="hidden" multiple />
+                    <input ref={fileInputRef} type="file" onChange={(e) => addFiles(e.target.files)} accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" />
                     <div className="flex flex-col items-center gap-2 py-8 px-4 select-none">
                       <div className="w-14 h-14 rounded-full flex items-center justify-center mb-1" style={{ background: "var(--secondary-pale-lavender)" }}>
                         <Upload className="w-6 h-6" style={{ color: "var(--primary-blue)" }} />
                       </div>
                       <p className="text-sm font-medium text-primary-dark">{dragOver ? "Drop files here" : "Drag & drop or click to browse"}</p>
                       <p className="text-xs text-muted text-center max-w-xs">Staff ID, appointment letter, or employment contract</p>
-                      <p className="text-xs text-muted">PDF, JPG or PNG · max 5 MB each</p>
+                      <p className="text-xs text-muted">PDF, JPG, PNG or WEBP · max 5 MB</p>
                       <div className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5" style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}>
-                        <PlusCircle className="w-3.5 h-3.5" /> Add files
+                        <PlusCircle className="w-3.5 h-3.5" /> Choose file
                       </div>
                     </div>
                   </div>
@@ -540,6 +533,13 @@ export default function TeacherSignup() {
                   )}
                   {uploadedFiles.length === 0 && <p className="text-xs text-muted mt-2">At least one document is required.</p>}
                 </div>
+                )}
+
+                {formData.verificationType === "ADMIN_APPROVAL" && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">Your registration will be sent for school/admin approval. No document upload is required for this method.</p>
+                  </div>
+                )}
 
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">🔒 Your documents will be reviewed by our verification team within 24-48 hours. You'll receive an email once your account is verified.</p>

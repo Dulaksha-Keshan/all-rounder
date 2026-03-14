@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, Calendar, School, Phone, Eye, EyeOff, ChevronDown, CheckCircle2 } from "lucide-react";
+import { User, Mail, Lock, Calendar, School, Phone, Eye, EyeOff, ChevronDown, CheckCircle2, Upload, FileType2, FileImage, X, PlusCircle } from "lucide-react";
 import Image from "next/image";
 
 import { useUserStore } from "@/context/useUserStore";
@@ -61,6 +61,10 @@ export default function StudentSignup() {
   const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
   const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
   const [teacherError, setTeacherError] = useState("");
+  const [documentError, setDocumentError] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isGoogleFlow, setIsGoogleFlow] = useState(false);
 
@@ -77,6 +81,7 @@ export default function StudentSignup() {
     password: "",
     confirmPassword: "",
     teacher_id: "", // Replaced teacherName and teacherEmail with ID
+    verificationOption: "TEACHER_REQUEST",
     googleIdToken: "",
   });
 
@@ -93,6 +98,47 @@ export default function StudentSignup() {
     (teacher.name || "").toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
     (teacher.subject || "").toLowerCase().includes(teacherSearchTerm.toLowerCase())
   ) : [];
+
+  const addFiles = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+
+    const validFiles = Array.from(newFiles).filter((file) => {
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+      return allowedTypes.includes(file.type) && file.size <= 5 * 1024 * 1024;
+    });
+
+    if (validFiles.length === 0) {
+      setDocumentError("Please upload a valid PDF/JPEG/PNG/WEBP file up to 5 MB.");
+      return;
+    }
+
+    setDocumentError("");
+    setUploadedFiles([validFiles[0]]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    addFiles(e.dataTransfer.files);
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type === "application/pdf") {
+      return <FileType2 className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-blue)" }} />;
+    }
+    return <FileImage className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary-purple)" }} />;
+  };
 
   const handleGoogleInitiate = async () => {
     try {
@@ -136,11 +182,21 @@ export default function StudentSignup() {
     }
 
     if (currentStep === 3) {
-       if (!formData.teacher_id) {
-           setTeacherError("Please select a teacher to verify your account.");
-           return;
-       }
-       setTeacherError("");
+      if (formData.verificationOption === "TEACHER_REQUEST") {
+        if (!formData.teacher_id) {
+          setTeacherError("Please select a teacher to verify your account.");
+          return;
+        }
+        setTeacherError("");
+      }
+
+      if (formData.verificationOption === "DOCUMENT") {
+        if (uploadedFiles.length === 0) {
+          setDocumentError("Please upload one verification document.");
+          return;
+        }
+        setDocumentError("");
+      }
     }
 
     setPasswordError("");
@@ -149,31 +205,41 @@ export default function StudentSignup() {
       setCurrentStep(currentStep + 1);
     } else {
       try {
-        const payload = {
-            email: formData.email,
-            password: formData.password,
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-            role: "STUDENT" as const,
-            grade: formData.grade,
-            dateOfBirth: formData.dateOfBirth,
-            schoolId: formData.schoolId,
-            contact_number: formData.phone,
-            gender: formData.gender,
-            studentId: formData.studentId,
-            // Pass the selected teacher's UID for the backend to create the request
-            teacher_id: formData.teacher_id, 
-            verificationOption: "TEACHER_REQUEST" 
-        };
+        const payload = new FormData();
+        payload.append("email", formData.email);
+        payload.append("name", `${formData.firstName} ${formData.lastName}`.trim());
+        payload.append("role", "STUDENT");
+        payload.append("dateOfBirth", formData.dateOfBirth);
+        payload.append("schoolId", formData.schoolId);
+        payload.append("gender", formData.gender);
+        payload.append("verificationOption", formData.verificationOption);
+
+        if (formData.grade) payload.append("grade", formData.grade);
+        if (formData.phone) payload.append("contact_number", formData.phone);
+
+        if (formData.verificationOption === "TEACHER_REQUEST" && formData.teacher_id) {
+          payload.append("teacher_id", formData.teacher_id);
+        }
+
+        if (formData.verificationOption === "DOCUMENT" && uploadedFiles[0]) {
+          payload.append("verificationAttachment", uploadedFiles[0]);
+        }
 
         if (isGoogleFlow) {
-          await registerWithGoogle({ idtoken: formData.googleIdToken, ...payload });
+          payload.append("idtoken", formData.googleIdToken);
+        } else {
+          payload.append("password", formData.password);
+        }
+
+        if (isGoogleFlow) {
+          await registerWithGoogle(payload);
         } else {
           await registerWithEmail(payload);
         }
 
         if (!useUserStore.getState().error) {
           alert("Student account created! Awaiting teacher verification.");
-          router.push("/home"); 
+          router.push("/login"); 
         }
       } catch (err) {
         console.error("Registration failed", err);
@@ -275,8 +341,6 @@ export default function StudentSignup() {
                       <option value="" disabled>Select</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
-                      <option value="other">Other</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
                     </select>
                   </div>
                 </div>
@@ -300,7 +364,7 @@ export default function StudentSignup() {
                         setIsSchoolDropdownOpen(true);
                         if (formData.schoolId) {
                           updateField("schoolId", "");
-                          updateField("teacherId", ""); // Reset teacher if school changes
+                          updateField("teacher_id", ""); // Reset teacher if school changes
                           setTeacherSearchTerm("");
                         }
                       }}
@@ -411,68 +475,165 @@ export default function StudentSignup() {
             {currentStep === 3 && (
               <div className="space-y-4">
                 <h3 className="text-primary-dark text-xl font-bold text-center mb-6">Teacher Verification<span className="block h-1 w-1/2 mx-auto mt-2 rounded-full" style={{ background: "var(--primary-blue)" }} /></h3>
-                
-                <div className="p-4 border rounded-lg mb-6" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
-                  <p className="text-sm text-gray-700">To complete your registration, select an active teacher from your school to approve your account request.</p>
+
+                <div>
+                  <label className={labelClass}>Verification Method *</label>
+                  <select
+                    value={formData.verificationOption}
+                    onChange={(e) => {
+                      updateField("verificationOption", e.target.value);
+                      if (e.target.value === "DOCUMENT") {
+                        updateField("teacher_id", "");
+                        setTeacherSearchTerm("");
+                        setTeacherError("");
+                      } else {
+                        setDocumentError("");
+                        setUploadedFiles([]);
+                      }
+                    }}
+                    className={inputClass}
+                    style={inputStyle}
+                    required
+                  >
+                    <option value="TEACHER_REQUEST">Teacher Request</option>
+                    <option value="DOCUMENT">Upload Document</option>
+                  </select>
                 </div>
 
-                {/* NEW: Searchable Teacher Dropdown */}
-                <div className="relative">
-                  <label className={labelClass}>Select Your Teacher *</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
-                    <input
-                      type="text"
-                      value={teacherSearchTerm}
-                      onChange={(e) => {
-                        setTeacherSearchTerm(e.target.value);
-                        setIsTeacherDropdownOpen(true);
-                        if (formData.teacher_id) updateField("teacher_id", "");
-                      }}
-                      onFocus={() => setIsTeacherDropdownOpen(true)}
-                      onBlur={() => setTimeout(() => setIsTeacherDropdownOpen(false), 200)}
-                      className={`${iconInputClass} pr-10 cursor-text bg-white`}
-                      style={inputStyle}
-                      placeholder="Search by name or subject..."
-                      required
-                    />
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  </div>
+                {formData.verificationOption === "TEACHER_REQUEST" && (
+                  <>
+                    <div className="p-4 border rounded-lg mb-6" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
+                      <p className="text-sm text-gray-700">Select an active teacher from your school. A verification request will be sent to their portal.</p>
+                    </div>
 
-                  {isTeacherDropdownOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                      {filteredTeachers.length > 0 ? (
-                        filteredTeachers.map((teacher, i) => (
-                          <div
-                            key={teacher.uid || `teacher-${i}`}
-                            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${formData.teacher_id === teacher.uid ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-                            onMouseDown={(e) => {
-                              e.preventDefault(); 
-                              updateField("teacher_id", teacher.uid);
-                              setTeacherSearchTerm(`${teacher.name} (${teacher.subject || 'Teacher'})`);
-                              setIsTeacherDropdownOpen(false);
-                            }}
-                          >
-                            <div className="font-medium">{teacher.name}</div>
-                            <div className="text-xs text-gray-500">{teacher.subject || teacher.designation}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-3 text-sm text-gray-500 italic text-center">
-                          {schoolTeachers.length === 0 ? "Loading teachers..." : "No matching teachers found."}
+                    <div className="relative">
+                      <label className={labelClass}>Select Your Teacher *</label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+                        <input
+                          type="text"
+                          value={teacherSearchTerm}
+                          onChange={(e) => {
+                            setTeacherSearchTerm(e.target.value);
+                            setIsTeacherDropdownOpen(true);
+                            if (formData.teacher_id) updateField("teacher_id", "");
+                          }}
+                          onFocus={() => setIsTeacherDropdownOpen(true)}
+                          onBlur={() => setTimeout(() => setIsTeacherDropdownOpen(false), 200)}
+                          className={`${iconInputClass} pr-10 cursor-text bg-white`}
+                          style={inputStyle}
+                          placeholder="Search by name or subject..."
+                          required={formData.verificationOption === "TEACHER_REQUEST"}
+                        />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                      </div>
+
+                      {isTeacherDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                          {filteredTeachers.length > 0 ? (
+                            filteredTeachers.map((teacher, i) => (
+                              <div
+                                key={teacher.uid || `teacher-${i}`}
+                                className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${formData.teacher_id === teacher.uid ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  updateField("teacher_id", teacher.uid);
+                                  setTeacherSearchTerm(`${teacher.name} (${teacher.subject || 'Teacher'})`);
+                                  setIsTeacherDropdownOpen(false);
+                                }}
+                              >
+                                <div className="font-medium">{teacher.name}</div>
+                                <div className="text-xs text-gray-500">{teacher.subject || teacher.designation}</div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 italic text-center">
+                              {schoolTeachers.length === 0 ? "Loading teachers..." : "No matching teachers found."}
+                            </div>
+                          )}
                         </div>
                       )}
+                      {teacherError && <p className="text-sm text-red-500 mt-1">{teacherError}</p>}
                     </div>
-                  )}
-                  {teacherError && <p className="text-sm text-red-500 mt-1">{teacherError}</p>}
-                </div>
+                  </>
+                )}
 
-                {formData.teacher_id && (
+                {formData.verificationOption === "DOCUMENT" && (
+                  <>
+                    <div className="p-4 border rounded-lg mb-4" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
+                      <p className="text-sm text-gray-700">Upload one supporting document for verification. Allowed: PDF, JPG, PNG, WEBP (max 5 MB).</p>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className={labelClass + " mb-0"}>Verification Attachment *</label>
+                        {uploadedFiles.length > 0 && (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}>
+                            1 file selected
+                          </span>
+                        )}
+                      </div>
+
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={handleDrop}
+                        className="rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer"
+                        style={{
+                          borderColor: dragOver ? "var(--primary-blue)" : "var(--secondary-light-lavender)",
+                          background: dragOver ? "var(--secondary-pale-lavender)" : "transparent",
+                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          onChange={(e) => addFiles(e.target.files)}
+                          accept=".pdf,.jpg,.jpeg,.png,.webp"
+                          className="hidden"
+                        />
+                        <div className="flex flex-col items-center gap-2 py-8 px-4 select-none">
+                          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-1" style={{ background: "var(--secondary-pale-lavender)" }}>
+                            <Upload className="w-6 h-6" style={{ color: "var(--primary-blue)" }} />
+                          </div>
+                          <p className="text-sm font-medium text-primary-dark">{dragOver ? "Drop file here" : "Drag & drop or click to browse"}</p>
+                          <p className="text-xs text-muted">PDF, JPG, PNG, WEBP · max 5 MB</p>
+                          <div className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5" style={{ background: "var(--secondary-pale-lavender)", color: "var(--primary-blue)" }}>
+                            <PlusCircle className="w-3.5 h-3.5" /> Choose file
+                          </div>
+                        </div>
+                      </div>
+
+                      {uploadedFiles.length > 0 && (
+                        <ul className="mt-3 space-y-2">
+                          {uploadedFiles.map((file, i) => (
+                            <li key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--secondary-light-lavender)" }}>
+                                {getFileIcon(file)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-primary-dark truncate">{file.name}</p>
+                                <p className="text-xs text-muted">{formatBytes(file.size)}</p>
+                              </div>
+                              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-green-500" />
+                              <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors hover:bg-red-50 group">
+                                <X className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {documentError && <p className="text-sm text-red-500 mt-2">{documentError}</p>}
+                    </div>
+                  </>
+                )}
+
+                {formData.verificationOption === "TEACHER_REQUEST" && formData.teacher_id && (
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 mt-4">
                     <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-green-800">Teacher Selected</p>
-                      <p className="text-xs text-green-700 mt-1">A verification request will be sent directly to their portal once you submit.</p>
+                      <p className="text-xs text-green-700 mt-1">A verification request will be sent directly once you submit.</p>
                     </div>
                   </div>
                 )}

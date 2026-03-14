@@ -223,7 +223,7 @@ export default function SchoolSignup() {
 
         if (!useUserStore.getState().error) {
           alert("School Admin account created! Your documentation is under review.");
-          router.push("/home");
+          router.push("/login");
         }
       } catch (err) {
         console.error("Registration failed", err);

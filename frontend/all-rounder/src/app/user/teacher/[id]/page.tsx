@@ -35,11 +35,12 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     approvedRequests = [],
     rejectedRequests = [],
     fetchVerificationRequests,
+    getAllVerificationRequests,
     updateVerificationStatus
-  } = useTeacherStore(); // Cast as any temporarily until we update the store
+  } = useTeacherStore(); 
   const processedRequests = [...approvedRequests, ...rejectedRequests].sort((a, b) => {
     // Sort by most recently updated
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
   });
   // --- PROFILE LOGIC ---
   const isOwnProfile = currentUser?.uid === id && userRole === 'TEACHER';
@@ -55,13 +56,39 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     if (isOwnProfile && currentUser?.uid && fetchVerificationRequests) {
       fetchVerificationRequests(currentUser.uid);
     }
-  }, [isOwnProfile, currentUser?.uid]);
+  }, [isOwnProfile, currentUser?.uid, fetchVerificationRequests]);
 
   // --- LOCAL STATE ---
   const [activeTab, setActiveTab] = useState('overview');
   const [requestSubTab, setRequestSubTab] = useState<'pending' | 'processed'>('pending');
+  const [hasLoadedAllRequests, setHasLoadedAllRequests] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
+
+  // Fetch full verification history only when user opens the history view.
+  useEffect(() => {
+    if (
+      isOwnProfile &&
+      activeTab === 'requests' &&
+      requestSubTab === 'processed' &&
+      !hasLoadedAllRequests
+    ) {
+      getAllVerificationRequests();
+      setHasLoadedAllRequests(true);
+    }
+  }, [
+    isOwnProfile,
+    activeTab,
+    requestSubTab,
+    hasLoadedAllRequests,
+    getAllVerificationRequests,
+  ]);
+
+  // Reset lazy-load state when profile identity changes.
+  useEffect(() => {
+    setHasLoadedAllRequests(false);
+    setRequestSubTab('pending');
+  }, [id]);
 
   // Draft Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -70,10 +97,10 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   // Verification Action Modal State
   const [verificationModal, setVerificationModal] = useState<{
     isOpen: boolean;
-    action: 'ACCEPTED' | 'REJECTED' | null;
+    action: 'APPROVED' | 'REJECTED' | null;
     requestId: string | null;
-    studentName: string;
-  }>({ isOpen: false, action: null, requestId: null, studentName: "" });
+    requestLabel: string;
+  }>({ isOpen: false, action: null, requestId: null, requestLabel: "" });
 
   // Keep edit form in sync
   useEffect(() => {
@@ -116,8 +143,8 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   };
 
   // Open the confirmation modal for Verification
-  const handleVerificationAction = (requestId: string, studentName: string, action: 'ACCEPTED' | 'REJECTED') => {
-    setVerificationModal({ isOpen: true, action, requestId, studentName });
+  const handleVerificationAction = (requestId: string, requestLabel: string, action: 'APPROVED' | 'REJECTED') => {
+    setVerificationModal({ isOpen: true, action, requestId, requestLabel });
   };
 
   // Submit the verification to backend
@@ -130,7 +157,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         console.error("Failed to update verification status:", error);
         alert("Failed to process request.");
       } finally {
-        setVerificationModal({ isOpen: false, action: null, requestId: null, studentName: "" });
+        setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" });
       }
     }
   };
@@ -367,19 +394,20 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                           <Clock className="w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-[#34365C] text-lg">{req.studentName}</h4>
-                          <p className="text-sm text-gray-600">{req.grade} • Requested: {formatDate(req.createdAt)}</p>
+                          <h4 className="font-bold text-[#34365C] text-lg">Request #{String(req.id || '').slice(-6).toUpperCase()}</h4>
+                          <p className="text-sm text-gray-600">{req.verificationMethod} • Requested: {formatDate(req.createdAt)}</p>
+                          {req.remarks && <p className="text-xs text-gray-500 mt-1">Remarks: {req.remarks}</p>}
                         </div>
                       </div>
                       <div className="flex gap-2 w-full md:w-auto">
                         <button
-                          onClick={() => handleVerificationAction(req.id, req.studentName, 'ACCEPTED')}
+                          onClick={() => handleVerificationAction(req.id, `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'APPROVED')}
                           className="flex-1 md:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold transition-all text-sm flex justify-center items-center gap-2"
                         >
                           <CheckCircle2 className="w-4 h-4" /> Accept
                         </button>
                         <button
-                          onClick={() => handleVerificationAction(req.id, req.studentName, 'REJECTED')}
+                          onClick={() => handleVerificationAction(req.id, `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'REJECTED')}
                           className="flex-1 md:flex-none px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 font-bold transition-all text-sm flex justify-center items-center gap-2"
                         >
                           <XCircle className="w-4 h-4" /> Reject
@@ -403,17 +431,17 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                   processedRequests.map((req: any) => (
                     <div key={req.id} className="flex flex-col md:flex-row items-center justify-between p-4 border border-gray-100 bg-gray-50 rounded-xl gap-4">
                       <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${req.status === 'ACCEPTED' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          {req.status === 'ACCEPTED' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${req.verificationStatus === 'APPROVED' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                          {req.verificationStatus === 'APPROVED' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                         </div>
                         <div>
-                          <h4 className="font-bold text-[#34365C]">{req.studentName}</h4>
-                          <p className="text-sm text-gray-500">{req.grade} • Processed: {formatDate(req.updatedAt)}</p>
+                          <h4 className="font-bold text-[#34365C]">Request #{String(req.id || '').slice(-6).toUpperCase()}</h4>
+                          <p className="text-sm text-gray-500">{req.verificationMethod} • Processed: {formatDate(req.updatedAt || req.createdAt)}</p>
                         </div>
                       </div>
                       <div className="w-full md:w-auto text-right">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${req.status === 'ACCEPTED' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                          {req.status}
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${req.verificationStatus === 'APPROVED' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                          {req.verificationStatus}
                         </span>
                       </div>
                     </div>
@@ -577,13 +605,13 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         {/* NEW: Verification Action Modal */}
         <ConfirmationModal
           isOpen={verificationModal.isOpen}
-          onClose={() => setVerificationModal({ isOpen: false, action: null, requestId: null, studentName: "" })}
+          onClose={() => setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" })}
           onConfirm={confirmVerificationAction}
-          title={`${verificationModal.action === 'ACCEPTED' ? 'Accept' : 'Reject'} Verification`}
-          message={`Are you sure you want to ${verificationModal.action === 'ACCEPTED' ? 'approve' : 'reject'} the verification request for ${verificationModal.studentName}?`}
-          confirmLabel={verificationModal.action === 'ACCEPTED' ? 'Yes, Accept' : 'Yes, Reject'}
+          title={`${verificationModal.action === 'APPROVED' ? 'Accept' : 'Reject'} Verification`}
+          message={`Are you sure you want to ${verificationModal.action === 'APPROVED' ? 'approve' : 'reject'} ${verificationModal.requestLabel}?`}
+          confirmLabel={verificationModal.action === 'APPROVED' ? 'Yes, Accept' : 'Yes, Reject'}
           cancelLabel="Cancel"
-          variant={verificationModal.action === 'ACCEPTED' ? 'success' : 'danger'}
+          variant={verificationModal.action === 'APPROVED' ? 'success' : 'danger'}
         />
       </div>
     </div>
