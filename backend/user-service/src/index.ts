@@ -8,6 +8,7 @@ import organizationRoutes from "./routes/organizationRoute.js";
 import eventHostsRoutes from "./routes/eventHostsRoutes.js"
 import clubRoutes from "./routes/clubRoute.js"
 import skillRoutes from "./routes/skillRoute.js"
+import requestRoutes from "./routes/requestRoute.js";
 import { connectMDB } from "./mongoDb.js";
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use("/api/users", userRoutes);
+app.use("/api/users/requests", requestRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/clubs", clubRoutes);
