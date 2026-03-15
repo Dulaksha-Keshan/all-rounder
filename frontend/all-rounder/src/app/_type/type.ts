@@ -195,52 +195,86 @@ export interface Event {
   organizerType?: OrganizerType; // Legacy support
 }
 
-// Defining types locally to be self-contained, mirroring PostType usage
+// ==================== POST TYPES (Backend Contract Aligned) ====================
+// Normalized post entity - single frontend shape across all API responses
+export interface PostEntity {
+  id: string; // MongoDB _id normalized to id
+  title: string;
+  content: string;
+  category: "achievement" | "participation" | "event" | "project";
+  visibility: "public" | "private";
+  attachments: string[]; // R2 URLs
+  tags: string[];
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt?: string;
+  
+  // Optional fields from some endpoints
+  authorId?: string;
+  authorType?: "STUDENT" | "TEACHER" | "SCHOOL_ADMIN" | "ORG_ADMIN" | "SUPER_ADMIN";
+  likesUserIds?: string[]; // Only when explicitly provided
+  isDeleted?: boolean;
+}
+
+// Backend response for comments endpoint - GET /:id/comments
+export interface CommentEntity {
+  id: string; // MongoDB _id
+  postId: string;
+  userId: string;
+  comment: string; // Backend uses "comment" field
+  createdAt: string;
+}
+
+// Feed item can be post or event
+export interface FeedItemEntity {
+  id: string;
+  feedType: "post" | "event";
+  data: PostEntity | Event;
+  createdAt: string;
+}
+
+// Legacy backward compatibility (kept for smooth transition)
 export interface Post {
-  _id: string; // Mongoose ID
+  _id?: string;
+  id?: string;
   title: string;
   content: string;
   category: string;
-  postType: "achievement" | "participation" | "event" | "project";
+  postType?: "achievement" | "participation" | "event" | "project";
   visibility: "public" | "private";
   attachments?: string[];
   tags?: string[];
-  student: string;
-  school: string;
-  organization: string;
-  likes: string[];
-  comments: Comment[]; // Updated to use the new Comment interface
-  /* 
-     Old structure for reference/compatibility if needed temporarily:
-     {
-         student: string; 
-         comment: string;
-         createdAt: string;
-     }[]
-  */
+  student?: string;
+  authorId?: string;
+  school?: string;
+  organization?: string;
+  likes?: number | { count?: number; userIds?: string[] };
+  likeCount?: number;
+  comments?: number;
+  commentCount?: number;
   isDeleted?: boolean;
   createdAt: string;
-  updatedAt: string;
-  isLiked?: boolean; // UI state
+  updatedAt?: string;
+  isLiked?: boolean;
 
-  // Legacy/UI mappings
-  time?: string; // Derived from createdAt
-  author?: { // Derived from student/school/org info
+  // Legacy mappings
+  time?: string;
+  author?: {
     name: string;
     role: string;
     image?: string;
   };
 }
 
-
 export interface Achievement {
-  _id: string; // Mongoose ID
-  user: string; // ObjectId as string (User)
+  _id: string;
+  user: string;
   title: string;
   description: string;
   category: string;
   level: "local" | "national" | "international";
-  dateAchieved: string; // Date as string
+  dateAchieved: string;
   organization: string;
   proofUrl: string;
   visibility: "public" | "private";
@@ -248,17 +282,15 @@ export interface Achievement {
   updatedAt: string;
 }
 
+// Normalized comment entity
 export interface Comment {
-  _id: string;
+  id: string;
   postId: string;
   userId: string;
-  userType: "STUDENT" | "TEACHER" | "ADMIN";
-  content: string;
-  isDeleted: boolean;
+  comment: string;
   createdAt: string;
-  updatedAt: string;
-
-  // UI convenience (populated or derived)
+  
+  // Optional enrichment
   user?: {
     name: string;
     image?: string;

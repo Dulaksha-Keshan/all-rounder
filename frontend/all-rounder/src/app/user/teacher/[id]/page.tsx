@@ -10,6 +10,7 @@ import { useHomeStore } from '@/context/useHomeStore';
 import { useUserStore } from '@/context/useUserStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { PostEntity } from '@/app/_type/type';
 import ChangePassword from '../../_components/ChangePassword';
 import MyAccount from '../../_components/MyAccount';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
@@ -93,6 +94,23 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   // Draft Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
+
+  // --- HELPERS ---
+  const normalizeDraftToPostEntity = (draft: any): PostEntity => ({
+    id: draft._id || draft.id || '',
+    title: draft.title || '',
+    content: draft.content || '',
+    category: draft.category || draft.postType || '',
+    visibility: draft.visibility || 'public',
+    attachments: draft.attachments || [],
+    tags: draft.tags || [],
+    likeCount: draft.likeCount ?? draft.likes?.count ?? 0,
+    commentCount: draft.commentCount ?? draft.comments ?? 0,
+    createdAt: draft.createdAt || new Date().toISOString(),
+    updatedAt: draft.updatedAt,
+    authorId: draft.authorId || draft.author?.id,
+    authorType: draft.authorType,
+  });
 
   // Verification Action Modal State
   const [verificationModal, setVerificationModal] = useState<{
@@ -571,8 +589,8 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {drafts.map((draft) => (
                   <PostCard
-                    key={draft._id}
-                    post={draft}
+                    key={draft._id || draft.id}
+                    post={normalizeDraftToPostEntity(draft)}
                     onLike={() => { }}
                     onComment={() => { }}
                     onDelete={(id) => {

@@ -7,8 +7,9 @@ import QuickActions from "./_components/QuickActions";
 import SearchBar from "@/components/SearchBar";
 import UpcomingEvents from "./_components/UpcomingEvents";
 import Feed from "./_components/Feed";
-import { useHomeStore } from "@/context/useHomeStore";
+import { usePostStore } from "@/context/usePostStore";
 import { useUserStore } from "@/context/useUserStore";
+import { useHomeStore } from "@/context/useHomeStore";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { useStudentStore } from "@/context/useStudentStore";
@@ -18,7 +19,15 @@ import Image from "next/image";
 import gsap from "gsap";
 
 function HomeClientContent() {
-    const { posts, stats, createPost, deletePost, editPost, likePost, commentPost } = useHomeStore();
+    const { myPostIds, postsById, isFetchingPosts, fetchMyPosts } = usePostStore((state) => ({
+        myPostIds: state.myPostIds,
+        postsById: state.postsById,
+        isFetchingPosts: state.isFetchingPosts,
+        fetchMyPosts: state.fetchMyPosts,
+    }));
+    const { stats } = useHomeStore((state) => ({
+        stats: state.stats,
+    }));
     const { followRequests, acceptFollowRequest, declineFollowRequest, currentUser } = useUserStore();
     const { students } = useStudentStore();
     const { teachers } = useTeacherStore();
@@ -26,37 +35,31 @@ function HomeClientContent() {
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
+    // Fetch user's posts on mount
+    useEffect(() => {
+        fetchMyPosts();
+    }, [fetchMyPosts]);
+
+    // Get posts from store and convert to array
+    const allPosts = myPostIds
+        .map((id) => postsById[id])
+        .filter(Boolean);
+
     // Filter posts based on search query
-    const filteredPosts = posts.filter(post =>
-        post.content.toLowerCase().includes(searchQuery) ||
-        post.author?.name.toLowerCase().includes(searchQuery)
+    const filteredPosts = allPosts.filter(
+        (post) =>
+            post.content.toLowerCase().includes(searchQuery) ||
+            post.title.toLowerCase().includes(searchQuery)
     );
 
     // Filter people based on search query
-    const filteredStudents = searchQuery ? students.filter(student => student.name.toLowerCase().includes(searchQuery)) : [];
-    const filteredTeachers = searchQuery ? teachers.filter(teacher => teacher.name.toLowerCase().includes(searchQuery)) : [];
+    const filteredStudents = searchQuery
+        ? students.filter((student) => student.name.toLowerCase().includes(searchQuery))
+        : [];
+    const filteredTeachers = searchQuery
+        ? teachers.filter((teacher) => teacher.name.toLowerCase().includes(searchQuery))
+        : [];
     const hasPeopleResults = filteredStudents.length > 0 || filteredTeachers.length > 0;
-
-    // Handlers now directly call store actions
-    const handleCreatePost = (content: string, media?: { type: 'image' | 'video' | 'doc'; url: string; name: string }[]) => {
-        createPost(content, media);
-    };
-
-    const handleDeletePost = async (id: string) => {
-        await deletePost(id);
-    };
-
-    const handleEdit = (id: string, newContent: string) => {
-        editPost(id, newContent);
-    };
-
-    const handleLike = (id: string) => {
-        likePost(id);
-    };
-
-    const handleComment = (id: string, text: string) => {
-        commentPost(id, text);
-    };
 
     useEffect(() => {
         if (!headerRef.current) return;
@@ -133,12 +136,7 @@ function HomeClientContent() {
                 <div>
                     <Feed
                         posts={filteredPosts}
-                        onCreatePost={handleCreatePost}
-                        onLike={handleLike}
-                        onComment={handleComment}
-                        onDelete={handleDeletePost}
-                        onEdit={handleEdit}
-                        currentUserId={currentUserId}
+                        isLoading={isFetchingPosts}
                     />
                 </div>
 

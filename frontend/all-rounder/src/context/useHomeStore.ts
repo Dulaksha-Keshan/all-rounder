@@ -147,8 +147,9 @@ export const useHomeStore = create<HomeState>()(
                                 ('uid' in currentUser ? currentUser.uid :
                                     'organization_id' in currentUser ? currentUser.organization_id : "1")
                                 : "1";
-                            const isLiked = p.likes?.includes(currentUserId) || false;
-                            let newLikes = [...(p.likes || [])];
+                            const likeArray = Array.isArray(p.likes) ? p.likes : (typeof p.likes === 'object' && p.likes?.userIds ? p.likes.userIds : []);
+                            const isLiked = likeArray.includes(currentUserId);
+                            let newLikes = [...(likeArray || [])];
 
                             if (isLiked) {
                                 newLikes = newLikes.filter(uid => uid !== currentUserId);
@@ -156,7 +157,7 @@ export const useHomeStore = create<HomeState>()(
                                 newLikes.push(currentUserId);
                             }
 
-                            return { ...p, likes: newLikes, isLiked: !isLiked };
+                            return { ...p, likes: newLikes, isLiked: !isLiked } as Post;
                         }
                         return p;
                     })
@@ -178,8 +179,9 @@ export const useHomeStore = create<HomeState>()(
                     set((state) => ({
                         posts: state.posts.map(p => {
                             if (p._id === id) {
-                                // Logic assumes p.comments exists and is array. 
-                                return { ...p, comments: [...(p.comments || []), newComment] };
+                                // Logic assumes p.comments exists and is array or undefined
+                                const commentArray = Array.isArray(p.comments) ? p.comments : [];
+                                return { ...p, comments: [...commentArray, newComment] as any } as Post;
                             }
                             return p;
                         })

@@ -11,6 +11,7 @@ import { useSchoolStore } from '@/context/useSchoolStore';
 // import { useEventStore } from '@/context/useEventStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { PostEntity } from '@/app/_type/type';
 
 interface StudentProfileProps {
   params: Promise<{ id: string; }>;
@@ -44,6 +45,23 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const [editData, setEditData] = useState<any>({});
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
+
+  // --- HELPERS ---
+  const normalizeDraftToPostEntity = (draft: any): PostEntity => ({
+    id: draft._id || draft.id || '',
+    title: draft.title || '',
+    content: draft.content || '',
+    category: draft.category || draft.postType || '',
+    visibility: draft.visibility || 'public',
+    attachments: draft.attachments || [],
+    tags: draft.tags || [],
+    likeCount: draft.likeCount ?? draft.likes?.count ?? 0,
+    commentCount: draft.commentCount ?? draft.comments ?? 0,
+    createdAt: draft.createdAt || new Date().toISOString(),
+    updatedAt: draft.updatedAt,
+    authorId: draft.authorId || draft.author?.id,
+    authorType: draft.authorType,
+  });
 
   // Keep edit form in sync with the viewed student (crucial for after saving)
   useEffect(() => {
@@ -422,8 +440,8 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {drafts.map((draft) => (
                   <PostCard
-                    key={draft._id}
-                    post={draft}
+                    key={draft._id || draft.id}
+                    post={normalizeDraftToPostEntity(draft)}
                     onLike={() => { }}
                     onComment={() => { }}
                     onDelete={(id) => {
