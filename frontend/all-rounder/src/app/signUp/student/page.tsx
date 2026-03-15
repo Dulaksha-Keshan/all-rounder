@@ -10,6 +10,7 @@ import { useUserStore } from "@/context/useUserStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import SkillPickerModal from "@/components/SkillPickerModal";
 
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -53,6 +54,7 @@ export default function StudentSignup() {
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSkillPickerModal, setShowSkillPickerModal] = useState(false);
 
   const [schoolSearchTerm, setSchoolSearchTerm] = useState("");
   const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
@@ -238,8 +240,7 @@ export default function StudentSignup() {
         }
 
         if (!useUserStore.getState().error) {
-          alert("Student account created! Awaiting teacher verification.");
-          router.push("/login"); 
+          setShowSkillPickerModal(true);
         }
       } catch (err) {
         console.error("Registration failed", err);
@@ -656,6 +657,21 @@ export default function StudentSignup() {
           </div>
         </div>
       </div>
+
+      {/* Skill Picker Modal - shown after successful signup */}
+      <SkillPickerModal
+        isOpen={showSkillPickerModal}
+        onClose={(skipped) => {
+          setShowSkillPickerModal(false);
+          alert("Student account created! Awaiting teacher verification.");
+          router.push("/login");
+        }}
+        onComplete={() => {
+          setShowSkillPickerModal(false);
+          alert("Student account created! Awaiting teacher verification.");
+          router.push("/login");
+        }}
+      />
     </div>
   );
 }

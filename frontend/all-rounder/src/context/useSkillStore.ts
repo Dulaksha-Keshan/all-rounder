@@ -2,128 +2,178 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Skills } from '@/app/_data/skills';
 import api from '@/lib/axios';
-import { Skill } from '@/app/_type/type';
 
-interface SkillState {
-    skills: Skill[]; // All available skills in the system
-    userSkills: Skill[]; // Current user's skills
-    searchQuery: string;
-    isLoading: boolean;
-    error: string | null;
-
-    // Actions
-    fetchSkills: () => Promise<void>;
-    fetchUserSkills: () => Promise<void>;
-    addSkillToUser: (skill: Skill) => Promise<void>;
-    removeSkillFromUser: (skillId: string) => Promise<void>;
-    createNewSkill: (skill: Omit<Skill, 'id' | 'endorsements'>) => Promise<void>; // Admin/System action
-    endorseSkill: (skillId: string) => Promise<void>;
-    setSearchQuery: (query: string) => void;
+// ==================== TYPES ====================
+export interface Skill {
+  skill_id: number;
+  skill_name: string;
+  category: string | null;
 }
 
+interface SkillState {
+  // Data
+  allSkills: Skill[];
+  userSkills: Skill[];
+  
+  // Loading states
+  isLoadingAllSkills: boolean;
+  isLoadingUserSkills: boolean;
+  isAddingSkill: boolean;
+  isRemovingSkill: boolean;
+  
+  // Error states
+  errorAllSkills: string | null;
+  errorUserSkills: string | null;
+  mutationError: string | null;
+  
+  // UI state
+  selectedSkillId: number | null;
+
+  // ==================== SELECTORS ====================
+  userSkillIds: () => number[];
+  availableSkillsForAdd: () => Skill[];
+  hasSkill: (skillId: number) => boolean;
+
+  // ==================== ACTIONS ====================
+  fetchAllSkills: () => Promise<void>;
+  fetchUserSkills: () => Promise<void>;
+  addSkillToUser: (skillId: number) => Promise<void>;
+  removeSkillFromUser: (skillId: number) => Promise<void>;
+  setSelectedSkill: (skillId: number | null) => void;
+  clearSkillErrors: () => void;
+}
+
+// ==================== STORE ====================
 export const useSkillStore = create<SkillState>()(
-    persist(
-        (set) => ({
-            skills: Skills, // Import from data file instead of hardcoding
-            userSkills: [],
-            searchQuery: "",
-            isLoading: false,
-            error: null,
+  persist(
+    (set, get) => ({
+      // ==================== INITIAL STATE ====================
+      allSkills: [],
+      userSkills: [],
+      isLoadingAllSkills: false,
+      isLoadingUserSkills: false,
+      isAddingSkill: false,
+      isRemovingSkill: false,
+      errorAllSkills: null,
+      errorUserSkills: null,
+      mutationError: null,
+      selectedSkillId: null,
 
-            fetchSkills: async () => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await api.get('/skills');
-                    set({ skills: response.data });
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch skills' });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
+      // ==================== SELECTORS ====================
+      userSkillIds: () => {
+        return get().userSkills.map(s => s.skill_id);
+      },
 
-            fetchUserSkills: async () => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await api.get('/user/skills');
-                    set({ userSkills: response.data });
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch user skills' });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
+      availableSkillsForAdd: () => {
+        const userSkillIds = get().userSkillIds();
+        return get().allSkills.filter(skill => !userSkillIds.includes(skill.skill_id));
+      },
 
-            addSkillToUser: async (skill) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await api.post('/user/skills', { skillId: skill.id });
+      hasSkill: (skillId: number) => {
+        return get().userSkills.some(s => s.skill_id === skillId);
+      },
 
-                    set((state) => {
-                        if (!state.userSkills.find(s => s.id === skill.id)) {
-                            return { userSkills: [...state.userSkills, skill] };
-                        }
-                        return state;
-                    });
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to add skill' });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
-
-            removeSkillFromUser: async (skillId) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await api.delete(`/user/skills/${skillId}`);
-
-                    set((state) => ({
-                        userSkills: state.userSkills.filter(s => s.id !== skillId)
-                    }));
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to remove skill' });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
-
-            createNewSkill: async (skillData) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await api.post('/skills', skillData);
-                    const newSkill = response.data;
-
-                    set((state) => ({
-                        skills: [...state.skills, newSkill]
-                    }));
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to create skill' });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
-
-            endorseSkill: async (skillId) => {
-                // Optimistic
-                set((state) => ({
-                    userSkills: state.userSkills.map(s =>
-                        s.id === skillId ? { ...s, endorsements: s.endorsements + 1 } : s
-                    )
-                }));
-
-                try {
-                    await api.post(`/skills/${skillId}/endorse`);
-                } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to endorse skill' });
-                }
-            },
-
-            setSearchQuery: (query) => set({ searchQuery: query }),
-        }),
-        {
-            name: 'skill-storage',
+      // ==================== ACTIONS ====================
+      fetchAllSkills: async () => {
+        set({ isLoadingAllSkills: true, errorAllSkills: null });
+        try {
+          const response = await api.get('/skills');
+          set({
+            allSkills: response.data.skills || [],
+            isLoadingAllSkills: false,
+          });
+        } catch (error: any) {
+          const message = error.response?.data?.message || error.message || 'Failed to fetch skills';
+          set({ errorAllSkills: message, isLoadingAllSkills: false });
         }
-    )
+      },
+
+      fetchUserSkills: async () => {
+        set({ isLoadingUserSkills: true, errorUserSkills: null });
+        try {
+          const response = await api.get('/skills/users');
+          set({
+            userSkills: response.data.skills || [],
+            isLoadingUserSkills: false,
+          });
+        } catch (error: any) {
+          const message = error.response?.data?.message || error.message || 'Failed to fetch your skills';
+          set({ errorUserSkills: message, isLoadingUserSkills: false });
+        }
+      },
+
+      addSkillToUser: async (skillId: number) => {
+        set({ isAddingSkill: true, mutationError: null });
+        
+        // Optimistic update
+        const skillToAdd = get().allSkills.find(s => s.skill_id === skillId);
+        if (skillToAdd) {
+          set((state) => ({
+            userSkills: [...state.userSkills, skillToAdd],
+          }));
+        }
+
+        try {
+          await api.post('/skills/users', { skillId });
+          set({ isAddingSkill: false });
+        } catch (error: any) {
+          // Revert optimistic update on error
+          const message = error.response?.data?.message || error.message || 'Failed to add skill';
+          set((state) => ({
+            userSkills: state.userSkills.filter(s => s.skill_id !== skillId),
+            mutationError: message,
+            isAddingSkill: false,
+          }));
+        }
+      },
+
+      removeSkillFromUser: async (skillId: number) => {
+        set({ isRemovingSkill: true, mutationError: null });
+        
+        // Optimistic update
+        set((state) => ({
+          userSkills: state.userSkills.filter(s => s.skill_id !== skillId),
+        }));
+
+        try {
+          await api.delete('/skills/users', { data: { skillId } });
+          set({ isRemovingSkill: false });
+        } catch (error: any) {
+          // Revert optimistic update on error
+          const skillToReinstate = get().allSkills.find(s => s.skill_id === skillId);
+          const message = error.response?.data?.message || error.message || 'Failed to remove skill';
+          
+          if (skillToReinstate) {
+            set((state) => ({
+              userSkills: [...state.userSkills, skillToReinstate],
+              mutationError: message,
+              isRemovingSkill: false,
+            }));
+          } else {
+            set({ mutationError: message, isRemovingSkill: false });
+          }
+        }
+      },
+
+      setSelectedSkill: (skillId) => {
+        set({ selectedSkillId: skillId });
+      },
+
+      clearSkillErrors: () => {
+        set({
+          errorAllSkills: null,
+          errorUserSkills: null,
+          mutationError: null,
+        });
+      },
+    }),
+    {
+      name: 'skill-storage',
+      partialize: (state) => ({
+        userSkills: state.userSkills,
+        allSkills: state.allSkills,
+      }),
+    }
+  )
 );
