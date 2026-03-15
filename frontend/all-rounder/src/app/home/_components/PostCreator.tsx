@@ -6,6 +6,7 @@ import { useState, useRef } from "react";
 import { usePostStore } from "@/context/usePostStore";
 import { useUserStore } from "@/context/useUserStore";
 import RichTextEditor from "./RichTextEditor";
+import TagComponent from "@/components/TagComponent";
 
 interface PostCreatorProps {
     userImage?: string;
@@ -126,6 +127,16 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Skills Tags */}
+                    <div className="mb-3">
+                        <TagComponent
+                            selectedTags={tags}
+                            onTagsChange={(tagIds) => setCreateDraftField("tags", tagIds)}
+                            maxTags={5}
+                            placeholder="Add skills to your post..."
+                        />
                     </div>
 
                     {/* File Previews */}

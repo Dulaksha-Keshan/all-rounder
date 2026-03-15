@@ -68,7 +68,7 @@ interface CreateDraftState {
   content: string;
   category: "achievement" | "participation" | "event" | "project" | "";
   visibility: "public" | "private";
-  tags: string[];
+  tags: number[];
   files: File[];
   uploadPreviewUrls: string[];
   validationErrors: Record<string, string>;

@@ -204,7 +204,7 @@ export interface PostEntity {
   category: "achievement" | "participation" | "event" | "project";
   visibility: "public" | "private";
   attachments: string[]; // R2 URLs
-  tags: string[];
+  tags: number[]; // Skill IDs
   likeCount: number;
   commentCount: number;
   createdAt: string;
