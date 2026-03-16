@@ -9,6 +9,8 @@ import { PostEntity, CommentEntity } from '@/app/_type/type';
 import { usePostStore } from '@/context/usePostStore';
 import { useUserStore } from '@/context/useUserStore';
 
+const EMPTY_COMMENTS: CommentEntity[] = [];
+
 interface PostCardProps {
   post: PostEntity;
   onLike: (postId: string) => void;
@@ -28,12 +30,8 @@ export default function PostCard({
 }: PostCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const currentUser = useUserStore((state) => state.currentUser);
-  const { getCommentsByPostId, isFetchingCommentsByPostId, pendingCommentDeleteById } =
-    usePostStore((state) => ({
-      getCommentsByPostId: state.getCommentsByPostId,
-      isFetchingCommentsByPostId: state.isFetchingCommentsByPostId,
-      pendingCommentDeleteById: state.pendingCommentDeleteById,
-    }));
+  const comments = usePostStore((state) => state.commentsByPostId[post.id] ?? EMPTY_COMMENTS);
+  const pendingCommentDeleteById = usePostStore((state) => state.pendingCommentDeleteById);
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -43,7 +41,6 @@ export default function PostCard({
   const [isEditing, setIsEditing] = useState(false);
   const [edits, setEdits] = useState({ title: "", content: "" });
 
-  const comments = getCommentsByPostId(post.id);
   const isDeletingPost = post.id;
 
   // Animate card on mount
@@ -208,6 +205,7 @@ export default function PostCard({
                   src={url}
                   alt="Post attachment"
                   fill
+                  unoptimized
                   className="object-cover"
                   sizes="(max-width: 640px) 100vw, 640px"
                   priority={idx === 0}

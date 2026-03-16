@@ -9,13 +9,16 @@ interface PostTagsDisplayProps {
 }
 
 export default function PostTagsDisplay({ tagIds, maxTags = 3 }: PostTagsDisplayProps) {
-  const { allSkills, fetchAllSkills, isLoadingAllSkills } = useSkillStore();
+  const allSkills = useSkillStore((state) => state.allSkills);
+  const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
+  const isLoadingAllSkills = useSkillStore((state) => state.isLoadingAllSkills);
+  const hasFetchedAllSkills = useSkillStore((state) => state.hasFetchedAllSkills);
 
   useEffect(() => {
-    if (allSkills.length === 0 && !isLoadingAllSkills) {
+    if (!hasFetchedAllSkills && allSkills.length === 0 && !isLoadingAllSkills) {
       fetchAllSkills();
     }
-  }, [allSkills.length, isLoadingAllSkills, fetchAllSkills]);
+  }, [hasFetchedAllSkills, allSkills.length, isLoadingAllSkills, fetchAllSkills]);
 
   if (!tagIds || tagIds.length === 0) {
     return null;

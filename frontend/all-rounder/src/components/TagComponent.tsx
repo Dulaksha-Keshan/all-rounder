@@ -19,21 +19,18 @@ export default function TagComponent({
   placeholder = "Add skills to your post...",
   disabled = false,
 }: TagComponentProps) {
-  const { allSkills, fetchAllSkills, isLoadingAllSkills } = useSkillStore((state) => ({
-    allSkills: state.allSkills,
-    fetchAllSkills: state.fetchAllSkills,
-    isLoadingAllSkills: state.isLoadingAllSkills,
-  }));
+  const allSkills = useSkillStore((state) => state.allSkills);
+  const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
+  const isLoadingAllSkills = useSkillStore((state) => state.isLoadingAllSkills);
+  const hasFetchedAllSkills = useSkillStore((state) => state.hasFetchedAllSkills);
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch all skills on mount
+  // Fire once on mount; the store itself enforces idempotent one-time fetching.
   useEffect(() => {
-    if (allSkills.length === 0 && !isLoadingAllSkills) {
-      fetchAllSkills();
-    }
-  }, [allSkills.length, isLoadingAllSkills, fetchAllSkills]);
+    useSkillStore.getState().fetchAllSkills();
+  }, []);
 
   // Filter skills based on search and exclude already selected
   const filteredSkills = allSkills.filter(

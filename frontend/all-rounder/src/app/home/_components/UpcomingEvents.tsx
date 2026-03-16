@@ -9,7 +9,7 @@ import { Event } from "@/app/_type/type";
 
 export default function UpcomingEvents() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { events } = useEventStore();
+    const events = useEventStore((state) => state.events);
     const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
     useEffect(() => {

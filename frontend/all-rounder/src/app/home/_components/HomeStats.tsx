@@ -17,7 +17,8 @@ interface HomeStatsProps {
 export default function HomeStats({ stats }: HomeStatsProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const { followers, following } = useUserStore();
+    const followers = useUserStore((state) => state.followers);
+    const following = useUserStore((state) => state.following);
 
     const statItems = [
         {

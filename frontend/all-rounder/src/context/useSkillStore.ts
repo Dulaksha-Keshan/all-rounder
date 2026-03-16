@@ -15,6 +15,7 @@ interface SkillState {
   // Data
   allSkills: Skill[];
   userSkills: Skill[];
+  hasFetchedAllSkills: boolean;
   
   // Loading states
   isLoadingAllSkills: boolean;
@@ -51,6 +52,7 @@ export const useSkillStore = create<SkillState>()(
       // ==================== INITIAL STATE ====================
       allSkills: [],
       userSkills: [],
+      hasFetchedAllSkills: false,
       isLoadingAllSkills: false,
       isLoadingUserSkills: false,
       isAddingSkill: false,
@@ -76,16 +78,24 @@ export const useSkillStore = create<SkillState>()(
 
       // ==================== ACTIONS ====================
       fetchAllSkills: async () => {
+        const { hasFetchedAllSkills, isLoadingAllSkills } = get();
+
+        // Enforce one-time fetch to avoid repeated request loops from multiple mounted components.
+        if (hasFetchedAllSkills || isLoadingAllSkills) {
+          return;
+        }
+
         set({ isLoadingAllSkills: true, errorAllSkills: null });
         try {
           const response = await api.get('/skills');
           set({
             allSkills: response.data.skills || [],
+            hasFetchedAllSkills: true,
             isLoadingAllSkills: false,
           });
         } catch (error: any) {
           const message = error.response?.data?.message || error.message || 'Failed to fetch skills';
-          set({ errorAllSkills: message, isLoadingAllSkills: false });
+          set({ errorAllSkills: message, isLoadingAllSkills: false, hasFetchedAllSkills: true });
         }
       },
 
@@ -173,6 +183,7 @@ export const useSkillStore = create<SkillState>()(
       partialize: (state) => ({
         userSkills: state.userSkills,
         allSkills: state.allSkills,
+        hasFetchedAllSkills: state.hasFetchedAllSkills,
       }),
     }
   )

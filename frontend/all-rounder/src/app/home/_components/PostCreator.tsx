@@ -15,23 +15,13 @@ interface PostCreatorProps {
 export default function PostCreator({ userImage }: PostCreatorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const currentUser = useUserStore((state) => state.currentUser);
-    const {
-        createDraft,
-        setCreateDraftField,
-        setCreateDraftFiles,
-        createPost,
-        resetCreateDraft,
-        isCreatingPost,
-        error: postError,
-    } = usePostStore((state) => ({
-        createDraft: state.createDraft,
-        setCreateDraftField: state.setCreateDraftField,
-        setCreateDraftFiles: state.setCreateDraftFiles,
-        createPost: state.createPost,
-        resetCreateDraft: state.resetCreateDraft,
-        isCreatingPost: state.isCreatingPost,
-        error: state.error,
-    }));
+    const createDraft = usePostStore((state) => state.createDraft);
+    const setCreateDraftField = usePostStore((state) => state.setCreateDraftField);
+    const setCreateDraftFiles = usePostStore((state) => state.setCreateDraftFiles);
+    const createPost = usePostStore((state) => state.createPost);
+    const resetCreateDraft = usePostStore((state) => state.resetCreateDraft);
+    const isCreatingPost = usePostStore((state) => state.isCreatingPost);
+    const postError = usePostStore((state) => state.error);
 
     const { title, content, category, visibility, tags, files } = createDraft;
     const [categoryOpen, setCategoryOpen] = useState(false);

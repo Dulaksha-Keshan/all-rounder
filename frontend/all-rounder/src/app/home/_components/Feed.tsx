@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import PostCreator from "./PostCreator";
 import PostCard from "./PostCard";
 import { PostEntity } from "@/app/_type/type";
@@ -14,28 +14,31 @@ interface FeedProps {
 
 export default function Feed({ posts, isLoading = false }: FeedProps) {
   const currentUser = useUserStore((state) => state.currentUser);
-  const {
-    toggleLike,
-    addComment,
-    deletePost,
-    updatePost,
-    fetchComments,
-  } = usePostStore((state) => ({
-    toggleLike: state.toggleLike,
-    addComment: state.addComment,
-    deletePost: state.deletePost,
-    updatePost: state.updatePost,
-    fetchComments: state.fetchComments,
-  }));
+  const toggleLike = usePostStore((state) => state.toggleLike);
+  const addComment = usePostStore((state) => state.addComment);
+  const deletePost = usePostStore((state) => state.deletePost);
+  const updatePost = usePostStore((state) => state.updatePost);
+  const fetchComments = usePostStore((state) => state.fetchComments);
+  const commentsByPostId = usePostStore((state) => state.commentsByPostId);
+  const isFetchingCommentsByPostId = usePostStore((state) => state.isFetchingCommentsByPostId);
+  const attemptedCommentFetchRef = useRef<Set<string>>(new Set());
 
-  // Load comments when posts are displayed
+  // Load comments once per post to avoid effect-trigger loops from store updates.
   useEffect(() => {
     posts.forEach((post) => {
-      if (post.commentCount > 0) {
-        fetchComments(post.id, 1, 5);
+      if (post.commentCount <= 0) return;
+
+      const key = post.id;
+      const hasLoadedComments = Object.prototype.hasOwnProperty.call(commentsByPostId, key);
+      const isFetchingComments = isFetchingCommentsByPostId.has(key);
+      const hasAttemptedFetch = attemptedCommentFetchRef.current.has(key);
+
+      if (!hasLoadedComments && !isFetchingComments && !hasAttemptedFetch) {
+        attemptedCommentFetchRef.current.add(key);
+        fetchComments(key, 1, 5);
       }
     });
-  }, [posts, fetchComments]);
+  }, [posts, fetchComments, commentsByPostId, isFetchingCommentsByPostId]);
 
   const handleLike = (postId: string) => {
     toggleLike(postId);

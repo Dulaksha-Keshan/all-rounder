@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 
 import HomeStats from "./_components/HomeStats";
 import QuickActions from "./_components/QuickActions";
@@ -11,7 +11,6 @@ import { usePostStore } from "@/context/usePostStore";
 import { useUserStore } from "@/context/useUserStore";
 import { useHomeStore } from "@/context/useHomeStore";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
 import { useStudentStore } from "@/context/useStudentStore";
 import { useTeacherStore } from "@/context/useTeacherStore";
 import Link from "next/link";
@@ -19,37 +18,48 @@ import Image from "next/image";
 import gsap from "gsap";
 
 function HomeClientContent() {
-    const { myPostIds, postsById, isFetchingPosts, fetchMyPosts } = usePostStore((state) => ({
-        myPostIds: state.myPostIds,
-        postsById: state.postsById,
-        isFetchingPosts: state.isFetchingPosts,
-        fetchMyPosts: state.fetchMyPosts,
-    }));
-    const { stats } = useHomeStore((state) => ({
-        stats: state.stats,
-    }));
-    const { followRequests, acceptFollowRequest, declineFollowRequest, currentUser } = useUserStore();
-    const { students } = useStudentStore();
-    const { teachers } = useTeacherStore();
+    const feedItems = usePostStore((state) => state.feedItems);
+    const postsById = usePostStore((state) => state.postsById);
+    const isFetchingFeed = usePostStore((state) => state.isFetchingFeed);
+    const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
+    const fetchFeed = usePostStore((state) => state.fetchFeed);
+    const fetchMyPosts = usePostStore((state) => state.fetchMyPosts);
+    const stats = useHomeStore((state) => state.stats);
+    const followRequests = useUserStore((state) => state.followRequests);
+    const acceptFollowRequest = useUserStore((state) => state.acceptFollowRequest);
+    const declineFollowRequest = useUserStore((state) => state.declineFollowRequest);
+    const currentUser = useUserStore((state) => state.currentUser);
+    const students = useStudentStore((state) => state.students);
+    const teachers = useTeacherStore((state) => state.teachers);
     const headerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
-    // Fetch user's posts on mount
+    // Home should load feed; keep my-posts fetch for profile overview data.
     useEffect(() => {
+        fetchFeed();
         fetchMyPosts();
-    }, [fetchMyPosts]);
+    }, [fetchFeed, fetchMyPosts]);
 
-    // Get posts from store and convert to array
-    const allPosts = myPostIds
-        .map((id) => postsById[id])
-        .filter(Boolean);
+    // Convert feed items to post entities only.
+    const allPosts = useMemo(
+        () =>
+            feedItems
+                .filter((item) => item.feedType === "post" && !!item.data)
+                .map((item) => postsById[item.id])
+                .filter(Boolean),
+        [feedItems, postsById]
+    );
 
     // Filter posts based on search query
-    const filteredPosts = allPosts.filter(
-        (post) =>
-            post.content.toLowerCase().includes(searchQuery) ||
-            post.title.toLowerCase().includes(searchQuery)
+    const filteredPosts = useMemo(
+        () =>
+            allPosts.filter(
+                (post) =>
+                    post.content.toLowerCase().includes(searchQuery) ||
+                    post.title.toLowerCase().includes(searchQuery)
+            ),
+        [allPosts, searchQuery]
     );
 
     // Filter people based on search query
@@ -136,7 +146,7 @@ function HomeClientContent() {
                 <div>
                     <Feed
                         posts={filteredPosts}
-                        isLoading={isFetchingPosts}
+                        isLoading={isFetchingFeed || isFetchingPosts}
                     />
                 </div>
 
