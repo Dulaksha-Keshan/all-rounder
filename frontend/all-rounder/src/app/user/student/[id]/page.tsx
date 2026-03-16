@@ -60,6 +60,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     createdAt: draft.createdAt || new Date().toISOString(),
     updatedAt: draft.updatedAt,
     authorId: draft.authorId || draft.author?.id,
+    authorName: draft.authorName || draft.author?.name,
     authorType: draft.authorType,
   });
 

@@ -99,7 +99,7 @@ export default function PostCard({
             <User className="text-gray-400" size={24} />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-bold text-gray-900 truncate">Author ID: {post.authorId}</h3>
+            <h3 className="font-bold text-gray-900 truncate">{post.authorName || post.authorId || "Unknown Author"}</h3>
             <p className="text-xs text-gray-600 truncate">{post.category}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {new Date(post.createdAt).toLocaleDateString()}

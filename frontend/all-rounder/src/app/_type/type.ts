@@ -212,6 +212,7 @@ export interface PostEntity {
   
   // Optional fields from some endpoints
   authorId?: string;
+  authorName?: string;
   authorType?: "STUDENT" | "TEACHER" | "SCHOOL_ADMIN" | "ORG_ADMIN" | "SUPER_ADMIN";
   likesUserIds?: string[]; // Only when explicitly provided
   isDeleted?: boolean;

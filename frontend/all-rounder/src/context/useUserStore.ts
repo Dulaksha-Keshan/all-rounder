@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useSchoolStore } from "@/context/useSchoolStore";
+import { usePostStore } from "@/context/usePostStore";
 
 // Updated to match the exact roles your backend Express controller expects
 type UserRole = 'STUDENT' | 'TEACHER' | 'SCHOOL_ADMIN' | 'ORG_ADMIN' | 'SUPER_ADMIN';
@@ -286,6 +287,9 @@ export const useUserStore = create<UserState>()(
 
                 // Clear the school store
                 useSchoolStore.getState().setActiveSchool(null);
+
+                // Clear the post/feed store so the next user starts with a clean feed
+                usePostStore.getState().clearAll();
 
                 // Bulletproof fallback: manually clear the persistence cache
                 // just in case Zustand's middleware acts up during the render cycle

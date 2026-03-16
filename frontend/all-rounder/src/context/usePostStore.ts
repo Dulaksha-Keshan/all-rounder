@@ -110,6 +110,7 @@ interface PostStoreState extends PostsSliceState, CommentsSliceState, FeedSliceS
   getPostById: (postId: string) => PostEntity | undefined;
   getCommentsByPostId: (postId: string) => CommentEntity[];
   setError: (error: string | null) => void;
+  clearAll: () => void;
 }
 
 // ==================== NORMALIZER ====================
@@ -118,19 +119,29 @@ interface PostStoreState extends PostsSliceState, CommentsSliceState, FeedSliceS
  * Handles: _id vs id, likes vs likeCount, likes.count, etc.
  */
 const normalizePost = (post: any): PostEntity => {
+  const normalizedAttachments = Array.isArray(post.attachments)
+    ? post.attachments
+        .map((attachment: any) => {
+          if (typeof attachment === "string") return attachment;
+          return attachment?.url || attachment?.signedUrl || attachment?.path || "";
+        })
+        .filter(Boolean)
+    : [];
+
   return {
     id: post.id || post._id,
     title: post.title || "",
     content: post.content || "",
     category: post.category || post.postType || "",
     visibility: post.visibility || "public",
-    attachments: post.attachments || [],
+    attachments: normalizedAttachments,
     tags: post.tags || [],
     likeCount: post.likeCount ?? post.likes?.count ?? post.likes ?? 0,
     commentCount: post.commentCount ?? post.comments ?? 0,
     createdAt: post.createdAt || new Date().toISOString(),
     updatedAt: post.updatedAt,
     authorId: post.authorId || post.author?.id,
+    authorName: post.authorName || post.author?.name || post.userName || post.user?.name,
     authorType: post.authorType,
     likesUserIds: post.likes?.userIds,
     isDeleted: post.isDeleted,
@@ -668,6 +679,23 @@ export const usePostStore = create<PostStoreState>()(
         set((state) => ({
           createDraft: { ...state.createDraft, files, uploadPreviewUrls: previews },
         }));
+      },
+
+      clearAll: () => {
+        set({
+          postsById: {},
+          allPostIds: [],
+          myPostIds: [],
+          userPostIdsByKey: {},
+          feedItems: [],
+          commentsByPostId: {},
+          commentPaginationByPostId: {},
+          feedPagination: { page: 1, limit: 10 },
+          error: null,
+        });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('post-storage');
+        }
       },
 
       resetCreateDraft: () => {
