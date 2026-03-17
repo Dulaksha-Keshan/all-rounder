@@ -3,6 +3,231 @@ import Post from "../mongoose/postModel.js";
 import mongoose from "mongoose";
 import { uploadToR2, deleteFromR2 } from '../utils/r2Upload.js';
 import { RecommendationEngine } from "../services/RecommendationEngine.js";
+import axios from "axios";
+
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://user-service:3001";
+const AUTHOR_NAME_CACHE_TTL_MS = Number(process.env.AUTHOR_NAME_CACHE_TTL_MS || 5 * 60 * 1000);
+const AUTHOR_NAME_CACHE_MAX_KEYS = Number(process.env.AUTHOR_NAME_CACHE_MAX_KEYS || 5000);
+
+type AuthorNameCacheEntry = {
+  name: string | null;
+  expiresAt: number;
+};
+
+const authorNameCache = new Map<string, AuthorNameCacheEntry>();
+
+const tryParseStructuredString = (value: string): unknown | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const candidates = [trimmed, trimmed.replace(/'/g, '"')];
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // try next candidate
+    }
+  }
+
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const inner = trimmed.slice(1, -1).trim();
+    if (!inner) return [];
+    return inner.split(",").map((part) => part.trim());
+  }
+
+  return undefined;
+};
+
+const normalizeNumericTags = (input: unknown): { tags: number[]; valid: boolean } => {
+  const collected: number[] = [];
+  let invalidFound = false;
+
+  const visit = (value: unknown, depth = 0): void => {
+    if (depth > 8 || value === null || value === undefined) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        visit(item, depth + 1);
+      }
+      return;
+    }
+
+    if (typeof value === "number") {
+      if (Number.isFinite(value)) {
+        collected.push(value);
+      } else {
+        invalidFound = true;
+      }
+      return;
+    }
+
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return;
+      }
+
+      const parsed = tryParseStructuredString(trimmed);
+      if (parsed !== undefined) {
+        visit(parsed, depth + 1);
+        return;
+      }
+
+      const numericValue = Number(trimmed);
+      if (Number.isFinite(numericValue)) {
+        collected.push(numericValue);
+      } else {
+        invalidFound = true;
+      }
+      return;
+    }
+
+    invalidFound = true;
+  };
+
+  visit(input);
+
+  return {
+    tags: Array.from(new Set(collected)),
+    valid: !invalidFound,
+  };
+};
+
+//helper functions to map posts with author names and to fetch author names from user service.
+const toSafePost = (post: any, authorName: string | null = null) => ({
+  id: post._id,
+  title: post.title,
+  content: post.content,
+  category: post.category,
+  visibility: post.visibility,
+  attachments: post.attachments,
+  tags: post.tags,
+  authorId: post.authorId,
+  authorType: post.authorType,
+  authorName,
+  likeCount: post.likes?.count || 0,
+  commentCount: post.commentCount || 0,
+  createdAt: post.createdAt,
+  updatedAt: post.updatedAt,
+});
+
+const fetchAuthorName = async (uid: string): Promise<string | null> => {
+  if (!uid) return null;
+
+  try {
+    const response = await axios.get(`${USER_SERVICE_URL}/api/users/firebase/${uid}`);
+    return response.data?.user?.name || null;
+  } catch (error) {
+    // Do not fail the entire API response if profile lookup fails.
+    console.error(`[PostController] Failed to fetch author name for uid ${uid}:`, error);
+    return null;
+  }
+};
+
+const getCachedAuthorName = (uid: string): string | null | undefined => {
+  const entry = authorNameCache.get(uid);
+  if (!entry) return undefined;
+
+  if (entry.expiresAt < Date.now()) {
+    authorNameCache.delete(uid);
+    return undefined;
+  }
+
+  return entry.name;
+};
+
+const setCachedAuthorName = (uid: string, name: string | null): void => {
+  if (!uid) return;
+
+  if (authorNameCache.size >= AUTHOR_NAME_CACHE_MAX_KEYS) {
+    const firstKey = authorNameCache.keys().next().value;
+    if (firstKey) {
+      authorNameCache.delete(firstKey);
+    }
+  }
+
+  authorNameCache.set(uid, {
+    name,
+    expiresAt: Date.now() + AUTHOR_NAME_CACHE_TTL_MS,
+  });
+};
+
+const fetchAuthorNamesBulk = async (uids: string[]): Promise<Map<string, string | null>> => {
+  const result = new Map<string, string | null>();
+  if (!uids.length) return result;
+
+  try {
+    const response = await axios.post(`${USER_SERVICE_URL}/api/users/bulk-basic`, {
+      uids,
+    });
+
+    const users = Array.isArray(response.data?.users) ? response.data.users : [];
+    for (const user of users) {
+      if (user?.uid) {
+        result.set(user.uid, user?.name ?? null);
+      }
+    }
+
+    // Ensure every requested uid has a value in the map.
+    for (const uid of uids) {
+      if (!result.has(uid)) {
+        result.set(uid, null);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("[PostController] Bulk author lookup failed, falling back to single lookups:", error);
+
+    const entries = await Promise.all(
+      uids.map(async (uid) => {
+        const name = await fetchAuthorName(uid);
+        return [uid, name] as const;
+      })
+    );
+
+    return new Map<string, string | null>(entries);
+  }
+};
+
+const mapPostsWithAuthorNames = async (posts: any[]): Promise<any[]> => {
+  if (!posts.length) return [];
+
+  const uniqueAuthorIds = Array.from(new Set(posts.map((post) => post.authorId).filter(Boolean)));
+  const authorNameMap = new Map<string, string | null>();
+  const uncachedAuthorIds: string[] = [];
+
+  for (const authorId of uniqueAuthorIds) {
+    const cachedName = getCachedAuthorName(authorId);
+    if (cachedName !== undefined) {
+      authorNameMap.set(authorId, cachedName);
+      continue;
+    }
+
+    uncachedAuthorIds.push(authorId);
+  }
+
+  if (uncachedAuthorIds.length > 0) {
+    const fetchedNames = await fetchAuthorNamesBulk(uncachedAuthorIds);
+    for (const authorId of uncachedAuthorIds) {
+      const authorName = fetchedNames.get(authorId) ?? null;
+      authorNameMap.set(authorId, authorName);
+      setCachedAuthorName(authorId, authorName);
+    }
+  }
+
+  return posts.map((post) => toSafePost(post, authorNameMap.get(post.authorId) ?? null));
+};
+
+const mapPostWithAuthorName = async (post: any): Promise<any> => {
+  const [mappedPost] = await mapPostsWithAuthorNames([post]);
+  return mappedPost;
+};
+
+
+
 
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
@@ -32,14 +257,15 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       content,
       category,
       visibility,
-      attachments,
       tags,
     } = req.body;
 
+    const normalizedTagsResult = normalizeNumericTags(tags);
+
     // Validate required body fields
-    if (!title || !content || !category) {
+    if (!title || !content || !category || normalizedTagsResult.tags.length === 0 || !normalizedTagsResult.valid) {
       res.status(400).json({
-        message: "title, content, and category are required",
+        message: "title, content, category, and valid numeric tags are required",
       });
       return;
     }
@@ -84,7 +310,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       category,
       visibility: visibility || "public",
       attachments: attachmentUrls,
-      tags: tags || [],
+      tags: normalizedTagsResult.tags,
       authorType,
       authorId,
       likes: {
@@ -99,20 +325,11 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
     const dbTime = (dbEnd[0] * 1000 + dbEnd[1] / 1000000).toFixed(2);
     console.log(`[Performance] MongoDB Creation Latency: ${dbTime}ms`);
 
+    const safePost = await mapPostWithAuthorName(post);
+
     res.status(201).json({
       message: "Post created successfully",
-      post: {
-        id: post._id,
-        title: post.title,
-        content: post.content,
-        category: post.category,
-        visibility: post.visibility,
-        attachments: post.attachments,
-        tags: post.tags,
-        likeCount: post.likes.count,
-        commentCount: post.commentCount,
-        createdAt: post.createdAt,
-      },
+      post: safePost,
     });
   } catch (error: any) {
     // ... rest of the catch block
@@ -145,9 +362,11 @@ export const getAllPosts = async (
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 });
 
+    const safePosts = await mapPostsWithAuthorNames(posts);
+
     res.status(200).json({
       message: "Posts fetched successfully",
-      posts,
+      posts: safePosts,
     });
   } catch (error: any) {
     console.error(error);
@@ -192,19 +411,7 @@ export const getMyPosts = async (req: Request, res: Response): Promise<void> => 
       .sort({ createdAt: -1 })
       .lean();
 
-    const safePosts = posts.map(post => ({
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+    const safePosts = await mapPostsWithAuthorNames(posts);
 
     res.status(200).json({
       message: "Your posts fetched successfully",
@@ -255,19 +462,7 @@ export const getPostsByUser = async (
     const posts = await Post.find(filter).sort({ createdAt: -1 }).lean();
 
     // Sanitize response
-    const safePosts = posts.map(post => ({
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+    const safePosts = await mapPostsWithAuthorNames(posts);
 
     res.status(200).json({
       message: "User posts fetched successfully",
@@ -318,18 +513,7 @@ export const getPostById = async (
       }
     }
 
-    const safePost = {
-      id: post._id,
-      title: post.title,
-      content: post.content,
-      category: post.category,
-      visibility: post.visibility,
-      attachments: post.attachments,
-      tags: post.tags,
-      likeCount: post.likes?.count || 0,
-      commentCount: post.commentCount || 0,
-      createdAt: post.createdAt,
-    };
+    const safePost = await mapPostWithAuthorName(post);
 
     res.status(200).json({
       message: "Post fetched successfully",
@@ -409,6 +593,17 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
     delete updateData.authorId;
     delete updateData.authorType;
 
+    if (Object.prototype.hasOwnProperty.call(updateData, "tags")) {
+      const normalizedTagsResult = normalizeNumericTags(updateData.tags);
+      if (!normalizedTagsResult.valid) {
+        res.status(400).json({
+          message: "tags must contain only valid numbers",
+        });
+        return;
+      }
+      updateData.tags = normalizedTagsResult.tags;
+    }
+
     // If new attachments uploaded, replace them
     if (attachmentUrls.length > 0) {
       updateData.attachments = attachmentUrls;
@@ -441,19 +636,7 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const safePost = {
-      id: updatedPost._id,
-      title: updatedPost.title,
-      content: updatedPost.content,
-      category: updatedPost.category,
-      visibility: updatedPost.visibility,
-      attachments: updatedPost.attachments,
-      tags: updatedPost.tags,
-      likeCount: updatedPost.likes?.count || 0,
-      commentCount: updatedPost.commentCount || 0,
-      createdAt: updatedPost.createdAt,
-      updatedAt: updatedPost.updatedAt,
-    };
+    const safePost = await mapPostWithAuthorName(updatedPost);
 
     res.status(200).json({
       message: "Post updated successfully",
@@ -527,19 +710,7 @@ export const deletePost = async (
       return;
     }
 
-    const safePost = {
-      id: deletedPost._id,
-      title: deletedPost.title,
-      content: deletedPost.content,
-      category: deletedPost.category,
-      visibility: deletedPost.visibility,
-      attachments: deletedPost.attachments,
-      tags: deletedPost.tags,
-      likeCount: deletedPost.likes?.count || 0,
-      commentCount: deletedPost.commentCount || 0,
-      createdAt: deletedPost.createdAt,
-      updatedAt: deletedPost.updatedAt,
-    };
+    const safePost = await mapPostWithAuthorName(deletedPost);
 
     res.status(200).json({
       message: "Post deleted successfully",

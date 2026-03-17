@@ -400,7 +400,7 @@ app.get("/api/skills/users"
 
 // POST/CONTENT ROUTES (proxied to content-service)
 // Create a new post (with attachments)
-app.post("/api/posts", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+app.post("/api/posts", verifyToken,requireRole("STUDENT"), contentServiceProxy(""));
 
 
 // Get posts of logged-in user

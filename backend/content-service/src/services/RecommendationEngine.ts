@@ -74,7 +74,7 @@ export class RecommendationEngine {
    */
   private static async fetchUserSkills(uid: string, type: string) {
     try {
-      const response = await axios.get(`${this.USER_SERVICE_URL}/api/skills/users/${uid}`, {
+      const response = await axios.get(`${this.USER_SERVICE_URL}/api/skills/users`, {
         headers: {
           "x-user-uid": uid,
           "x-user-type": type

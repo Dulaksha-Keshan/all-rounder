@@ -5,6 +5,7 @@ import {
   updateUser,
   softDeleteUser,
   getUserByFirebaseUID,
+  getUsersBasicByUids,
   followUser,
   unfollowUser,
   getFollowers,
@@ -56,6 +57,9 @@ const uploadVerificationAttachment = (req: Request, res: Response, next: NextFun
 };
 
 router.post("/", uploadVerificationAttachment, createUser);
+
+//internal use only - get basic info of multiple users by their UIDs
+router.post("/bulk-basic", getUsersBasicByUids);
 router.get("/", getUserById);
 router.get("/firebase/:uid", getUserByFirebaseUID)
 router.patch("/", updateUser);

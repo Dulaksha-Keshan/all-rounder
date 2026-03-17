@@ -418,6 +418,75 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
   }
 };
 
+export const getUsersBasicByUids = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawUids = req.body?.uids;
+
+    if (!Array.isArray(rawUids)) {
+      res.status(400).json({ message: "uids must be an array" });
+      return;
+    }
+
+    const uniqueUids = Array.from(
+      new Set(
+        rawUids
+          .filter((uid: unknown) => typeof uid === "string")
+          .map((uid: string) => uid.trim())
+          .filter((uid: string) => uid.length > 0)
+      )
+    );
+
+    if (uniqueUids.length === 0) {
+      res.status(200).json({ users: [] });
+      return;
+    }
+
+    if (uniqueUids.length > 500) {
+      res.status(400).json({ message: "Maximum 500 uids are allowed per request" });
+      return;
+    }
+
+    const [students, teachers, admins] = await Promise.all([
+      prisma.student.findMany({
+        where: { uid: { in: uniqueUids } },
+        select: { uid: true, name: true },
+      }),
+      prisma.teacher.findMany({
+        where: { uid: { in: uniqueUids } },
+        select: { uid: true, name: true },
+      }),
+      prisma.admin.findMany({
+        where: { uid: { in: uniqueUids } },
+        select: { uid: true, name: true },
+      }),
+    ]);
+
+    const userNameMap = new Map<string, string>();
+
+    for (const user of students) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    for (const user of teachers) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    for (const user of admins) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    const users = uniqueUids.map((uid) => ({
+      uid,
+      name: userNameMap.get(uid) ?? null,
+    }));
+
+    res.status(200).json({ users });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
