@@ -4,12 +4,156 @@ import mongoose from "mongoose";
 import Verification from "../mongoose/verificationModel.js";
 import { prisma } from "../prisma.js";
 
+const REQUEST_USER_NAME_CACHE_TTL_MS = Number(
+  process.env.REQUEST_USER_NAME_CACHE_TTL_MS || 5 * 60 * 1000
+);
+const REQUEST_USER_NAME_CACHE_MAX_KEYS = Number(
+  process.env.REQUEST_USER_NAME_CACHE_MAX_KEYS || 5000
+);
+
+type UserNameCacheEntry = {
+  name: string | null;
+  expiresAt: number;
+};
+
+const userNameCache = new Map<string, UserNameCacheEntry>();
+
 type ApproverScope = {
   type: "TEACHER" | "SCHOOL_ADMIN";
   uid: string;
   schoolId?: string;
   pendingVerificationIds: string[];
   processedVerificationIds: string[];
+};
+
+const getCachedUserName = (uid: string): string | null | undefined => {
+  const entry = userNameCache.get(uid);
+  if (!entry) return undefined;
+
+  if (entry.expiresAt < Date.now()) {
+    userNameCache.delete(uid);
+    return undefined;
+  }
+
+  return entry.name;
+};
+
+const setCachedUserName = (uid: string, name: string | null): void => {
+  if (!uid) return;
+
+  if (userNameCache.size >= REQUEST_USER_NAME_CACHE_MAX_KEYS) {
+    const firstKey = userNameCache.keys().next().value;
+    if (firstKey) {
+      userNameCache.delete(firstKey);
+    }
+  }
+
+  userNameCache.set(uid, {
+    name,
+    expiresAt: Date.now() + REQUEST_USER_NAME_CACHE_TTL_MS,
+  });
+};
+
+const getUserNamesBulk = async (uids: string[]): Promise<Map<string, string | null>> => {
+  const userNameMap = new Map<string, string | null>();
+  if (!uids.length) return userNameMap;
+
+  const uniqueUids = Array.from(new Set(uids.filter(Boolean)));
+  const uncachedUids: string[] = [];
+
+  for (const uid of uniqueUids) {
+    const cachedName = getCachedUserName(uid);
+    if (cachedName !== undefined) {
+      userNameMap.set(uid, cachedName);
+      continue;
+    }
+    uncachedUids.push(uid);
+  }
+
+  if (uncachedUids.length > 0) {
+    const [students, teachers, admins] = await Promise.all([
+      prisma.student.findMany({
+        where: { uid: { in: uncachedUids } },
+        select: { uid: true, name: true },
+      }),
+      prisma.teacher.findMany({
+        where: { uid: { in: uncachedUids } },
+        select: { uid: true, name: true },
+      }),
+      prisma.admin.findMany({
+        where: { uid: { in: uncachedUids } },
+        select: { uid: true, name: true },
+      }),
+    ]);
+
+    for (const user of students) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    for (const user of teachers) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    for (const user of admins) {
+      userNameMap.set(user.uid, user.name);
+    }
+
+    for (const uid of uncachedUids) {
+      if (!userNameMap.has(uid)) {
+        userNameMap.set(uid, null);
+      }
+      setCachedUserName(uid, userNameMap.get(uid) ?? null);
+    }
+  }
+
+  // Ensure all requested UIDs are present in response map.
+  for (const uid of uniqueUids) {
+    if (!userNameMap.has(uid)) {
+      userNameMap.set(uid, null);
+    }
+  }
+
+  return userNameMap;
+};
+
+const attachNamesToVerifications = async (verifications: any[]): Promise<any[]> => {
+  if (!Array.isArray(verifications) || verifications.length === 0) {
+    return [];
+  }
+
+  const uids = verifications.flatMap((verification) => {
+    const ids: string[] = [];
+    if (typeof verification?.userId === "string" && verification.userId.trim()) {
+      ids.push(verification.userId);
+    }
+    if (
+      typeof verification?.verificationRequestedBy === "string" &&
+      verification.verificationRequestedBy.trim()
+    ) {
+      ids.push(verification.verificationRequestedBy);
+    }
+    return ids;
+  });
+
+  const userNameMap = await getUserNamesBulk(uids);
+
+  return verifications.map((verification) => {
+    const userName =
+      typeof verification?.userId === "string"
+        ? (userNameMap.get(verification.userId) ?? null)
+        : null;
+
+    const approverName =
+      typeof verification?.verificationRequestedBy === "string"
+        ? (userNameMap.get(verification.verificationRequestedBy) ?? null)
+        : null;
+
+    return {
+      ...verification,
+      userName,
+      approverName,
+    };
+  });
 };
 
 const resolveApproverScope = async (
@@ -243,8 +387,12 @@ export const getPendingRequests = async (req: Request, res: Response): Promise<v
       "PENDING"
     );
 
+    const pendingVerificationsWithNames = await attachNamesToVerifications(
+      pendingVerifications as any[]
+    );
+
     res.status(200).json({
-      pendingVerifications,
+      pendingVerifications: pendingVerificationsWithNames,
     });
   } catch (error: any) {
     console.error(error);
@@ -269,13 +417,20 @@ export const getAllRequests = async (req: Request, res: Response): Promise<void>
       fetchVerificationsByStatus(scope.processedVerificationIds, expectedMethod, "REJECTED"),
     ]);
 
+    const [pendingWithNames, approvedWithNames, rejectedWithNames] = await Promise.all([
+      attachNamesToVerifications(pendingVerifications as any[]),
+      attachNamesToVerifications(approvedVerifications as any[]),
+      attachNamesToVerifications(rejectedVerifications as any[]),
+    ]);
+
+
     res.status(200).json({
       approverType: scope.type,
       schoolId: scope.schoolId || null,
       requests: {
-        pending: pendingVerifications,
-        approved: approvedVerifications,
-        rejected: rejectedVerifications,
+        pending: pendingWithNames,
+        approved: approvedWithNames,
+        rejected: rejectedWithNames,
       },
     });
   } catch (error: any) {

@@ -226,6 +226,38 @@ const mapPostWithAuthorName = async (post: any): Promise<any> => {
   return mappedPost;
 };
 
+const mapFeedWithAuthorNames = async (feed: any[]): Promise<any[]> => {
+  if (!Array.isArray(feed) || feed.length === 0) {
+    return [];
+  }
+
+  const postItems = feed.filter((item) => item?.feedType === "post");
+  if (postItems.length === 0) {
+    return feed;
+  }
+
+  const safePosts = await mapPostsWithAuthorNames(postItems);
+  const safePostById = new Map<string, any>(
+    safePosts.map((post) => [String(post.id), post])
+  );
+
+  return feed.map((item) => {
+    if (item?.feedType !== "post") {
+      return item;
+    }
+
+    const safePost = safePostById.get(String(item._id ?? item.id));
+    if (!safePost) {
+      return item;
+    }
+
+    return {
+      ...safePost,
+      feedType: "post",
+    };
+  });
+};
+
 
 
 
@@ -738,9 +770,12 @@ export const getFeed = async (req: Request, res: Response): Promise<void> => {
       limit
     );
 
+    const safeFeed = await mapFeedWithAuthorNames(result.feed || []);
+
     res.status(200).json({
       message: "Feed fetched successfully",
-      ...result
+      ...result,
+      feed: safeFeed,
     });
   } catch (error: any) {
     console.error("[PostController] Error in getFeed:", error);

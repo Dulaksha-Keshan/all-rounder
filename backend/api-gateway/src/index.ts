@@ -274,12 +274,9 @@ app.use(
 app.get("/api/schools", userServiceProxy("/api/schools"));
 app.get("/api/schools/:id", userServiceProxy("/api/schools"));
 
-// group 2 SUPER_ADMIN only operations
-// coupled POST and DELETE share same role middleware
+
 app.post(
   "/api/schools",
-  verifyToken,
-  requireRole("SUPER_ADMIN"),
   userServiceProxy("/api/schools")
 );
 
@@ -414,8 +411,8 @@ app.get("/api/posts/feed", verifyToken, contentServiceProxy(""));
 
 
 
-app.put("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
-app.delete("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN"), contentServiceProxy(""));
+app.put("/api/posts/:id", verifyToken,requireRole("STUDENT"), contentServiceProxy(""));
+app.delete("/api/posts/:id", verifyToken,requireRole("SUPER_ADMIN","SCHOOL_ADMIN","ORG_ADMIN", "STUDENT"), contentServiceProxy(""));
 
 
 // Like And comment routes 
