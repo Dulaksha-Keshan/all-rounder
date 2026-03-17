@@ -16,6 +16,7 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "axios": "^1.13.5",
+    "dompurify": "^3.3.3",
     "firebase": "^12.10.0",
     "gsap": "^3.13.0",
     "lucide-react": "^0.554.0",

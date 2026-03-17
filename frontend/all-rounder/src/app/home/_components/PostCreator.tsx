@@ -12,6 +12,14 @@ interface PostCreatorProps {
     userImage?: string;
 }
 
+const stripRichText = (value: string) => {
+    return value
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+};
+
 export default function PostCreator({ userImage }: PostCreatorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const currentUser = useUserStore((state) => state.currentUser);
@@ -25,6 +33,8 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
 
     const { title, content, category, visibility, tags, files } = createDraft;
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const normalizedContent = content.trim();
+    const isContentEmpty = stripRichText(normalizedContent).length === 0;
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -38,11 +48,11 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
     };
 
     const handlePost = async () => {
-        if (!content.trim() || !category) return;
+        if (isContentEmpty || !category) return;
 
         const formData = new FormData();
         formData.append("title", title);
-        formData.append("content", content);
+        formData.append("content", normalizedContent);
         formData.append("category", category);
         formData.append("visibility", visibility);
         formData.append("tags", JSON.stringify(tags));
@@ -191,14 +201,14 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => resetCreateDraft()}
-                                disabled={!content.trim() && files.length === 0}
+                                disabled={isContentEmpty && files.length === 0}
                                 className="px-4 py-2 rounded-lg font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Clear
                             </button>
                             <button
                                 onClick={handlePost}
-                                disabled={!content.trim() || !category || isCreatingPost}
+                                disabled={isContentEmpty || !category || isCreatingPost}
                                 className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <span>{isCreatingPost ? "Posting..." : "Post"}</span>

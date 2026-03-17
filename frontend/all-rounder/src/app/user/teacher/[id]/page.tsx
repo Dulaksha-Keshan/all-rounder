@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, use, useEffect } from 'react';
+import { useState, use, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { notFound } from 'next/navigation';
 // import GoBackButton from '@/components/GoBackButton'; // Uncomment if needed
 import { useTeacherStore } from '@/context/useTeacherStore';
 import { useSchoolStore } from '@/context/useSchoolStore';
 import { useHomeStore } from '@/context/useHomeStore';
+import Feed from '@/app/home/_components/Feed';
+import { usePostStore } from '@/context/usePostStore';
 import { useUserStore } from '@/context/useUserStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -28,6 +30,12 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const { currentUser, userRole, updateProfile } = useUserStore();
   const { getSchoolById, schools, fetchSchools } = useSchoolStore();
   const { drafts, deleteDraft } = useHomeStore();
+  const postsById = usePostStore((state) => state.postsById);
+  const myPostIds = usePostStore((state) => state.myPostIds);
+  const fetchMyPosts = usePostStore((state) => state.fetchMyPosts);
+  const fetchUserPosts = usePostStore((state) => state.fetchUserPosts);
+  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? []);
+  const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
 
   // We will add these to your teacher store in the next step!
   const {
@@ -51,6 +59,15 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   useEffect(() => {
     if (schools.length === 0) fetchSchools();
   }, [schools.length, fetchSchools]);
+
+  useEffect(() => {
+    if (isOwnProfile) {
+      fetchMyPosts();
+      return;
+    }
+
+    fetchUserPosts(id);
+  }, [id, isOwnProfile, fetchMyPosts, fetchUserPosts]);
 
   // Hydrate Verification Requests if it's the teacher's own profile
   useEffect(() => {
@@ -127,6 +144,13 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
       setEditData({ ...viewedTeacher });
     }
   }, [viewedTeacher]);
+
+  const profilePosts = useMemo(() => {
+    const profilePostIds = isOwnProfile ? myPostIds : userPostIds;
+    return profilePostIds
+      .map((postId) => postsById[postId])
+      .filter((post): post is PostEntity => Boolean(post));
+  }, [isOwnProfile, myPostIds, userPostIds, postsById]);
 
   if (!viewedTeacher) {
     notFound();
@@ -378,6 +402,22 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 </div>
               </div>
             )}
+
+            <div className="bg-[var(--white)] rounded-xl shadow-sm p-6 border border-[var(--gray-200)]">
+              <div className="mb-5 border-b border-[var(--gray-200)] pb-3">
+                <h2 className="text-lg font-bold text-[var(--text-main)]">Posts</h2>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">
+                  {isOwnProfile ? 'Your recent posts and shared updates.' : `${viewedTeacher.name}'s recent posts and shared updates.`}
+                </p>
+              </div>
+
+              <Feed
+                posts={profilePosts}
+                isLoading={isFetchingPosts}
+                showCreator={false}
+                emptyMessage={isOwnProfile ? "You haven't posted anything yet." : "No posts published yet."}
+              />
+            </div>
           </div>
         )}
 

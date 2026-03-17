@@ -1,15 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from "next/image";
+import DOMPurify from 'dompurify';
 import { ThumbsUp, MessageCircle, Share2, Trash2, Send, User, MoreHorizontal, Edit2 } from 'lucide-react';
 import gsap from 'gsap';
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { PostEntity, CommentEntity } from '@/app/_type/type';
 import { usePostStore } from '@/context/usePostStore';
+import { useSkillStore } from '@/context/useSkillStore';
 import { useUserStore } from '@/context/useUserStore';
 
 const EMPTY_COMMENTS: CommentEntity[] = [];
+const HTML_TAG_REGEX = /<\/?[a-z][\s\S]*>/i;
+
+const hasHtmlMarkup = (value: string) => HTML_TAG_REGEX.test(value);
+
+const sanitizePostContent = (value: string) => {
+  return DOMPurify.sanitize(value, {
+    USE_PROFILES: { html: true },
+  });
+};
 
 interface PostCardProps {
   post: PostEntity;
@@ -32,6 +43,10 @@ export default function PostCard({
   const currentUser = useUserStore((state) => state.currentUser);
   const comments = usePostStore((state) => state.commentsByPostId[post.id] ?? EMPTY_COMMENTS);
   const pendingCommentDeleteById = usePostStore((state) => state.pendingCommentDeleteById);
+  const allSkills = useSkillStore((state) => state.allSkills);
+  const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
+  const hasFetchedAllSkills = useSkillStore((state) => state.hasFetchedAllSkills);
+  const isLoadingAllSkills = useSkillStore((state) => state.isLoadingAllSkills);
 
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -41,7 +56,20 @@ export default function PostCard({
   const [isEditing, setIsEditing] = useState(false);
   const [edits, setEdits] = useState({ title: "", content: "" });
 
-  const isDeletingPost = post.id;
+  const skillNameById = useMemo(() => {
+    return new Map(allSkills.map((skill) => [skill.skill_id, skill.skill_name]));
+  }, [allSkills]);
+
+  const renderedTags = useMemo(() => {
+    return (post.tags ?? []).map((tag) => ({
+      key: String(tag),
+      label: skillNameById.get(Number(tag)) || String(tag),
+    }));
+  }, [post.tags, skillNameById]);
+
+  const sanitizedContent = useMemo(() => {
+    return hasHtmlMarkup(post.content) ? sanitizePostContent(post.content) : "";
+  }, [post.content]);
 
   // Animate card on mount
   useEffect(() => {
@@ -52,6 +80,17 @@ export default function PostCard({
       { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
     );
   }, []);
+
+  useEffect(() => {
+    if (
+      post.tags.length > 0 &&
+      allSkills.length === 0 &&
+      !hasFetchedAllSkills &&
+      !isLoadingAllSkills
+    ) {
+      fetchAllSkills();
+    }
+  }, [post.tags.length, allSkills.length, hasFetchedAllSkills, isLoadingAllSkills, fetchAllSkills]);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,20 +215,27 @@ export default function PostCard({
         ) : (
           <div>
             {post.title && <h2 className="text-lg font-bold text-gray-900 mb-1">{post.title}</h2>}
-            <p className="text-gray-700 leading-relaxed">{post.content}</p>
+            {hasHtmlMarkup(post.content) ? (
+              <div
+                className="max-w-none text-gray-700 leading-relaxed [&_p]:my-3 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-1 [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_a]:text-blue-600 [&_a]:underline"
+                dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+              />
+            ) : (
+              <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{post.content}</p>
+            )}
           </div>
         )}
       </div>
 
       {/* Tags */}
-      {post.tags && post.tags.length > 0 && (
+      {renderedTags.length > 0 && (
         <div className="px-4 pb-3 flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
+          {renderedTags.map((tag) => (
             <span
-              key={tag}
+              key={tag.key}
               className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
             >
-              #{tag}
+              #{tag.label}
             </span>
           ))}
         </div>
@@ -200,13 +246,13 @@ export default function PostCard({
         <div className="mb-4 px-4 space-y-2">
           {post.attachments.map((url, idx) => (
             <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-              <div className="relative w-full h-[300px]">
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
                 <Image
                   src={url}
                   alt="Post attachment"
                   fill
                   unoptimized
-                  className="object-cover"
+                  className="object-contain"
                   sizes="(max-width: 640px) 100vw, 640px"
                   priority={idx === 0}
                 />

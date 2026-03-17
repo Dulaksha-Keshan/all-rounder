@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, use, useEffect } from 'react';
+import { useState, use, useEffect, useMemo } from 'react';
 import NextImage from 'next/image';
 import { notFound } from 'next/navigation';
 // import GoBackButton from '@/components/GoBackButton'; // Uncomment if needed
 import { useHomeStore } from '@/context/useHomeStore';
+import Feed from '@/app/home/_components/Feed';
 import { useUserStore } from '@/context/useUserStore';
 import { useStudentStore } from '@/context/useStudentStore';
+import { usePostStore } from '@/context/usePostStore';
 import { useSchoolStore } from '@/context/useSchoolStore';
+import { useSkillStore } from '@/context/useSkillStore';
 // import { useEventStore } from '@/context/useEventStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -25,6 +28,16 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const { getStudentById } = useStudentStore();
   const { getSchoolById, schools, fetchSchools } = useSchoolStore();
   const { drafts, deleteDraft } = useHomeStore();
+  const postsById = usePostStore((state) => state.postsById);
+  const myPostIds = usePostStore((state) => state.myPostIds);
+  const fetchMyPosts = usePostStore((state) => state.fetchMyPosts);
+  const fetchUserPosts = usePostStore((state) => state.fetchUserPosts);
+  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? []);
+  const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
+  const allSkills = useSkillStore((state) => state.allSkills);
+  const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
+  const hasFetchedAllSkills = useSkillStore((state) => state.hasFetchedAllSkills);
+  const isLoadingAllSkills = useSkillStore((state) => state.isLoadingAllSkills);
 
   // --- PROFILE LOGIC ---
   // 1. Determine if the logged-in user is viewing their own profile
@@ -39,6 +52,15 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     if (schools.length === 0) fetchSchools();
   }, [schools.length, fetchSchools]);
 
+  useEffect(() => {
+    if (isOwnProfile) {
+      fetchMyPosts();
+      return;
+    }
+
+    fetchUserPosts(id);
+  }, [id, isOwnProfile, fetchMyPosts, fetchUserPosts]);
+
   // --- LOCAL STATE ---
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
@@ -47,6 +69,36 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
 
   // --- HELPERS ---
+  const skillNameById = useMemo(() => {
+    return new Map(allSkills.map((skill) => [skill.skill_id, skill.skill_name]));
+  }, [allSkills]);
+
+  const resolveSkillLabel = (skill: any) => {
+    if (skill && typeof skill === 'object') {
+      if (typeof skill.skill_name === 'string' && skill.skill_name.trim()) return skill.skill_name;
+      if (typeof skill.name === 'string' && skill.name.trim()) return skill.name;
+
+      const rawId = skill.skill_id ?? skill.id ?? skill.value;
+      if (rawId !== undefined && rawId !== null) {
+        return skillNameById.get(Number(rawId)) || String(rawId);
+      }
+    }
+
+    const numericId = Number(skill);
+    if (!Number.isNaN(numericId)) {
+      return skillNameById.get(numericId) || String(skill);
+    }
+
+    return String(skill ?? '');
+  };
+
+  const profilePosts = useMemo(() => {
+    const profilePostIds = isOwnProfile ? myPostIds : userPostIds;
+    return profilePostIds
+      .map((postId) => postsById[postId])
+      .filter((post): post is PostEntity => Boolean(post));
+  }, [isOwnProfile, myPostIds, userPostIds, postsById]);
+
   const normalizeDraftToPostEntity = (draft: any): PostEntity => ({
     id: draft._id || draft.id || '',
     title: draft.title || '',
@@ -70,6 +122,26 @@ export default function StudentProfile({ params }: StudentProfileProps) {
       setEditData({ ...viewedStudent });
     }
   }, [viewedStudent]);
+
+  useEffect(() => {
+    const shouldLoadSkillDictionary = Array.isArray(viewedStudent?.skills)
+      && viewedStudent.skills.some((skill: any) => {
+        if (skill && typeof skill === 'object') {
+          return !skill.name && !skill.skill_name;
+        }
+
+        return typeof skill === 'number' || /^\d+$/.test(String(skill));
+      });
+
+    if (
+      shouldLoadSkillDictionary &&
+      allSkills.length === 0 &&
+      !hasFetchedAllSkills &&
+      !isLoadingAllSkills
+    ) {
+      fetchAllSkills();
+    }
+  }, [viewedStudent?.skills, allSkills.length, hasFetchedAllSkills, isLoadingAllSkills, fetchAllSkills]);
 
   if (!viewedStudent) {
     notFound(); // Triggers Next.js 404 page if user doesn't exist
@@ -306,7 +378,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <div className="flex flex-wrap gap-2">
                     {viewedStudent.skills.map((skill: any, index: number) => (
                       <span key={index} className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold border border-blue-100">
-                        {skill.name || skill}
+                        {resolveSkillLabel(skill)}
                       </span>
                     ))}
                   </div>
@@ -314,6 +386,22 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                   <p className="text-gray-400 italic text-sm">No skills listed.</p>
                 )}
               </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="mb-5 border-b border-gray-100 pb-3">
+                <h2 className="text-lg font-bold text-[#34365C]">Posts</h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  {isOwnProfile ? 'Your recent posts and shared updates.' : `${viewedStudent.name}'s recent posts and shared updates.`}
+                </p>
+              </div>
+
+              <Feed
+                posts={profilePosts}
+                isLoading={isFetchingPosts}
+                showCreator={false}
+                emptyMessage={isOwnProfile ? "You haven't posted anything yet." : "No posts published yet."}
+              />
             </div>
           </div>
         )}
@@ -419,7 +507,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
               <div className="flex flex-wrap gap-3">
                 {viewedStudent.skills.map((skill: any, index: number) => (
                   <div key={index} className="px-5 py-2.5 bg-white border-2 border-[#DCD0FF] text-[#34365C] rounded-lg text-sm font-bold shadow-sm hover:border-[#8387CC] transition-colors cursor-default">
-                    {skill.name || skill}
+                    {resolveSkillLabel(skill)}
                   </div>
                 ))}
               </div>
