@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Clock, Trophy } from 'lucide-react';
+import { Calendar, MapPin, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { Event } from '@/app/_type/type';
 import { useEffect, useRef } from 'react';
@@ -18,17 +18,18 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
     );
   }, [index]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Registered":
-        return "bg-green-500 text-white";
-      case "Completed":
-        return "bg-blue-500 text-white";
-      case "Upcoming":
-        return "bg-yellow-500 text-white";
-      default:
-        return "bg-gray-500 text-white";
+  // Derive image URL from attachments or use fallback
+  const getImageUrl = () => {
+    if (event.attachments && event.attachments.length > 0) {
+      return event.attachments[0];
     }
+    return event.imageUrl || '/images/hero-1.jpg';
+  };
+
+  // Format start date and time
+  const getEventTime = () => {
+    const date = new Date(event.startDate);
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -37,7 +38,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden bg-[#F8F8FF]">
           <Image
-            src={event.imageUrl || '/images/hero-1.jpg'}
+            src={getImageUrl()}
             alt={event.title}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -53,7 +54,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
               </span>
               <div className="flex items-center gap-1.5 text-[var(--gray-400)] text-xs font-medium">
                 <Clock size={14} />
-                <span>{event.time}</span>
+                <span>{getEventTime()}</span>
               </div>
             </div>
 

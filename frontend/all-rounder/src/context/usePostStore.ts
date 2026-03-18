@@ -37,6 +37,7 @@ interface PostsSliceState {
 
   // Error states (consolidated)
   error: string | null;
+  postUploadError: string | null;
   
   // Optimistic updates
   pendingDeleteByPostId: Set<string>;
@@ -176,6 +177,7 @@ export const usePostStore = create<PostStoreState>()(
       isUpdatingPost: false,
       isDeletingPost: false,
       error: null,
+      postUploadError: null,
       pendingDeleteByPostId: new Set(),
 
       // Comments slice
@@ -255,7 +257,7 @@ export const usePostStore = create<PostStoreState>()(
         set({ isFetchingPosts: true, error: null });
         try {
           const response = await api.get("/posts/me", { params: options });
-          const posts = response.data || [];
+          const posts = response.data.posts || [];
 
           const normalized = posts.map(normalizePost);
           const postsById: Record<string, PostEntity> = {};
@@ -331,7 +333,7 @@ export const usePostStore = create<PostStoreState>()(
 
       // ==================== POSTS: CREATE ====================
       createPost: async (formData) => {
-        set({ isCreatingPost: true, error: null });
+        set({ isCreatingPost: true, error: null, postUploadError: null });
         try {
           const response = await api.post("/posts", formData);
           const post = response.data;
@@ -345,6 +347,7 @@ export const usePostStore = create<PostStoreState>()(
             myPostIds: currentUserId ? [normalized.id, ...state.myPostIds] : state.myPostIds,
             allPostIds: [normalized.id, ...state.allPostIds],
             isCreatingPost: false,
+            postUploadError: null,
             createDraft: {
               title: "",
               content: "",
@@ -360,7 +363,7 @@ export const usePostStore = create<PostStoreState>()(
           return normalized;
         } catch (error: any) {
           const message = error.response?.data?.message || error.message;
-          set({ error: message, isCreatingPost: false });
+          set({ error: message, postUploadError: message, isCreatingPost: false });
           return undefined;
         }
       },
@@ -692,6 +695,7 @@ export const usePostStore = create<PostStoreState>()(
           commentPaginationByPostId: {},
           feedPagination: { page: 1, limit: 10 },
           error: null,
+          postUploadError: null,
         });
         if (typeof window !== 'undefined') {
           localStorage.removeItem('post-storage');
@@ -700,6 +704,7 @@ export const usePostStore = create<PostStoreState>()(
 
       resetCreateDraft: () => {
         set((state) => ({
+          postUploadError: null,
           createDraft: {
             title: "",
             content: "",

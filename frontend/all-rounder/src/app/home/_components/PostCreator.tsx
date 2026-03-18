@@ -29,14 +29,19 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
     const createPost = usePostStore((state) => state.createPost);
     const resetCreateDraft = usePostStore((state) => state.resetCreateDraft);
     const isCreatingPost = usePostStore((state) => state.isCreatingPost);
-    const postError = usePostStore((state) => state.error);
+    const postUploadError = usePostStore((state) => state.postUploadError);
 
     const { title, content, category, visibility, tags, files } = createDraft;
     const [categoryOpen, setCategoryOpen] = useState(false);
     const normalizedContent = content.trim();
     const isContentEmpty = stripRichText(normalizedContent).length === 0;
+    const isNoteCategory = (category as string) === "note";
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isNoteCategory) {
+            return;
+        }
+
         if (e.target.files) {
             setCreateDraftFiles(Array.from(e.target.files));
         }
@@ -57,9 +62,11 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
         formData.append("visibility", visibility);
         formData.append("tags", JSON.stringify(tags));
 
-        files.forEach((file) => {
-            formData.append("attachments", file);
-        });
+        if (!isNoteCategory) {
+            files.forEach((file) => {
+                formData.append("attachments", file);
+            });
+        }
 
         const result = await createPost(formData);
         if (result) {
@@ -112,7 +119,7 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                             </button>
                             {categoryOpen && (
                                 <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                    {["achievement", "participation", "event", "project"].map((cat) => (
+                                    {["achievement", "participation", "note", "project"].map((cat) => (
                                         <button
                                             key={cat}
                                             onClick={() => {
@@ -140,7 +147,7 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                     </div>
 
                     {/* File Previews */}
-                    {files.length > 0 && (
+                    {!isNoteCategory && files.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3 p-2 bg-gray-50 rounded-lg">
                             {files.map((file, idx) => (
                                 <div
@@ -163,9 +170,9 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                     )}
 
                     {/* Error Message */}
-                    {postError && (
+                    {postUploadError && (
                         <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                            {postError}
+                            {postUploadError}
                         </div>
                     )}
 
@@ -182,8 +189,9 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                             />
                             <button
                                 onClick={() => fileInputRef.current?.click()}
+                                disabled={isNoteCategory}
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 text-sm"
-                                title="Upload Media"
+                                title={isNoteCategory ? "Media is not available for notes" : "Upload Media"}
                             >
                                 <ImageIcon size={18} className="text-blue-500" />
                                 <span className="hidden sm:inline">Media</span>

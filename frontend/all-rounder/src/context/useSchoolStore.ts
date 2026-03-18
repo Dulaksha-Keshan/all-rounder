@@ -8,6 +8,8 @@ import api from '@/lib/axios';
 
 export interface VerificationRequest {
     id: string;
+    userName?: string;
+    approverName?: string;
     verificationMethod: string;
     verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
     remarks?: string;
@@ -19,6 +21,8 @@ type VerificationDecision = 'APPROVED' | 'REJECTED';
 
 const normalizeVerificationRequest = (request: any): VerificationRequest => ({
     id: request.id || request._id,
+    userName: request?.userName || request?.requesterName || request?.user?.name || request?.teacherName || request?.teacher?.name || '',
+    approverName: request?.approverName || request?.approvedByName || request?.approver?.name || '',
     verificationMethod: request.verificationMethod || '',
     verificationStatus: request.verificationStatus || request.status || 'PENDING',
     remarks: request.remarks || '',

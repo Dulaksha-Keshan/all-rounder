@@ -9,6 +9,8 @@ import api from '@/lib/axios';
 // Define the shape of a Verification Request (from MongoDB)
 export interface VerificationRequest {
     id: string;
+    userName?: string;
+    approverName?: string;
     verificationMethod: string;
     verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
     remarks?: string;
@@ -18,14 +20,83 @@ export interface VerificationRequest {
 
 type VerificationDecision = 'APPROVED' | 'REJECTED';
 
+const normalizeVerificationStatus = (status: unknown): VerificationRequest['verificationStatus'] => {
+    const normalized = String(status || 'PENDING').toUpperCase();
+
+    if (normalized === 'APPROVED' || normalized === 'ACCEPTED') {
+        return 'APPROVED';
+    }
+
+    if (normalized === 'REJECTED' || normalized === 'DECLINED') {
+        return 'REJECTED';
+    }
+
+    return 'PENDING';
+};
+
 const normalizeVerificationRequest = (request: any): VerificationRequest => ({
-    id: request.id || request._id,
-    verificationMethod: request.verificationMethod || '',
-    verificationStatus: request.verificationStatus || request.status || 'PENDING',
-    remarks: request.remarks || '',
-    createdAt: request.createdAt,
-    updatedAt: request.verifiedAt || request.createdAt,
+    id: request?.id || request?._id || '',
+    userName: request?.userName || request?.requesterName || request?.user?.name || request?.student?.name || '',
+    approverName: request?.approverName || request?.approvedByName || request?.approver?.name || request?.teacher?.name || '',
+    verificationMethod: request?.verificationMethod || '',
+    verificationStatus: normalizeVerificationStatus(request?.verificationStatus || request?.status),
+    remarks: request?.remarks || '',
+    createdAt: request?.createdAt || request?.updatedAt || new Date().toISOString(),
+    updatedAt: request?.updatedAt || request?.verifiedAt || request?.createdAt,
 });
+
+const extractVerificationRequests = (payload: any): any[] => {
+    const candidates = [
+        payload?.pendingVerifications,
+        payload?.requests,
+        payload?.verifications,
+        payload?.data,
+        payload,
+    ];
+
+    for (const candidate of candidates) {
+        if (Array.isArray(candidate)) {
+            return candidate;
+        }
+    }
+
+    return [];
+};
+
+const extractVerificationBuckets = (payload: any): {
+    pending: any[];
+    approved: any[];
+    rejected: any[];
+} => {
+    const requests = payload?.requests || payload?.data?.requests;
+
+    // New backend shape:
+    // {
+    //   requests: {
+    //     pending: [...],
+    //     approved: [...],
+    //     rejected: [...]
+    //   }
+    // }
+    if (requests && !Array.isArray(requests)) {
+        const pending = Array.isArray(requests.pending) ? requests.pending : [];
+        const approved = Array.isArray(requests.approved) ? requests.approved : [];
+        const rejected = Array.isArray(requests.rejected) ? requests.rejected : [];
+        return { pending, approved, rejected };
+    }
+
+    // Fallback for older payloads that return a single array.
+    const rawRequests = extractVerificationRequests(payload);
+    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
+        ? rawRequests.map(normalizeVerificationRequest)
+        : [];
+
+    return {
+        pending: normalizedRequests.filter((r) => r.verificationStatus === 'PENDING'),
+        approved: normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED'),
+        rejected: normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED'),
+    };
+};
 
 interface TeacherState {
     teachers: Teacher[];
@@ -48,7 +119,7 @@ interface TeacherState {
 
     // NEW: Verification Actions
     fetchVerificationRequests: (teacherId: string) => Promise<void>;
-    updateVerificationStatus: (requestId: string, status: VerificationDecision) => Promise<void>;
+    updateVerificationStatus: (requestId: string, status: VerificationDecision, remarks: string) => Promise<void>;
     getAllVerificationRequests: () => Promise<void>;
 }
 
@@ -142,18 +213,13 @@ export const useTeacherStore = create<TeacherState>()(
                     const response = await api.get(`/users/requests/pending`);
 
                     const payload = response.data || {};
-                    const rawRequests = payload.pendingVerifications || [];
-
-                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
-                        ? rawRequests.map(normalizeVerificationRequest)
-                        : [];
-
-                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
+                    const { pending } = extractVerificationBuckets(payload);
+                    const normalizedPending: VerificationRequest[] = pending.map(normalizeVerificationRequest);
                     // const approved = normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED');
                     // const rejected = normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED');
 
                     set({
-                        pendingRequests: pending,
+                        pendingRequests: normalizedPending,
                         // approvedRequests: approved,
                         // rejectedRequests: rejected
                     });
@@ -170,20 +236,16 @@ export const useTeacherStore = create<TeacherState>()(
                     const response = await api.get(`/users/requests/all-requests`);
 
                     const payload = response.data || {};
-                    const rawRequests = payload.pendingVerifications || [];
+                    const { pending, approved, rejected } = extractVerificationBuckets(payload);
 
-                    const normalizedRequests: VerificationRequest[] = Array.isArray(rawRequests)
-                        ? rawRequests.map(normalizeVerificationRequest)
-                        : [];
-
-                    const pending = normalizedRequests.filter((r) => r.verificationStatus === 'PENDING');
-                    const approved = normalizedRequests.filter((r) => r.verificationStatus === 'APPROVED');
-                    const rejected = normalizedRequests.filter((r) => r.verificationStatus === 'REJECTED');
+                    const normalizedPending: VerificationRequest[] = pending.map(normalizeVerificationRequest);
+                    const normalizedApproved: VerificationRequest[] = approved.map(normalizeVerificationRequest);
+                    const normalizedRejected: VerificationRequest[] = rejected.map(normalizeVerificationRequest);
 
                     set({
-                        pendingRequests: pending,
-                        approvedRequests: approved,
-                        rejectedRequests: rejected
+                        pendingRequests: normalizedPending,
+                        approvedRequests: normalizedApproved,
+                        rejectedRequests: normalizedRejected
                     });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch verification requests' });
@@ -192,14 +254,15 @@ export const useTeacherStore = create<TeacherState>()(
                 }
             }, // Optional: Implement if you want to fetch all requests regardless of status
 
-            updateVerificationStatus: async (requestId: string, status: VerificationDecision) => {
+            updateVerificationStatus: async (requestId: string, status: VerificationDecision, remarks: string) => {
                 set({ isLoading: true, error: null });
                 try {
+                    const payload = { remarks };
                     let response;
                     if (status === 'APPROVED') {
-                        response = await api.patch(`/users/requests/${requestId}/accept`);
+                        response = await api.patch(`/users/requests/${requestId}/accept`, payload);
                     } else {
-                        response = await api.patch(`/users/requests/${requestId}/reject`);
+                        response = await api.patch(`/users/requests/${requestId}/reject`, payload);
                     }
 
                     const updatedRequest = normalizeVerificationRequest(

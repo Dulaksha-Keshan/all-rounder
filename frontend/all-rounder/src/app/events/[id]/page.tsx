@@ -1,25 +1,45 @@
 'use client';
 import GoBackButton from '@/components/GoBackButton';
 import { gsap } from 'gsap';
-import { Award, BookOpen, Calendar, ChevronDown, ClipboardList, Clock, HelpCircle, Mail, MapPin, Minus, Plus, Share2, Trophy, Users } from 'lucide-react';
+import { Award, BookOpen, Calendar, ChevronDown, Clock, ExternalLink, MapPin, Minus, Plus, Share2, Trophy, Users } from 'lucide-react';
 import NextImage from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useEventStore } from '@/context/useEventStore';
 
 export default function EventDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const eventId = params.id as string;
 
-  const getEventById = useEventStore(state => state.getEventById);
-  const event = getEventById(eventId);
+  const event = useEventStore((state) => {
+    const fromList = state.events.find((item) => item._id === eventId);
+    if (fromList) return fromList;
+    if (state.activeEvent?._id === eventId) return state.activeEvent;
+    return undefined;
+  });
+  const fetchEventById = useEventStore((state) => state.fetchEventById);
+  const isLoading = useEventStore((state) => state.isLoading);
+  const error = useEventStore((state) => state.error);
+
+  const [expandedSections, setExpandedSections] = useState({
+    eligibility: true,
+    hosts: true,
+    why: false,
+    registration: true
+  });
 
   const titleRef = useRef<HTMLHeadingElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    if (titleRef.current && descRef.current) {
+    if (!eventId) return;
+    if (!event) {
+      void fetchEventById(eventId);
+    }
+  }, [eventId, event, fetchEventById]);
+
+  useEffect(() => {
+    if (event && titleRef.current && descRef.current) {
       // Animate title
       gsap.fromTo(titleRef.current,
         {
@@ -49,28 +69,7 @@ export default function EventDetailPage() {
         }
       );
     }
-  }, [eventId]);
-
-  if (!event) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-[#34365C] mb-4">Event Not Found</h1>
-          <GoBackButton
-            variant="solid"
-            className="px-6 py-3"
-          />
-        </div>
-      </div>
-    );
-  }
-
-  const [expandedSections, setExpandedSections] = useState({
-    requirements: false,
-    prizes: false,
-    why: false,
-    contact: false
-  });
+  }, [event]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -83,13 +82,46 @@ export default function EventDetailPage() {
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
   };
 
+  if (isLoading && !event) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-[#34365C] mb-2">Loading event...</h1>
+          <p className="text-gray-600">Please wait while we fetch the details.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-lg px-6">
+          <h1 className="text-4xl font-bold text-[#34365C] mb-4">Event Not Found</h1>
+          {error && <p className="text-gray-600 mb-6">{error}</p>}
+          <GoBackButton
+            variant="solid"
+            className="px-6 py-3"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const heroImage = event.attachments?.[0] || '/images/hero-1.jpg';
+  const hasRegistrationUrl = Boolean(event.registrationUrl);
+  const startDate = new Date(event.startDate);
+  const endDate = new Date(event.endDate);
+  const primaryHost = event.hosts?.find((host) => host.isPrimary);
+  const otherHosts = event.hosts?.filter((host) => !host.isPrimary) ?? [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Full Screen Hero Section */}
       <div className="relative h-screen w-full overflow-hidden">
         <div className="absolute inset-0">
           <NextImage
-            src={event.imageUrl || '/images/hero-1.jpg'}
+            src={heroImage}
             alt={event.title}
             fill
             priority
@@ -178,7 +210,7 @@ export default function EventDetailPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Start Date</p>
-                    <p className="font-semibold text-[#34365C]">{new Date(event.startDate).toLocaleDateString()}</p>
+                    <p className="font-semibold text-[#34365C]">{startDate.toLocaleDateString()}</p>
                   </div>
                 </div>
 
@@ -189,10 +221,20 @@ export default function EventDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">End Date</p>
-                      <p className="font-semibold text-[#34365C]">{new Date(event.endDate).toLocaleDateString()}</p>
+                      <p className="font-semibold text-[#34365C]">{endDate.toLocaleDateString()}</p>
                     </div>
                   </div>
                 )}
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#8387CC] flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Start Time</p>
+                    <p className="font-semibold text-[#34365C]">{startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                </div>
 
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-[#8387CC] flex items-center justify-center flex-shrink-0">
@@ -206,16 +248,22 @@ export default function EventDetailPage() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
-                {event.status === "Registered" ? (
+                {hasRegistrationUrl ? (
+                  <a
+                    href={event.registrationUrl!}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full px-6 py-3 bg-[#4169E1] text-white rounded-lg hover:bg-[#8387CC] transition-colors font-semibold text-base shadow-lg flex items-center justify-center gap-2"
+                  >
+                    Register Now
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                ) : (
                   <button
                     disabled
-                    className="w-full px-6 py-3 bg-green-100 text-green-700 rounded-lg font-semibold text-base cursor-not-allowed"
+                    className="w-full px-6 py-3 bg-gray-200 text-gray-600 rounded-lg font-semibold text-base cursor-not-allowed"
                   >
-                    ✓ Already Registered
-                  </button>
-                ) : (
-                  <button className="w-full px-6 py-3 bg-[#4169E1] text-white rounded-lg hover:bg-[#8387CC] transition-colors font-semibold text-base shadow-lg">
-                    Register Now
+                    Registration Link Not Available
                   </button>
                 )}
 
@@ -228,73 +276,79 @@ export default function EventDetailPage() {
 
             {/* Right Column - 3 sections stacked */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Requirements */}
-              {event.requirements && event.requirements.length > 0 && (
+              {/* Eligibility */}
+              {event.eligibility && (
                 <div className="bg-purple-50 rounded-xl border-2 border-[#DCD0FF] overflow-hidden transition-all hover:shadow-lg hover:border-[#8387CC]">
                   <button
-                    onClick={() => toggleSection('requirements')}
+                    onClick={() => toggleSection('eligibility')}
                     className="w-full px-6 py-5 flex items-center justify-between hover:bg-purple-100/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-[#8387CC] flex items-center justify-center">
-                        <ClipboardList className="w-6 h-6 text-white" />
+                        <Award className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-[#34365C]">Requirements</h3>
+                      <h3 className="text-xl font-bold text-[#34365C]">Eligibility</h3>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.requirements ?
+                      {expandedSections.eligibility ?
                         <Minus className="w-5 h-5 text-white" /> :
                         <Plus className="w-5 h-5 text-white" />
                       }
                     </div>
                   </button>
 
-                  {expandedSections.requirements && (
+                  {expandedSections.eligibility && (
                     <div className="px-6 pb-6 pt-2 bg-white">
-                      <ul className="space-y-3">
-                        {event.requirements.map((req, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-gray-700">
-                            <Award className="w-5 h-5 text-[#8387CC] mt-1 flex-shrink-0" />
-                            <span>{req}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">{event.eligibility}</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Prizes */}
-              {event.prizes && event.prizes.length > 0 && (
+              {/* Hosts */}
+              {event.hosts && event.hosts.length > 0 && (
                 <div className="bg-purple-50 rounded-xl border-2 border-[#DCD0FF] overflow-hidden transition-all hover:shadow-lg hover:border-[#8387CC]">
                   <button
-                    onClick={() => toggleSection('prizes')}
+                    onClick={() => toggleSection('hosts')}
                     className="w-full px-6 py-5 flex items-center justify-between hover:bg-purple-100/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-[#8387CC] flex items-center justify-center">
-                        <Trophy className="w-6 h-6 text-white" />
+                        <Users className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-[#34365C]">Prizes & Recognition</h3>
+                      <h3 className="text-xl font-bold text-[#34365C]">Hosts</h3>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.prizes ?
+                      {expandedSections.hosts ?
                         <Minus className="w-5 h-5 text-white" /> :
                         <Plus className="w-5 h-5 text-white" />
                       }
                     </div>
                   </button>
 
-                  {expandedSections.prizes && (
+                  {expandedSections.hosts && (
                     <div className="px-6 pb-6 pt-2 bg-white">
-                      <ul className="space-y-3">
-                        {event.prizes.map((prize, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-gray-700">
-                            <Trophy className="w-5 h-5 text-[#4169E1] mt-1 flex-shrink-0" />
-                            <span>{prize}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="space-y-3">
+                        {primaryHost && (
+                          <div className="p-3 rounded-lg border border-green-200 bg-green-50">
+                            <p className="text-xs font-semibold uppercase text-green-700 mb-1">Primary Host</p>
+                            <p className="text-gray-800 font-medium">{primaryHost.hostName}</p>
+                            <p className="text-xs text-gray-600 capitalize">{primaryHost.hostType}</p>
+                          </div>
+                        )}
+
+                        {otherHosts.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase text-gray-600">Co-hosts</p>
+                            {otherHosts.map((host) => (
+                              <div key={host.id || `${host.hostType}-${host.hostId}`} className="p-3 rounded-lg border border-[#DCD0FF] bg-[#F8F5FF]">
+                                <p className="text-gray-800 font-medium">{host.hostName}</p>
+                                <p className="text-xs text-gray-600 capitalize">{host.hostType}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -346,43 +400,45 @@ export default function EventDetailPage() {
                 )}
               </div>
 
-              {/* Need Help */}
-              {event.contactEmail && (
-                <div className="bg-purple-50 rounded-xl border-2 border-[#DCD0FF] overflow-hidden transition-all hover:shadow-lg hover:border-[#8387CC]">
-                  <button
-                    onClick={() => toggleSection('contact')}
-                    className="w-full px-6 py-5 flex items-center justify-between hover:bg-purple-100/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-[#8387CC] flex items-center justify-center">
-                        <HelpCircle className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-[#34365C]">Need Help?</h3>
+              {/* Registration */}
+              <div className="bg-purple-50 rounded-xl border-2 border-[#DCD0FF] overflow-hidden transition-all hover:shadow-lg hover:border-[#8387CC]">
+                <button
+                  onClick={() => toggleSection('registration')}
+                  className="w-full px-6 py-5 flex items-center justify-between hover:bg-purple-100/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-[#8387CC] flex items-center justify-center">
+                      <ExternalLink className="w-6 h-6 text-white" />
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
-                      {expandedSections.contact ?
-                        <Minus className="w-5 h-5 text-white" /> :
-                        <Plus className="w-5 h-5 text-white" />
-                      }
-                    </div>
-                  </button>
+                    <h3 className="text-xl font-bold text-[#34365C]">Registration</h3>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#8387CC] flex items-center justify-center">
+                    {expandedSections.registration ?
+                      <Minus className="w-5 h-5 text-white" /> :
+                      <Plus className="w-5 h-5 text-white" />
+                    }
+                  </div>
+                </button>
 
-                  {expandedSections.contact && (
-                    <div className="px-6 pb-6 pt-2 bg-white">
-                      <p className="text-gray-600 mb-4">
-                        Have questions about this event? Contact the organizers.
-                      </p>
+                {expandedSections.registration && (
+                  <div className="px-6 pb-6 pt-2 bg-white">
+                    {hasRegistrationUrl ? (
                       <a
-                        href={`mailto:${event.contactEmail}`}
+                        href={event.registrationUrl!}
+                        target="_blank"
+                        rel="noreferrer"
                         className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#8387CC] text-[#8387CC] rounded-lg hover:bg-[#8387CC] hover:text-white transition-colors font-medium"
                       >
-                        <Mail className="w-4 h-4" />
-                        Contact Organizers
+                        Open Registration Page
+                        <ExternalLink className="w-4 h-4" />
                       </a>
-                    </div>
-                  )}
-                </div>
-              )}
+                    ) : (
+                      <p className="text-gray-600">Registration URL has not been provided for this event yet.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>

@@ -7,15 +7,17 @@ import { notFound } from 'next/navigation';
 import { useTeacherStore } from '@/context/useTeacherStore';
 import { useSchoolStore } from '@/context/useSchoolStore';
 import { useHomeStore } from '@/context/useHomeStore';
-import Feed from '@/app/home/_components/Feed';
 import { usePostStore } from '@/context/usePostStore';
 import { useUserStore } from '@/context/useUserStore';
 import PostCard from '@/app/home/_components/PostCard';
+import ProfilePostsGallery from '@/app/user/_components/ProfilePostsGallery';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { PostEntity } from '@/app/_type/type';
 import ChangePassword from '../../_components/ChangePassword';
 import MyAccount from '../../_components/MyAccount';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+
+const EMPTY_POST_IDS: string[] = [];
 
 interface TeacherProfileProps {
   params: Promise<{
@@ -34,7 +36,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const myPostIds = usePostStore((state) => state.myPostIds);
   const fetchMyPosts = usePostStore((state) => state.fetchMyPosts);
   const fetchUserPosts = usePostStore((state) => state.fetchUserPosts);
-  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? []);
+  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? EMPTY_POST_IDS);
   const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
 
   // We will add these to your teacher store in the next step!
@@ -136,7 +138,8 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
     action: 'APPROVED' | 'REJECTED' | null;
     requestId: string | null;
     requestLabel: string;
-  }>({ isOpen: false, action: null, requestId: null, requestLabel: "" });
+    remarks: string;
+  }>({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" });
 
   // Keep edit form in sync
   useEffect(() => {
@@ -187,20 +190,23 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
 
   // Open the confirmation modal for Verification
   const handleVerificationAction = (requestId: string, requestLabel: string, action: 'APPROVED' | 'REJECTED') => {
-    setVerificationModal({ isOpen: true, action, requestId, requestLabel });
+    setVerificationModal({ isOpen: true, action, requestId, requestLabel, remarks: "" });
   };
 
   // Submit the verification to backend
   const confirmVerificationAction = async () => {
     if (verificationModal.requestId && verificationModal.action && updateVerificationStatus) {
       try {
-        await updateVerificationStatus(verificationModal.requestId, verificationModal.action);
+        await updateVerificationStatus(
+          verificationModal.requestId,
+          verificationModal.action,
+          verificationModal.remarks
+        );
         // The store action should handle updating the local arrays (moving from pending to processed)
+        setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" });
       } catch (error) {
         console.error("Failed to update verification status:", error);
         alert("Failed to process request.");
-      } finally {
-        setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" });
       }
     }
   };
@@ -411,10 +417,9 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                 </p>
               </div>
 
-              <Feed
+              <ProfilePostsGallery
                 posts={profilePosts}
                 isLoading={isFetchingPosts}
-                showCreator={false}
                 emptyMessage={isOwnProfile ? "You haven't posted anything yet." : "No posts published yet."}
               />
             </div>
@@ -453,20 +458,21 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                           <Clock className="w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-[#34365C] text-lg">Request #{String(req.id || '').slice(-6).toUpperCase()}</h4>
+                          <h4 className="font-bold text-[#34365C] text-lg">{req.userName || `Request #${String(req.id || '').slice(-6).toUpperCase()}`}</h4>
                           <p className="text-sm text-gray-600">{req.verificationMethod} • Requested: {formatDate(req.createdAt)}</p>
-                          {req.remarks && <p className="text-xs text-gray-500 mt-1">Remarks: {req.remarks}</p>}
+                          <p className="text-xs text-gray-500 mt-1">Approver: {req.approverName || 'Not assigned yet'}</p>
+                          <p className="text-xs text-gray-500 mt-1">Remarks: {req.remarks || 'No remarks'}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 w-full md:w-auto">
                         <button
-                          onClick={() => handleVerificationAction(req.id, `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'APPROVED')}
+                          onClick={() => handleVerificationAction(req.id, req.userName || `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'APPROVED')}
                           className="flex-1 md:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold transition-all text-sm flex justify-center items-center gap-2"
                         >
                           <CheckCircle2 className="w-4 h-4" /> Accept
                         </button>
                         <button
-                          onClick={() => handleVerificationAction(req.id, `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'REJECTED')}
+                          onClick={() => handleVerificationAction(req.id, req.userName || `Request #${String(req.id || '').slice(-6).toUpperCase()}`, 'REJECTED')}
                           className="flex-1 md:flex-none px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 font-bold transition-all text-sm flex justify-center items-center gap-2"
                         >
                           <XCircle className="w-4 h-4" /> Reject
@@ -494,8 +500,10 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
                           {req.verificationStatus === 'APPROVED' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                         </div>
                         <div>
-                          <h4 className="font-bold text-[#34365C]">Request #{String(req.id || '').slice(-6).toUpperCase()}</h4>
+                          <h4 className="font-bold text-[#34365C]">{req.userName || `Request #${String(req.id || '').slice(-6).toUpperCase()}`}</h4>
                           <p className="text-sm text-gray-500">{req.verificationMethod} • Processed: {formatDate(req.updatedAt || req.createdAt)}</p>
+                          <p className="text-xs text-gray-500 mt-1">Approver: {req.approverName || 'No approver'}</p>
+                          <p className="text-xs text-gray-500 mt-1">Remarks: {req.remarks || 'No remarks'}</p>
                         </div>
                       </div>
                       <div className="w-full md:w-auto text-right">
@@ -653,7 +661,11 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         <ConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={() => draftToDelete && deleteDraft(draftToDelete)}
+          onConfirm={() => {
+            if (draftToDelete) {
+              return deleteDraft(draftToDelete);
+            }
+          }}
           title="Delete Draft"
           message="Are you sure you want to delete this draft? This action cannot be undone."
           confirmLabel="Delete"
@@ -664,13 +676,21 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         {/* NEW: Verification Action Modal */}
         <ConfirmationModal
           isOpen={verificationModal.isOpen}
-          onClose={() => setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" })}
+          onClose={() =>
+            setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" })
+          }
           onConfirm={confirmVerificationAction}
           title={`${verificationModal.action === 'APPROVED' ? 'Accept' : 'Reject'} Verification`}
           message={`Are you sure you want to ${verificationModal.action === 'APPROVED' ? 'approve' : 'reject'} ${verificationModal.requestLabel}?`}
           confirmLabel={verificationModal.action === 'APPROVED' ? 'Yes, Accept' : 'Yes, Reject'}
           cancelLabel="Cancel"
           variant={verificationModal.action === 'APPROVED' ? 'success' : 'danger'}
+          showRemarksField
+          remarksValue={verificationModal.remarks}
+          onRemarksChange={(remarks) => setVerificationModal((prev) => ({ ...prev, remarks }))}
+          remarksPlaceholder="Enter remarks for this decision"
+          remarksRequired
+          closeOnConfirm={false}
         />
       </div>
     </div>

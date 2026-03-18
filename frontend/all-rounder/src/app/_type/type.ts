@@ -163,37 +163,85 @@ export interface Club {
   // Relations (kept separate from backend schema metadata as requested)
 }
 
-// Main Event interface
+// ==================== EVENT TYPES ====================
+
+// Main Event interface - NEW SHAPE
 export interface Event {
-  _id: string;
+  // Core identifiers
+  _id: string;       // Normalized from backend "id" field
+  
+  // Required event details
   title: string;
   description: string;
   category: string;
   eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
+  
+  // Date and location
   startDate: Date | string; // Allow string for frontend handling
   endDate: Date | string;
   location: string;
+  
+  // Organizers and hosts
   organizer: string;
-  hosts?: Host[];
+  createdBy: string;
+  hosts?: Host[]; // Co-hosts and primary host
+  
+  // Event details
   eligibility: string;
-  registrationUrl?: string;
+  registrationUrl?: string | null;
   isOnline: boolean;
   visibility: "public" | "private";
-  createdBy: string;
+  
+  // Media and attachments
+  attachments: string[]; // R2 / storage URLs
+  
+  // Status and metadata
   isDeleted?: boolean;
   createdAt: Date | string;
-  updatedAt: Date | string;
+  updatedAt?: Date | string; // Not returned on create
 
-  // UI/Legacy metadata (kept for compatibility if needed, else optional)
-  imageUrl?: string;
-  status?: "Registered" | "Open";
-  requirements?: string[];
-  prizes?: string[];
-  contactEmail?: string;
-  time?: string;
-  organizerId?: string; // Legacy support
-  organizerType?: OrganizerType; // Legacy support
+  // ==================== DEPRECATED LEGACY FIELDS ====================
+  // The following fields are legacy/optional and should not be used in new features
+  // Prefer derived values instead (e.g., calculate time from startDate)
+  imageUrl?: string;           // DEPRECATED: Use attachments[0] instead
+  time?: string;               // DEPRECATED: Derive from startDate
+  status?: "Registered" | "Open";              // DEPRECATED: Not part of new contract
+  requirements?: string[];     // DEPRECATED: Use description
+  prizes?: string[];           // DEPRECATED: Not part of new contract
+  contactEmail?: string;       // DEPRECATED: Use organizer contact info
+  organizerId?: string;        // DEPRECATED: Use createdBy
+  organizerType?: OrganizerType; // DEPRECATED: Determine from hosts
 }
+
+// Input type for creating/editing an event (pre-FormData)
+export interface CreateEventHostInput {
+  hostType: "school" | "organization";
+  hostId: string;
+  hostName: string;
+  isPrimary: boolean;
+}
+
+export interface CreateEventInput {
+  // Required fields
+  title: string;
+  description: string;
+  category: string;
+  eventType: "workshop" | "competition" | "seminar" | "webinar" | "conference" | "other";
+  startDate: string; // ISO date string
+  endDate: string;   // ISO date string
+  location: string;
+  organizer: string;
+  eligibility: string;
+  // Optional fields
+  registrationUrl?: string;
+  isOnline?: boolean;
+  visibility?: "public" | "private";
+  hosts?: CreateEventHostInput[];
+  attachments?: File[]; // File objects for upload
+}
+
+// All fields optional — send only what changed
+export type UpdateEventInput = Partial<CreateEventInput>;
 
 // ==================== POST TYPES (Backend Contract Aligned) ====================
 // Normalized post entity - single frontend shape across all API responses

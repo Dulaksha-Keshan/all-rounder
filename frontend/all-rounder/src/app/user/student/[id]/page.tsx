@@ -5,7 +5,6 @@ import NextImage from 'next/image';
 import { notFound } from 'next/navigation';
 // import GoBackButton from '@/components/GoBackButton'; // Uncomment if needed
 import { useHomeStore } from '@/context/useHomeStore';
-import Feed from '@/app/home/_components/Feed';
 import { useUserStore } from '@/context/useUserStore';
 import { useStudentStore } from '@/context/useStudentStore';
 import { usePostStore } from '@/context/usePostStore';
@@ -13,8 +12,11 @@ import { useSchoolStore } from '@/context/useSchoolStore';
 import { useSkillStore } from '@/context/useSkillStore';
 // import { useEventStore } from '@/context/useEventStore';
 import PostCard from '@/app/home/_components/PostCard';
+import ProfilePostsGallery from '@/app/user/_components/ProfilePostsGallery';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { PostEntity } from '@/app/_type/type';
+
+const EMPTY_POST_IDS: string[] = [];
 
 interface StudentProfileProps {
   params: Promise<{ id: string; }>;
@@ -32,7 +34,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const myPostIds = usePostStore((state) => state.myPostIds);
   const fetchMyPosts = usePostStore((state) => state.fetchMyPosts);
   const fetchUserPosts = usePostStore((state) => state.fetchUserPosts);
-  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? []);
+  const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? EMPTY_POST_IDS);
   const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
   const allSkills = useSkillStore((state) => state.allSkills);
   const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
@@ -396,10 +398,9 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                 </p>
               </div>
 
-              <Feed
+              <ProfilePostsGallery
                 posts={profilePosts}
                 isLoading={isFetchingPosts}
-                showCreator={false}
                 emptyMessage={isOwnProfile ? "You haven't posted anything yet." : "No posts published yet."}
               />
             </div>
@@ -551,7 +552,10 @@ export default function StudentProfile({ params }: StudentProfileProps) {
         <ConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={() => draftToDelete && deleteDraft(draftToDelete)}
+          onConfirm={() => {
+            if (!draftToDelete) return;
+            return deleteDraft(draftToDelete);
+          }}
           title="Delete Draft"
           message="Are you sure you want to delete this draft? This action cannot be undone."
           confirmLabel="Delete"

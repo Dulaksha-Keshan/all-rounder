@@ -191,7 +191,7 @@ export default function SchoolSignup() {
         // Base Auth Profile Fields
         payload.append("name", `${formData.firstName} ${formData.lastName}`.trim());
         payload.append("email", formData.email);
-        payload.append("date_of_birth", formData.dateOfBirth);
+        payload.append("dateOfBirth", formData.dateOfBirth);
         if (formData.phone) payload.append("contact_number", formData.phone);
         
         // System Routing Fields
@@ -211,7 +211,7 @@ export default function SchoolSignup() {
 
         // Append File Array exactly as Multer expects: upload.array('attachments')
         uploadedFiles.forEach((file) => {
-          payload.append("attachments", file); 
+          payload.append("verificationAttachment", file); 
         });
 
         // Submit to correct Zustand action
@@ -456,15 +456,6 @@ export default function SchoolSignup() {
 
                 <div className="p-4 border rounded-lg mb-4" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
                   <p className="text-sm text-gray-700">To gain authorized access to manage your school's portal, please upload proof of administrative employment:</p>
-                </div>
-
-                <div>
-                  <label className={labelClass}>Document Type *</label>
-                  <select value={formData.verificationType} onChange={(e) => updateField("verificationType", e.target.value)} className={inputClass} style={inputStyle} required>
-                    <option value="admin-id">Admin Staff ID Card</option>
-                    <option value="appointment-letter">Official Appointment Letter</option>
-                    <option value="authorization-letter">School Board Authorization Letter</option>
-                  </select>
                 </div>
 
                 <div>

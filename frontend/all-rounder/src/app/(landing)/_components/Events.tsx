@@ -26,7 +26,7 @@ export function EventDetails() {
 
   // Auto-play functionality
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || events.length === 0) return;
 
     const interval = setInterval(() => {
       setDirection(1);
@@ -136,6 +136,10 @@ export function EventDetails() {
   };
 
   const currentEvent = events[currentIndex];
+
+  if (totalEvents === 0 || !currentEvent) {
+    return null;
+  }
 
   // Category color mapping
   const categoryColors: { [key: string]: string } = {

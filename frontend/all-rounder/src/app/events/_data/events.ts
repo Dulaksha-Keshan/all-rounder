@@ -20,7 +20,7 @@ export const Events: Event[] = [
     isOnline: true,
     visibility: "public",
     createdBy: "user_1",
-    imageUrl: '/images/Events/Event1.jpeg',
+    attachments: ['/images/Events/Event1.jpeg'],
     status: "Open",
     requirements: [
       "Students must be enrolled in grades 9-13",
@@ -52,7 +52,7 @@ export const Events: Event[] = [
     isOnline: true,
     visibility: "public",
     createdBy: "user_2",
-    imageUrl: '/images/Events/Event2.jpeg',
+    attachments: ['/images/Events/Event2.jpeg'],
     status: "Open",
     requirements: [
       "Teams of 2-3 speakers",
@@ -83,7 +83,7 @@ export const Events: Event[] = [
     isOnline: true,
     visibility: "public",
     createdBy: "user_3",
-    imageUrl: '/images/Events/Event3.jpeg',
+    attachments: ['/images/Events/Event3.jpeg'],
     status: "Open",
     requirements: [
       "Original artwork only (no plagiarism)",
@@ -114,7 +114,7 @@ export const Events: Event[] = [
     isOnline: true,
     visibility: "public",
     createdBy: "user_4",
-    imageUrl: '/images/Events/Event4.jpeg',
+    attachments: ['/images/Events/Event4.jpeg'],
     status: "Open",
     requirements: [
       "Basic computer literacy required",
@@ -145,7 +145,7 @@ export const Events: Event[] = [
     isOnline: false,
     visibility: "public",
     createdBy: "user_5",
-    imageUrl: '/images/Events/Event5.jpeg',
+    attachments: ['/images/Events/Event5.jpeg'],
     status: "Open",
     requirements: [
       "Open to all school students",
@@ -176,7 +176,7 @@ export const Events: Event[] = [
     isOnline: true,
     visibility: "public",
     createdBy: "user_6",
-    imageUrl: '/images/Events/Event6.jpeg',
+    attachments: ['/images/Events/Event6.jpeg'],
     status: "Open",
     requirements: [
       "School students grades 9-13",

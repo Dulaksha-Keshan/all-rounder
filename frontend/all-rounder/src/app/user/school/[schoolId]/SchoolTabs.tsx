@@ -98,7 +98,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
   };
 
   const getRequestDisplayName = (request: any) => {
-    return request.teacherName || request.teacher?.name || request.user?.name || "Teacher";
+    return request.userName || request.teacherName || request.teacher?.name || request.user?.name || "Teacher";
   };
 
   const getRequestDisplayEmail = (request: any) => {
@@ -208,6 +208,12 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                             <p className="text-xs text-gray-400 mt-1">
                               Requested on {formatDate(request.createdAt)}
                             </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Approver: {request.approverName || "Not assigned yet"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Remarks: {request.remarks || "No remarks"}
+                            </p>
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -263,6 +269,12 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                             <p className="text-sm text-gray-500">{getRequestDisplayEmail(request)}</p>
                             <p className="text-xs text-gray-400 mt-1">
                               Updated on {formatDate(request.updatedAt || request.createdAt)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Approver: {request.approverName || "No approver"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Remarks: {request.remarks || "No remarks"}
                             </p>
                           </div>
 

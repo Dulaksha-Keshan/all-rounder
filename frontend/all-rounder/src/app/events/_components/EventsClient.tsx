@@ -1,13 +1,25 @@
 'use client';
-import { useState } from 'react';
-import { Search, Filter, BarChart2 } from 'lucide-react';
-import { Event } from '@/app/_type/type';
+import { useEffect, useState } from 'react';
+import { Search, Filter, BarChart2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useEventStore } from '@/context/useEventStore';
 import { EventList } from './EventList';
 
-export default function EventsClient({ events }: { events: Event[] }) {
+const LIMIT = 10;
+
+export default function EventsClient() {
+  const { events, pagination, isLoading, fetchEvents } = useEventStore();
   const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
+
+  useEffect(() => {
+    fetchEvents(1, LIMIT);
+  }, []);
+
+  const handlePageChange = (newPage: number) => {
+    fetchEvents(newPage, LIMIT);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const filteredEvents = events.filter(event => {
     const matchesTab = activeTab === 'all' ||
@@ -17,9 +29,8 @@ export default function EventsClient({ events }: { events: Event[] }) {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const eventCategory = event.category;
     const matchesCategory = selectedCategory === 'All Categories' ||
-      eventCategory === selectedCategory;
+      event.category === selectedCategory;
 
     return matchesTab && matchesSearch && matchesCategory;
   });
@@ -125,7 +136,7 @@ export default function EventsClient({ events }: { events: Event[] }) {
                 </div>
                 <div className="space-y-4">
                   <div className="bg-[var(--gray-50)] rounded-xl p-4 border border-[var(--gray-200)] transition-all hover:shadow-md">
-                    <div className="text-2xl font-bold text-[var(--text-main)]">{events.length}</div>
+                    <div className="text-2xl font-bold text-[var(--text-main)]">{pagination.total || events.length}</div>
                     <div className="text-xs text-[var(--text-muted)] font-medium">Total Events Available</div>
                   </div>
                   <div className="bg-[var(--primary-blue)]/10 rounded-xl p-4 border border-[var(--primary-blue)]/20 transition-all hover:shadow-md">
@@ -159,7 +170,48 @@ export default function EventsClient({ events }: { events: Event[] }) {
               </div>
             </div>
 
-            <EventList events={filteredEvents} />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <Loader2 className="w-10 h-10 text-[var(--primary-purple)] animate-spin" />
+              </div>
+            ) : (
+              <EventList events={filteredEvents} />
+            )}
+
+            {/* Pagination */}
+            {pagination.pages > 1 && !isLoading && (
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--white)] text-[var(--text-main)] font-medium text-sm hover:bg-[var(--secondary-light-lavender)]/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </button>
+
+                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => handlePageChange(p)}
+                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all shadow-sm ${
+                      p === pagination.page
+                        ? 'bg-[var(--primary-blue)] text-white shadow-lg scale-105'
+                        : 'bg-[var(--white)] text-[var(--text-main)] border border-[var(--gray-200)] hover:bg-[var(--secondary-light-lavender)]/20'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.pages}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl border border-[var(--gray-200)] bg-[var(--white)] text-[var(--text-main)] font-medium text-sm hover:bg-[var(--secondary-light-lavender)]/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>

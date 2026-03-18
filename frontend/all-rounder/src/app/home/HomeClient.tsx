@@ -1,6 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef } from "react";
+import { onIdTokenChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 import HomeStats from "./_components/HomeStats";
 import QuickActions from "./_components/QuickActions";
@@ -16,8 +18,10 @@ import { useTeacherStore } from "@/context/useTeacherStore";
 import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
+import { auth } from "@/lib/firebase";
 
 function HomeClientContent() {
+    const router = useRouter();
     const feedItems = usePostStore((state) => state.feedItems);
     const postsById = usePostStore((state) => state.postsById);
     const isFetchingFeed = usePostStore((state) => state.isFetchingFeed);
@@ -37,9 +41,29 @@ function HomeClientContent() {
 
     // Home should load feed; keep my-posts fetch for profile overview data.
     useEffect(() => {
-        fetchFeed();
-        fetchMyPosts();
+        void fetchFeed(1, 10);
+        void fetchMyPosts();
     }, [fetchFeed, fetchMyPosts]);
+
+    useEffect(() => {
+        const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+            if (!firebaseUser) {
+                router.replace("/");
+                return;
+            }
+
+            try {
+                const token = await firebaseUser.getIdToken();
+                if (!token) {
+                    router.replace("/");
+                }
+            } catch {
+                router.replace("/");
+            }
+        });
+
+        return () => unsubscribe();
+    }, [router]);
 
     // Convert feed items to post entities only.
     const allPosts = useMemo(

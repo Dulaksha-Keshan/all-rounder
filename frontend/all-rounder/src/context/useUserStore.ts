@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Student, Teacher, Organization } from '@/app/_type/type';
 import api from '@/lib/axios';
-import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithPopup, signInWithEmailAndPassword, onIdTokenChanged } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { usePostStore } from "@/context/usePostStore";
@@ -81,6 +81,27 @@ interface UserState {
     acceptFollowRequest: (userId: string) => Promise<void>;
     declineFollowRequest: (userId: string) => Promise<void>;
 }
+
+const clearAuthState = () => {
+    useUserStore.setState({
+        currentUser: null,
+        userRole: null,
+        isAuthenticated: false,
+        error: null,
+        following: [],
+        followers: [],
+        followRequests: [],
+        sentRequests: [],
+        isLoading: false
+    });
+
+    useSchoolStore.getState().setActiveSchool(null);
+    usePostStore.getState().clearAll();
+
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('user-storage');
+    }
+};
 
 export const useUserStore = create<UserState>()(
     persist(
@@ -272,36 +293,14 @@ export const useUserStore = create<UserState>()(
                 try { await auth.signOut(); }
                 catch (err) { console.warn("Firebase logout issue:", err); }
 
-                // THIS WILL RUN 100% OF THE TIME
-                set({
-                    currentUser: null,
-                    userRole: null,
-                    isAuthenticated: false,
-                    error: null,
-                    following: [],
-                    followers: [],
-                    followRequests: [],
-                    sentRequests: [],
-                    isLoading: false
-                });
-
-                // Clear the school store
-                useSchoolStore.getState().setActiveSchool(null);
-
-                // Clear the post/feed store so the next user starts with a clean feed
-                usePostStore.getState().clearAll();
-
-                // Bulletproof fallback: manually clear the persistence cache
-                // just in case Zustand's middleware acts up during the render cycle
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('user-storage');
-                }
+                // Keep Zustand auth state in sync with Firebase session state.
+                clearAuthState();
             },
 
             updateProfile: async (updates) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await api.put('/user/profile', updates);
+                    const response = await api.patch('/users/', updates);
                     const updatedUser = response.data;
 
                     set((state) => ({
@@ -392,3 +391,38 @@ export const useUserStore = create<UserState>()(
         }
     )
 );
+
+let isFirebaseAuthSyncInitialized = false;
+
+const initializeFirebaseAuthSync = () => {
+    if (typeof window === 'undefined' || isFirebaseAuthSyncInitialized) {
+        return;
+    }
+
+    isFirebaseAuthSyncInitialized = true;
+
+    onIdTokenChanged(auth, async (firebaseUser) => {
+        if (!firebaseUser) {
+            clearAuthState();
+            return;
+        }
+
+        try {
+            const token = await firebaseUser.getIdToken();
+            if (!token) {
+                clearAuthState();
+                return;
+            }
+
+            const state = useUserStore.getState();
+            if (!state.isAuthenticated || !state.currentUser) {
+                await state.fetchBackendProfile();
+            }
+        } catch (error) {
+            console.warn("Firebase token sync failed, clearing local auth state:", error);
+            clearAuthState();
+        }
+    });
+};
+
+initializeFirebaseAuthSync();

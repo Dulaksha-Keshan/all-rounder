@@ -6,6 +6,7 @@ import DOMPurify from 'dompurify';
 import { ThumbsUp, MessageCircle, Share2, Trash2, Send, User, MoreHorizontal, Edit2 } from 'lucide-react';
 import gsap from 'gsap';
 import ConfirmationModal from "@/components/ConfirmationModal";
+import RichTextEditor from './RichTextEditor';
 import { PostEntity, CommentEntity } from '@/app/_type/type';
 import { usePostStore } from '@/context/usePostStore';
 import { useSkillStore } from '@/context/useSkillStore';
@@ -15,6 +16,14 @@ const EMPTY_COMMENTS: CommentEntity[] = [];
 const HTML_TAG_REGEX = /<\/?[a-z][\s\S]*>/i;
 
 const hasHtmlMarkup = (value: string) => HTML_TAG_REGEX.test(value);
+
+const stripRichText = (value: string) => {
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
 
 const sanitizePostContent = (value: string) => {
   return DOMPurify.sanitize(value, {
@@ -70,6 +79,8 @@ export default function PostCard({
   const sanitizedContent = useMemo(() => {
     return hasHtmlMarkup(post.content) ? sanitizePostContent(post.content) : "";
   }, [post.content]);
+  const normalizedEditedContent = edits.content.trim();
+  const isEditedContentEmpty = stripRichText(normalizedEditedContent).length === 0;
 
   // Animate card on mount
   useEffect(() => {
@@ -109,10 +120,10 @@ export default function PostCard({
   };
 
   const handleEditSave = () => {
-    if (onEdit && edits.content.trim()) {
+    if (onEdit && !isEditedContentEmpty) {
       const formData = new FormData();
       formData.append('title', edits.title);
-      formData.append('content', edits.content);
+      formData.append('content', normalizedEditedContent);
       onEdit(post.id, formData);
       setIsEditing(false);
     }
@@ -190,10 +201,9 @@ export default function PostCard({
               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               placeholder="Post title..."
             />
-            <textarea
+            <RichTextEditor
               value={edits.content}
-              onChange={(e) => setEdits({ ...edits, content: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 min-h-[100px] resize-y"
+              onChange={(value) => setEdits({ ...edits, content: value })}
               placeholder="Edit your post..."
             />
             <div className="flex gap-2 justify-end">
@@ -205,7 +215,7 @@ export default function PostCard({
               </button>
               <button
                 onClick={handleEditSave}
-                disabled={!edits.content.trim()}
+                disabled={isEditedContentEmpty}
                 className="px-4 py-2 text-sm font-medium bg-blue-500 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save
