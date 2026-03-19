@@ -15,6 +15,15 @@ export default function DashboardPage() {
             return;
         }
 
+        const schoolId =
+            (currentUser as any).school_id ||
+            (currentUser as any).school?.school_id ||
+            (currentUser as any).schoolId;
+        const orgId =
+            (currentUser as any).organization_id ||
+            (currentUser as any).organization?.organization_id ||
+            (currentUser as any).organizationId;
+
         switch (userRole) {
             case "STUDENT":
                 // Students might not have a dashboard, send to home or profile
@@ -25,10 +34,18 @@ export default function DashboardPage() {
                 break;
             case "SCHOOL_ADMIN":
                 // Based on structure: /dashboard/schools/[schoolId]
-                router.push(`/dashboard/schools/${(currentUser as any).school_id}`);
+                if (schoolId) {
+                    router.push(`/dashboard/schools/${schoolId}`);
+                } else {
+                    router.push("/home");
+                }
                 break;
             case "ORG_ADMIN":
-                router.push(`/dashboard/orgs/${(currentUser as any).organization_id}`);
+                if (orgId) {
+                    router.push(`/dashboard/orgs/${orgId}`);
+                } else {
+                    router.push("/home");
+                }
                 break;
             default:
                 router.push("/home");

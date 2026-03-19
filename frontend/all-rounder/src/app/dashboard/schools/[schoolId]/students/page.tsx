@@ -8,7 +8,6 @@ import Table from "@/app/dashboard/_components/Table";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 import GoBackButton from "@/components/GoBackButton";
-import { useStudentStore } from "@/context/useStudentStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
@@ -28,27 +27,42 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
         : 1;
     const search = searchParams.get("search")?.toLowerCase() || "";
 
-    const { students } = useStudentStore();
-    const { getSchoolById } = useSchoolStore();
+    const {
+        getSchoolById,
+        fetchSchools,
+        schools,
+        schoolStudents,
+        fetchSchoolStudents,
+        isLoading,
+    } = useSchoolStore();
+
+    useEffect(() => {
+        if (!schools.length) {
+            void fetchSchools();
+        }
+        void fetchSchoolStudents(schoolId);
+    }, [schools.length, fetchSchools, fetchSchoolStudents, schoolId]);
 
     // Find the school - show 404 if not found
     const school = getSchoolById(schoolId);
+
+    if (isLoading && !school) {
+        return <div className="p-6 text-[var(--text-main)]">Loading students...</div>;
+    }
 
     if (!school) {
         notFound();
     }
 
-    // ------------- FILTER BY SCHOOL ID -------------
-    let filteredStudents = students.filter(
-        (student) => student.school_id === schoolId
-    );
+    // ------------- FILTER & SEARCH (Backend already filters by schoolId) -------------
+    let filteredStudents = schoolStudents;
 
-    // ------------- SEARCH -------------
+    // ------------- SEARCH BY NAME OR ABOUT FIELD -------------
     if (search) {
         filteredStudents = filteredStudents.filter(
             (student) =>
                 student.name.toLowerCase().includes(search) ||
-                student.email.toLowerCase().includes(search)
+                (student.about && student.about.toLowerCase().includes(search))
         );
     }
 
@@ -62,9 +76,8 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     const columns = [
         { header: "Student", accessor: "name" },
-        { header: "Email", accessor: "email", className: "hidden md:table-cell" },
-        { header: "Age", accessor: "age", className: "hidden lg:table-cell" },
-        { header: "Gender", accessor: "sex", className: "hidden lg:table-cell" },
+        { header: "About", accessor: "about", className: "hidden md:table-cell" },
+        { header: "Profile", accessor: "profile_picture", className: "hidden lg:table-cell" },
         { header: "Actions", accessor: "action" },
     ];
 
@@ -73,6 +86,13 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
     useEffect(() => {
         if (!tableRef.current) return;
         const rows = tableRef.current.querySelectorAll('tbody tr');
+        
+        // Guard: only animate if rows exist
+        if (rows.length === 0) {
+            console.log("No rows found to animate");
+            return;
+        }
+        
         gsap.fromTo(rows,
             { y: 10, opacity: 0 },
             {
@@ -102,21 +122,17 @@ const StudentListPageContent = ({ schoolId }: { schoolId: string }) => {
                     <span className="font-bold text-[var(--text-main)]">{student.name}</span>
                 </div>
             </td>
-            <td className="hidden md:table-cell text-[var(--text-muted)] py-4 px-6">
-                {student.email}
-            </td>
-            <td className="hidden lg:table-cell text-[var(--text-muted)] py-0 px-6 text-left">
-                <span className="inline-block">{student.age}</span>
+            <td className="hidden md:table-cell text-[var(--text-muted)] py-4 px-6 max-w-xs truncate">
+                {student.about || "—"}
             </td>
             <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6">
-                <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${student.sex === "MALE"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-pink-100 text-pink-700"
-                        }`}
-                >
-                    {student.sex}
-                </span>
+                {student.profile_picture ? (
+                    <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        ✓ Set
+                    </span>
+                ) : (
+                    <span className="text-xs text-gray-400">—</span>
+                )}
             </td>
             <td className="py-4 px-6">
                 <Link

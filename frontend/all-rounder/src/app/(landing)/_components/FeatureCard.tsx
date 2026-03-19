@@ -1,15 +1,19 @@
 'use client';
 import { Feature } from './Features';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import Image from 'next/image';
+
+const AUTO_SLIDE_INTERVAL_MS = 5000;
 
 const FeatureCard = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAutoPaused, setIsAutoPaused] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
   useGSAP(() => {
     if (imageLoaded) {
@@ -28,6 +32,34 @@ const FeatureCard = () => {
 
   const totalFeatures = Feature.length;
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (totalFeatures <= 1 || isAutoPaused || !isPageVisible) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setImageLoaded(false);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % totalFeatures);
+    }, AUTO_SLIDE_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isAutoPaused, isPageVisible, totalFeatures]);
+
   const goToSlide = (index: number) => {
     setImageLoaded(false);
     const newIndex = (index + totalFeatures) % totalFeatures;
@@ -43,7 +75,13 @@ const FeatureCard = () => {
   const nextFeature = getFeatureAt(1);
 
   return (
-    <section id="features" aria-labelledby="features-heading" className="relative py-12 sm:py-16 px-4 sm:px-6 bg-purple-100">
+    <section
+      id="features"
+      aria-labelledby="features-heading"
+      className="relative py-12 sm:py-16 px-4 sm:px-6 bg-purple-100"
+      onMouseEnter={() => setIsAutoPaused(true)}
+      onMouseLeave={() => setIsAutoPaused(false)}
+    >
   
       <h2 id="features-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--gray-700)] mb-4 sm:mb-6 text-center">
         Platform Features

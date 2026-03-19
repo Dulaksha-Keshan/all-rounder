@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useEffect } from "react";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { useEventStore } from "@/context/useEventStore";
 import BigCalendarContainer from "@/app/dashboard/_components/BigCalendarContainer";
@@ -18,17 +19,33 @@ interface OrgDashboardProps {
 
 export default function OrgDashboard({ params }: OrgDashboardProps) {
   const { orgId } = use(params);
-  const { getOrganizationById } = useOrganizationStore();
-  const { events } = useEventStore();
+  const {
+    getOrganizationById,
+    fetchOrganizations,
+    organizations,
+    isLoading: organizationsLoading
+  } = useOrganizationStore();
+  const { events, fetchEvents, isLoading: eventsLoading } = useEventStore();
 
-  // Debug: Log the orgId
-  console.log("Organization ID:", orgId);
+  useEffect(() => {
+    if (!organizations.length) {
+      void fetchOrganizations();
+    }
+    if (!events.length) {
+      void fetchEvents(1, 100);
+    }
+  }, [organizations.length, events.length, fetchOrganizations, fetchEvents]);
 
   // Find the organization
   const org = getOrganizationById(orgId);
 
-  // Debug: Log if org is found
-  console.log("Organization found:", org);
+  if ((organizationsLoading || eventsLoading) && !org) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--page-bg)]">
+        <div className="text-[var(--text-main)] font-semibold">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   // If organization not found, show 404
   if (!org) {
@@ -37,11 +54,8 @@ export default function OrgDashboard({ params }: OrgDashboardProps) {
 
   // Filter events by organization
   const orgEvents = events.filter(
-    (e) => e.organizerId === orgId && e.organizerType === "Organization"
+    (e) => (e.hosts || []).some((host) => host.hostType === "organization" && host.hostId === orgId)
   );
-
-  console.log("Organization events:", orgEvents.length);
-
   return (
     <div className="h-screen flex">
       {/* LEFT SIDEBAR */}

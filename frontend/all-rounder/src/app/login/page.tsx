@@ -1,55 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import gsap from "gsap";
 
 import { useUserStore } from "@/context/useUserStore";
 
-function PageBackground() {
-  const starsRef = useRef<(HTMLDivElement | null)[]>([]);
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* === Gradient Orbs === */}
-      <div
-        className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl"
-        style={{ background: "var(--primary-purple)" }}
-      />
-      <div
-        className="absolute -top-20 right-0 w-[380px] h-[380px] rounded-full opacity-20 blur-3xl"
-        style={{ background: "var(--primary-blue)" }}
-      />
-      <div
-        className="absolute bottom-0 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl"
-        style={{ background: "var(--secondary-light-lavender)" }}
-      />
-      <div
-        className="absolute -bottom-20 left-10 w-[300px] h-[300px] rounded-full opacity-20 blur-2xl"
-        style={{ background: "var(--primary-dark-purple)" }}
-      />
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl"
-        style={{ background: "var(--secondary-purple-light)" }}
-      />
-
-      {/* === Stars === */}
-      <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl opacity-40" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl opacity-30" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl opacity-25" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[3] = el; }} className="absolute top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl opacity-35" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[4] = el; }} className="absolute bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl opacity-30" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[5] = el; }} className="absolute top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl opacity-25" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[6] = el; }} className="absolute top-1/4 left-1/4 text-2xl sm:text-3xl opacity-20" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-      <div ref={(el) => { starsRef.current[7] = el; }} className="absolute bottom-1/3 right-1/4 text-xl sm:text-2xl opacity-20" style={{ color: "var(--primary-dark-purple)" }}>★</div>
-    </div>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // 1. Pulled Google Login out here as per best practices!
   const loginWithEmail = useUserStore((state) => state.loginWithEmail);
@@ -81,19 +43,109 @@ export default function LoginPage() {
     }
   };
 
+  useEffect(() => {
+    if (!pageRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const stars = gsap.utils.toArray<HTMLElement>(".auth-stars > div");
+      const orbs = gsap.utils.toArray<HTMLElement>(".auth-orb");
+
+      gsap
+        .timeline({ defaults: { ease: "power2.out" } })
+        .from(".auth-hero", { y: 24, opacity: 0, duration: 0.7 })
+        .from(".auth-card", { y: 28, opacity: 0, duration: 0.75 }, "-=0.3")
+        .from(".auth-extra", { y: 16, opacity: 0, duration: 0.5 }, "-=0.25");
+
+      gsap.to(orbs, {
+        y: "random(-14, 14)",
+        x: "random(-10, 10)",
+        duration: "random(5.5, 8)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.2,
+      });
+
+      gsap.to(stars, {
+        y: "random(-10, 10)",
+        x: "random(-6, 6)",
+        duration: "random(2.6, 4.4)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.08,
+      });
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <div
+      ref={pageRef}
       className="min-h-screen py-40 px-4 relative overflow-hidden"
       style={{
         background:
-          "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 50%, var(--secondary-pale-lavender) 100%)",
+          "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 25%, #ffffff 50%, var(--secondary-light-lavender) 75%, var(--secondary-pale-lavender) 100%)",
       }}
     >
-      <PageBackground />
+      {/* Colorful Gradient Orbs - Same style as sign-up main page */}
+      <div
+        className="auth-orb absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-25 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-purple)", animationDuration: "6s" }}
+      />
+      <div
+        className="auth-orb absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-blue)", animationDuration: "7s", animationDelay: "0.6s" }}
+      />
+      <div
+        className="auth-orb absolute bottom-0 -left-24 w-[450px] h-[450px] rounded-full opacity-22 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--secondary-purple-light)", animationDuration: "8s", animationDelay: "1.2s" }}
+      />
+      <div
+        className="auth-orb absolute -bottom-32 right-10 w-[520px] h-[520px] rounded-full opacity-18 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--secondary-light-lavender)", animationDuration: "7.2s", animationDelay: "0.9s" }}
+      />
+      <div
+        className="auth-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full opacity-12 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-dark-purple)", animationDuration: "9s", animationDelay: "1.5s" }}
+      />
+
+      {/* Beautiful Star Field Background - Same style as sign-up main page */}
+      <div className="auth-stars">
+      <div className="absolute top-10 left-[8%] text-4xl opacity-45 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3s" }}>★</div>
+      <div className="absolute top-24 right-[12%] text-3xl opacity-40 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4s", animationDelay: "0.5s" }}>★</div>
+      <div className="absolute top-40 left-[25%] text-2xl opacity-35 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.5s", animationDelay: "1s" }}>★</div>
+      <div className="absolute top-1/4 right-[30%] text-3xl opacity-42 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "4.5s", animationDelay: "0.8s" }}>★</div>
+      <div className="absolute top-1/3 left-[15%] text-5xl opacity-40 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "3.8s", animationDelay: "1.5s" }}>★</div>
+      <div className="absolute top-16 left-[45%] text-3xl opacity-38 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "4.2s", animationDelay: "0.4s" }}>★</div>
+      <div className="absolute top-32 right-[5%] text-2xl opacity-36 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.6s", animationDelay: "1.1s" }}>★</div>
+      <div className="absolute top-48 left-[60%] text-4xl opacity-44 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4.1s", animationDelay: "0.9s" }}>★</div>
+      <div className="absolute top-1/4 left-[3%] text-3xl opacity-37 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.4s", animationDelay: "1.3s" }}>★</div>
+      <div className="absolute top-36 right-[25%] text-2xl opacity-39 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.9s", animationDelay: "0.6s" }}>★</div>
+
+      <div className="absolute bottom-1/4 left-[10%] text-4xl opacity-43 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4s", animationDelay: "0.3s" }}>★</div>
+      <div className="absolute bottom-1/3 right-[18%] text-3xl opacity-38 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.2s", animationDelay: "1.2s" }}>★</div>
+      <div className="absolute bottom-40 left-[35%] text-2xl opacity-35 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.5s", animationDelay: "0.7s" }}>★</div>
+      <div className="absolute bottom-32 right-[8%] text-4xl opacity-46 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4.2s", animationDelay: "1.8s" }}>★</div>
+      <div className="absolute bottom-20 left-[22%] text-3xl opacity-41 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.7s", animationDelay: "0.9s" }}>★</div>
+      <div className="absolute bottom-16 right-[45%] text-2xl opacity-36 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.3s", animationDelay: "1.4s" }}>★</div>
+      <div className="absolute bottom-36 left-[5%] text-3xl opacity-42 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4.4s", animationDelay: "0.2s" }}>★</div>
+      <div className="absolute bottom-48 right-[35%] text-4xl opacity-44 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.1s", animationDelay: "1.6s" }}>★</div>
+      <div className="absolute bottom-24 left-[55%] text-2xl opacity-39 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.8s", animationDelay: "0.5s" }}>★</div>
+      <div className="absolute bottom-1/3 left-[70%] text-3xl opacity-37 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4.3s", animationDelay: "1.1s" }}>★</div>
+
+      <div className="absolute top-3/5 left-[12%] text-2xl opacity-36 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.4s", animationDelay: "1.5s" }}>★</div>
+      <div className="absolute top-3/5 right-[38%] text-3xl opacity-41 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "3.7s", animationDelay: "0.4s" }}>★</div>
+      <div className="absolute top-2/5 left-[28%] text-2xl opacity-37 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "4.5s", animationDelay: "1.2s" }}>★</div>
+      <div className="absolute top-2/5 right-[15%] text-4xl opacity-42 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.2s", animationDelay: "0.9s" }}>★</div>
+      <div className="absolute top-3/4 left-[50%] text-3xl opacity-38 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "3.9s", animationDelay: "1.3s" }}>★</div>
+      <div className="absolute top-4/5 right-[28%] text-2xl opacity-40 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "4.2s", animationDelay: "0.7s" }}>★</div>
+      </div>
 
       <div className="max-w-md mx-auto relative z-10">
         {/* Header */}
-        <div className="flex flex-col items-center text-center mb-8">
+        <div className="auth-hero flex flex-col items-center text-center mb-8">
           <div className="mb-8">
             <Image
               src="/icons/logoForPages.png"
@@ -113,7 +165,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="auth-card bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
 
           {/* Error Display */}
           {error && (
@@ -223,7 +275,7 @@ export default function LoginPage() {
         </div>
 
         {/* Additional Help */}
-        <div className="mt-6 text-center">
+        <div className="auth-extra mt-6 text-center">
           <p className="text-sm text-muted">
             Need help?{" "}
             <Link href="/faq" className="hover:underline" style={{ color: "var(--primary-blue)" }}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserCog, Trophy, FolderOpen, HeartHandshake, Medal, HelpCircle, CalendarPlus, X } from "lucide-react";
+import { UserCog, FolderOpen, HeartHandshake, Medal, HelpCircle, CalendarPlus, LayoutDashboard, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -12,11 +12,6 @@ const actions = [
         label: "Update Profile",
         icon: UserCog,
         href: "/user/profile/edit"
-    },
-    {
-        label: "Browse Competitions",
-        icon: Trophy,
-        href: "/competitions"
     },
     {
         label: "View Resources",
@@ -44,7 +39,19 @@ export default function QuickActions() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const userRole = useUserStore((state) => state.userRole);
+    const currentUser = useUserStore((state) => state.currentUser);
     const canCreateEvents = userRole === "SCHOOL_ADMIN" || userRole === "ORG_ADMIN";
+
+    const schoolId = (currentUser as any)?.school_id || (currentUser as any)?.school?.school_id;
+    const organizationId =
+        (currentUser as any)?.organization_id ||
+        (currentUser as any)?.organization?.organization_id;
+    const dashboardHref =
+        userRole === "SCHOOL_ADMIN" && schoolId
+            ? `/dashboard/schools/${schoolId}`
+            : userRole === "ORG_ADMIN" && organizationId
+                ? `/dashboard/orgs/${organizationId}`
+                : null;
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -67,6 +74,16 @@ export default function QuickActions() {
             <div ref={containerRef} className="bg-[var(--white)] rounded-2xl p-6 shadow-sm border border-[var(--gray-200)] transition-colors duration-300">
                 <h2 className="text-lg font-bold text-[var(--text-main)] mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-2 gap-4">
+                    {dashboardHref && (
+                        <Link
+                            href={dashboardHref}
+                            className="action-item flex flex-col items-center justify-center p-4 rounded-xl bg-[var(--gray-50)] hover:bg-[var(--secondary-light-lavender)]/20 border border-[var(--gray-100)] transition-all group text-center opacity-0"
+                        >
+                            <LayoutDashboard className="w-6 h-6 text-[var(--primary-purple)] mb-2 group-hover:scale-110 transition-transform" />
+                            <span className="text-xs font-bold text-[var(--text-main)]">Dashboard</span>
+                        </Link>
+                    )}
+
                     {canCreateEvents && (
                         <button
                             type="button"

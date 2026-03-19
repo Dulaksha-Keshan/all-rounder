@@ -158,8 +158,9 @@ export const useSchoolStore = create<SchoolState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get(`/schools/${school_id}/teachers`);
-                    const payload = response.data || {};
-                    set({ schoolTeachers: payload.teachers || payload.schoolTeachers || payload.data || [] });
+                    // Extract teachers array from response - backend returns { teachers: [...] }
+                    const teachers = response.data?.teachers || response.data?.data || [];
+                    set({ schoolTeachers: teachers });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch teachers' });
                 } finally {
@@ -171,8 +172,9 @@ export const useSchoolStore = create<SchoolState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get(`/schools/${school_id}/students`);
-                    const payload = response.data || {};
-                    set({ schoolStudents: payload.students || payload.schoolStudents || payload.data || [] });
+                    // Extract students array from response - backend returns { students: [...] }
+                    const students = response.data?.students || response.data?.data || [];
+                    set({ schoolStudents: students });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch students' });
                 } finally {

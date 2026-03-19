@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useEffect } from "react";
 import { useStudentStore } from "@/context/useStudentStore";
 import { useTeacherStore } from "@/context/useTeacherStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
@@ -29,7 +30,11 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   const { teachers } = useTeacherStore();
   const { schools } = useSchoolStore();
   const { organizations } = useOrganizationStore();
-  const { events } = useEventStore();
+  const { events, fetchEvents } = useEventStore();
+
+  useEffect(() => {
+    void fetchEvents(1, 100);
+  }, [fetchEvents]);
   // Get organizer name
   const getOrganizerName = () => {
     if (!organizerId) return null;
@@ -48,7 +53,10 @@ const EventsAnalytics = ({ organizerId, type }: EventsAnalyticsProps) => {
   // Filter events based on organizer ID and type
   const filteredEvents = events.filter((event) => {
     if (organizerId) {
-      return event.organizerId === organizerId && event.organizerType === type;
+      const expectedHostType = type === "School" ? "school" : "organization";
+      return (event.hosts || []).some(
+        (host) => host.hostType === expectedHostType && host.hostId === organizerId
+      );
     }
     return true;
   });

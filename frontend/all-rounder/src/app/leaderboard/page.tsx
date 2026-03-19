@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Trophy, Medal, Star, Crown, TrendingUp, Award, Zap, Target, Calendar } from "lucide-react";
 
+gsap.registerPlugin(ScrollTrigger);
+
 export default function LeaderboardPage() {
-  const router = useRouter();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const podiumRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const motivationRef = useRef<HTMLDivElement>(null);
 
   // Mock leaderboard data
   const leaderboardData = [
@@ -52,18 +60,120 @@ export default function LeaderboardPage() {
     return null;
   };
 
+  useEffect(() => {
+    if (!pageRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const stars = gsap.utils.toArray<HTMLElement>(".floating-star");
+      const statCards = gsap.utils.toArray<HTMLElement>(".stat-card");
+      const podiumCards = gsap.utils.toArray<HTMLElement>(".podium-card");
+      const rows = gsap.utils.toArray<HTMLElement>(".lb-row");
+
+      gsap.fromTo(
+        headerRef.current,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, ease: "power3.out" }
+      );
+
+      gsap.to(stars, {
+        y: "random(-8, 8)",
+        x: "random(-6, 6)",
+        duration: "random(2.2, 3.5)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.2,
+      });
+
+      gsap.fromTo(
+        statCards,
+        { y: 20, opacity: 0, scale: 0.98 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.65,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: statsRef.current,
+            start: "top 85%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        podiumCards,
+        { y: 28, opacity: 0, rotateX: -8 },
+        {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.7,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: podiumRef.current,
+            start: "top 82%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        rows,
+        { y: 14, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.45,
+          stagger: 0.04,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: tableRef.current,
+            start: "top 82%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        motivationRef.current,
+        { y: 24, opacity: 0, scale: 0.98 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.7,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: motivationRef.current,
+            start: "top 88%",
+          },
+        }
+      );
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#F8F8FF] py-8 px-4">
+    <div ref={pageRef} className="min-h-screen bg-[#F8F8FF] py-8 px-4 relative overflow-hidden">
+      <div className="absolute top-8 right-6 z-20 bg-gradient-to-r from-[#34365C] to-[#8387CC] text-white px-4 py-2 rounded-full shadow-lg text-xs sm:text-sm font-semibold tracking-wide">
+        Coming Soon - Concept Preview
+      </div>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 relative">
-          <Star className="absolute top-0 right-1/4 w-8 h-8 text-[#DCD0FF] opacity-50 animate-pulse" />
-          <Star className="absolute bottom-0 left-1/4 w-6 h-6 text-[#8387CC] opacity-40 animate-pulse" style={{ animationDelay: "0.5s" }} />
+        <div ref={headerRef} className="text-center mb-8 relative">
+          <Star className="floating-star absolute top-0 right-1/4 w-8 h-8 text-[#DCD0FF] opacity-50" />
+          <Star className="floating-star absolute bottom-0 left-1/4 w-6 h-6 text-[#8387CC] opacity-40" />
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] mb-4">
             <Trophy className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-[#34365C] mb-2">Weekly Leaderboard</h1>
-          <p className="text-gray-600">Compete with students nationwide and climb to the top!</p>
+          <p className="text-gray-600">Concept preview using sample rankings and placeholder progression data.</p>
+          <div className="mt-4 inline-flex items-center gap-2 bg-[#E9E5FF] text-[#4A4F8F] px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium">
+            <Calendar className="w-4 h-4" />
+            Interactive scoring and real-time sync are launching soon
+          </div>
         </div>
 
         {/* Time Filter
@@ -80,29 +190,29 @@ export default function LeaderboardPage() {
         </div> */}
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 text-center">
+        <div ref={statsRef} className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-3">
               <Target className="w-6 h-6 text-purple-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{currentUser.points}</p>
             <p className="text-sm text-gray-600">Your Points</p>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mb-3">
               <Zap className="w-6 h-6 text-orange-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{currentUser.streak} days</p>
             <p className="text-sm text-gray-600">Current Streak</p>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
               <Trophy className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">#{currentUser.rank}</p>
             <p className="text-sm text-gray-600">Your Rank</p>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
               <Award className="w-6 h-6 text-green-600" />
             </div>
@@ -112,23 +222,25 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Top 3 Podium */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <div ref={podiumRef} className="bg-white rounded-xl shadow-lg p-8 mb-8 border border-[#ECE9FF]">
           <h2 className="text-[#34365C] text-center mb-8">Top Performers</h2>
           <div className="flex items-end justify-center gap-4 mb-8">
             {[1, 0, 2].map((i) => {
               const user = leaderboardData[i];
               const heightClass = i === 0 ? "h-32" : i === 1 ? "h-24" : "h-20";
               const borderColor = i === 0 ? "border-yellow-400" : i === 1 ? "border-gray-300" : "border-orange-400";
+              const avatarSizeClass = i === 0 ? "w-24 h-24" : "w-20 h-20";
+              const badgeSizeClass = i === 0 ? "w-10 h-10" : "w-8 h-8";
               return (
-                <div key={user.rank} className="flex-1 max-w-[200px] text-center">
+                <div key={user.rank} className="podium-card flex-1 max-w-[200px] text-center">
                   <div className="relative mb-4">
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className={`w-${i===0 ? '24' : '20'} h-${i===0 ? '24' : '20'} rounded-full mx-auto object-cover border-4 ${borderColor} shadow-lg`}
+                      className={`${avatarSizeClass} rounded-full mx-auto object-cover border-4 ${borderColor} shadow-lg`}
                     />
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                      <div className={`flex items-center justify-center w-${i===0 ? '10' : '8'} h-${i===0 ? '10' : '8'} rounded-full ${i===0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : i===1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' : 'bg-gradient-to-br from-orange-400 to-orange-600'} border-2 border-white shadow-lg`}>
+                      <div className={`flex items-center justify-center ${badgeSizeClass} rounded-full ${i===0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : i===1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' : 'bg-gradient-to-br from-orange-400 to-orange-600'} border-2 border-white shadow-lg`}>
                         {i===0 ? <Crown className="w-5 h-5 text-white" /> : <span className="text-white text-sm">{user.rank}</span>}
                       </div>
                     </div>
@@ -145,13 +257,15 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Full Leaderboard */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* <div className="p-6 bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white">
-            <h2 className="flex items-center gap-2"><Calendar className="w-6 h-6" />Week of January 5, 2026</h2>
-          </div> */}
+        <div ref={tableRef} className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#ECE9FF]">
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F0EDFF] to-[#FAF9FF] border-b border-[#ECE9FF]">
+            <p className="text-sm text-[#51558E] font-medium">
+              Preview mode: rankings below are illustrative and do not reflect live user activity yet.
+            </p>
+          </div>
           <div className="divide-y divide-gray-100">
             {leaderboardData.map((user) => (
-              <div key={user.rank} className={`p-4 hover:bg-[#F8F8FF] transition ${user.rank <= 3 ? "bg-gradient-to-r from-[#F8F8FF] to-white" : ""}`}>
+              <div key={user.rank} className={`lb-row p-4 hover:bg-[#F8F8FF] transition ${user.rank <= 3 ? "bg-gradient-to-r from-[#F8F8FF] to-white" : ""}`}>
                 <div className="flex items-center gap-4">
                   <div className="w-16 flex-shrink-0">{getRankBadge(user.rank)}</div>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -179,7 +293,7 @@ export default function LeaderboardPage() {
             {currentUser.rank > 10 && (
               <>
                 <div className="p-4 text-center text-gray-400"><p className="text-sm">...</p></div>
-                <div className="p-4 bg-[#DCD0FF]/30 border-2 border-[#8387CC]">
+                <div className="lb-row p-4 bg-[#DCD0FF]/30 border-2 border-[#8387CC]">
                   <div className="flex items-center gap-4">
                     <div className="w-16 flex-shrink-0">{getRankBadge(currentUser.rank)}</div>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -207,14 +321,19 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Motivation Card */}
-        <div className="mt-8 bg-gradient-to-br from-[#8387CC] to-[#4169E1] rounded-xl shadow-lg p-8 text-white text-center">
+        <div ref={motivationRef} className="mt-8 bg-gradient-to-br from-[#8387CC] to-[#4169E1] rounded-xl shadow-lg p-8 text-white text-center">
           <Star className="w-12 h-12 mx-auto mb-4 opacity-80" />
-          <h3 className="mb-2">Keep Climbing!</h3>
+          <h3 className="mb-2">Keep Climbing</h3>
           <p className="text-white/90 mb-4">
-            Participate in more competitions and complete challenges to earn points and climb the leaderboard.
+            Real competitions, live score sync, and season rewards are coming soon. This page currently shows the intended leaderboard experience with sample data.
           </p>
-          <button className="px-6 py-3 bg-white text-[#34365C] rounded-lg hover:bg-gray-100 transition" onClick={() => router.push("/competitions")}>
-            Browse Competitions
+          <button
+            type="button"
+            className="px-6 py-3 bg-white/90 text-[#34365C] rounded-lg transition cursor-not-allowed opacity-90"
+            aria-disabled="true"
+            disabled
+          >
+            Competitions Coming Soon
           </button>
         </div>
       </div>

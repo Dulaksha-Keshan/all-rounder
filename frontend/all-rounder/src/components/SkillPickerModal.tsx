@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { useSkillStore } from "@/context/useSkillStore";
+import { useShallow } from "zustand/react/shallow";
 
 interface SkillPickerModalProps {
   isOpen: boolean;
@@ -22,20 +23,20 @@ export default function SkillPickerModal({
     fetchUserSkills,
     addSkillToUser,
     isLoadingAllSkills,
-    isAddingSkill,
     mutationError,
     clearSkillErrors,
-  } = useSkillStore((state) => ({
-    allSkills: state.allSkills,
-    userSkills: state.userSkills,
-    fetchAllSkills: state.fetchAllSkills,
-    fetchUserSkills: state.fetchUserSkills,
-    addSkillToUser: state.addSkillToUser,
-    isLoadingAllSkills: state.isLoadingAllSkills,
-    isAddingSkill: state.isAddingSkill,
-    mutationError: state.mutationError,
-    clearSkillErrors: state.clearSkillErrors,
-  }));
+  } = useSkillStore(
+    useShallow((state) => ({
+      allSkills: state.allSkills,
+      userSkills: state.userSkills,
+      fetchAllSkills: state.fetchAllSkills,
+      fetchUserSkills: state.fetchUserSkills,
+      addSkillToUser: state.addSkillToUser,
+      isLoadingAllSkills: state.isLoadingAllSkills,
+      mutationError: state.mutationError,
+      clearSkillErrors: state.clearSkillErrors,
+    }))
+  );
 
   const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");

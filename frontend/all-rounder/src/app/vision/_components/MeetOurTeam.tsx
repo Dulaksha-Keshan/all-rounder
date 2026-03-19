@@ -97,6 +97,7 @@ export default function MeetOurTeam() {
                     src={member.image}
                     alt={member.name}
                     fill
+                    sizes="160px"
                     className="object-cover"
                   />
                 </div>

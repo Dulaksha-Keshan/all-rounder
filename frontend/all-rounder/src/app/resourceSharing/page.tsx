@@ -1,45 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Package,
-  Search,
-  Plus,
   School,
   MapPin,
   Clock,
-  CheckCircle,
   Bell,
   Sparkles,
   TrendingUp,
   Gift,
+  Boxes,
+  HandHeart,
 } from "lucide-react";
 
+gsap.registerPlugin(ScrollTrigger);
+
 export default function ResourceSharing() {
-  const [activeTab, setActiveTab] = useState<
-    "requests" | "myRequests" | "donations"
-  >("requests");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    // Check if dark mode is enabled
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setIsDarkMode(isDark);
-    };
-
-    checkDarkMode();
-
-    // Observe class changes on html element
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const requestsRef = useRef<HTMLDivElement>(null);
+  const supportRef = useRef<HTMLDivElement>(null);
 
   const resourceRequests = [
     {
@@ -53,7 +37,6 @@ export default function ResourceSharing() {
       urgency: "high",
       postedDate: "2 days ago",
       deadline: "Dec 15, 2024",
-      fulfilled: false,
     },
     {
       id: 2,
@@ -65,7 +48,6 @@ export default function ResourceSharing() {
       urgency: "medium",
       postedDate: "5 days ago",
       deadline: "Dec 20, 2024",
-      fulfilled: false,
     },
     {
       id: 3,
@@ -78,20 +60,17 @@ export default function ResourceSharing() {
       urgency: "low",
       postedDate: "1 week ago",
       deadline: "Jan 10, 2025",
-      fulfilled: false,
     },
     {
       id: 4,
       school: "Roosevelt High School",
       location: "Los Angeles, CA",
       item: "Musical Instruments",
-      description:
-        "Violins, guitars, and keyboards for music program",
+      description: "Violins, guitars, and keyboards for music program",
       quantity: "10 instruments",
       urgency: "high",
       postedDate: "3 days ago",
       deadline: "Dec 12, 2024",
-      fulfilled: false,
     },
   ];
 
@@ -112,256 +91,275 @@ export default function ResourceSharing() {
     },
   ];
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case "high":
-        return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
-      case "medium":
-        return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
-      case "low":
-        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
-      default:
-        return "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300";
-    }
-  };
+  const stats = useMemo(() => {
+    const highPriority = resourceRequests.filter((r) => r.urgency === "high").length;
+    return {
+      activeRequests: resourceRequests.length,
+      highPriority,
+      partnerSchools: new Set(resourceRequests.map((r) => r.school)).size,
+      donationHistory: myDonations.length,
+    };
+  }, [resourceRequests, myDonations]);
+
+  useEffect(() => {
+    if (!pageRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const stars = gsap.utils.toArray<HTMLElement>(".rs-star");
+      const statCards = gsap.utils.toArray<HTMLElement>(".rs-stat-card");
+      const requestCards = gsap.utils.toArray<HTMLElement>(".rs-request-card");
+      const donationRows = gsap.utils.toArray<HTMLElement>(".rs-donation-row");
+
+      gsap.fromTo(
+        headerRef.current,
+        { y: 26, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.85, ease: "power3.out" }
+      );
+
+      gsap.to(stars, {
+        y: "random(-10,10)",
+        x: "random(-8,8)",
+        duration: "random(2.5,4)",
+        yoyo: true,
+        repeat: -1,
+        ease: "sine.inOut",
+        stagger: 0.2,
+      });
+
+      gsap.fromTo(
+        statCards,
+        { y: 18, opacity: 0, scale: 0.98 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.55,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: statsRef.current,
+            start: "top 86%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        requestCards,
+        { y: 20, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.08,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: requestsRef.current,
+            start: "top 86%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        donationRows,
+        { y: 16, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.45,
+          stagger: 0.08,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: supportRef.current,
+            start: "top 88%",
+          },
+        }
+      );
+
+      const cards = gsap.utils.toArray<HTMLElement>(".rs-tilt");
+      const cleanups: Array<() => void> = [];
+
+      cards.forEach((card) => {
+        const onMove = (event: MouseEvent) => {
+          const rect = card.getBoundingClientRect();
+          const relX = (event.clientX - rect.left) / rect.width - 0.5;
+          const relY = (event.clientY - rect.top) / rect.height - 0.5;
+
+          gsap.to(card, {
+            rotateY: relX * 7,
+            rotateX: relY * -7,
+            y: -3,
+            duration: 0.25,
+            ease: "power2.out",
+            transformPerspective: 900,
+            transformOrigin: "center",
+          });
+        };
+
+        const onLeave = () => {
+          gsap.to(card, {
+            rotateY: 0,
+            rotateX: 0,
+            y: 0,
+            duration: 0.28,
+            ease: "power2.out",
+          });
+        };
+
+        card.addEventListener("mousemove", onMove);
+        card.addEventListener("mouseleave", onLeave);
+
+        cleanups.push(() => {
+          card.removeEventListener("mousemove", onMove);
+          card.removeEventListener("mouseleave", onLeave);
+        });
+      });
+
+      return () => cleanups.forEach((cleanup) => cleanup());
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page-bg transition-colors duration-300">
-      {/* Decorative Background */}
-      <div className={`absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-[#8387CC]/30 to-[#4169E1]/30 ${isDarkMode ? 'dark:opacity-20' : ''} blur-3xl rounded-full transition-opacity duration-300`} />
-      <div className={`absolute top-1/3 -right-40 w-96 h-96 bg-gradient-to-br from-[#DCD0FF]/40 to-[#8387CC]/30 ${isDarkMode ? 'dark:opacity-20' : ''} blur-3xl rounded-full transition-opacity duration-300`} />
+    <div ref={pageRef} className="relative min-h-screen overflow-hidden bg-page-bg transition-colors duration-300 px-4 py-10">
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-[#8387CC]/25 to-[#4169E1]/25 blur-3xl rounded-full" />
+      <div className="absolute top-1/3 -right-40 w-96 h-96 bg-gradient-to-br from-[#DCD0FF]/35 to-[#8387CC]/20 blur-3xl rounded-full" />
 
-      <div className="relative max-w-7xl mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#8387CC]/20 to-[#4169E1]/20 dark:from-[#8387CC]/10 dark:to-[#4169E1]/10 text-[#4169E1] dark:text-[#8387CC] mb-4 transition-colors duration-300">
-            <Sparkles className="w-4 h-4" />
-            Community Resource Sharing
+      <div className="relative max-w-7xl mx-auto">
+        <div className="absolute top-0 right-0 bg-gradient-to-r from-[#34365C] to-[#8387CC] text-white px-4 py-2 rounded-full shadow-lg text-xs sm:text-sm font-semibold tracking-wide">
+          Coming Soon - Concept Preview
+        </div>
+
+        <div ref={headerRef} className="text-center mb-10 relative">
+          <Sparkles className="rs-star absolute top-0 right-1/4 w-7 h-7 text-[#DCD0FF] opacity-70" />
+          <Sparkles className="rs-star absolute bottom-2 left-1/4 w-5 h-5 text-[#8387CC] opacity-60" />
+
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] mb-4 shadow-xl">
+            <Package className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-main mb-2 transition-colors duration-300">
-            Resource Sharing Hub
-          </h1>
-          <p className="text-muted max-w-2xl transition-colors duration-300">
-            Connect schools with donors to fulfill resource needs with transparent, impact-driven sharing
+          <h1 className="text-[#34365C] text-4xl font-bold mb-2">Resource Sharing Hub</h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            This page is a preview of the resource request and contribution experience, currently powered by sample data.
           </p>
-        </div>
-
-        {/* Tabs with gradient */}
-        <div className="flex gap-3 mb-10 flex-wrap">
-          <button
-            onClick={() => setActiveTab("requests")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-              activeTab === "requests"
-                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
-                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
-            }`}
-          >
-            Resource Requests
-          </button>
-          <button
-            onClick={() => setActiveTab("myRequests")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-              activeTab === "myRequests"
-                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
-                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
-            }`}
-          >
-            My Requests
-          </button>
-          <button
-            onClick={() => setActiveTab("donations")}
-            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-              activeTab === "donations"
-                ? "bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg"
-                : "bg-card dark:bg-card text-main hover:bg-[#F8F8FF] dark:hover:bg-gray-100/10"
-            }`}
-          >
-            My Donations
-          </button>
-
-          <button className="ml-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white shadow-lg hover:scale-[1.02] transition-transform duration-300 flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            New Request
-          </button>
-        </div>
-
-        {/* Search & Filters */}
-        <div className="bg-card dark:bg-card rounded-2xl shadow-lg p-6 mb-8 transition-colors duration-300">
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[250px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted transition-colors duration-300" />
-                <input
-                  type="text"
-                  placeholder="Search resource requests..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300"
-                />
-              </div>
-            </div>
-            <select className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300">
-              <option>All Categories</option>
-              <option>Sports Equipment</option>
-              <option>Art Materials</option>
-              <option>Books</option>
-              <option>Technology</option>
-              <option>Musical Instruments</option>
-            </select>
-            <select className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-page-bg dark:bg-gray-100/5 focus:outline-none focus:ring-2 focus:ring-[#8387CC] dark:focus:ring-[#505485] text-main transition-colors duration-300">
-              <option>All Urgency Levels</option>
-              <option>High Priority</option>
-              <option>Medium Priority</option>
-              <option>Low Priority</option>
-            </select>
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#E9E5FF] text-[#505485] text-xs sm:text-sm font-medium">
+            <Clock className="w-4 h-4" />
+            Live requests, workflows, and notifications are launching soon
           </div>
         </div>
 
-        {/* Resource Requests Tab */}
-        {activeTab === "requests" && (
-          <div className="grid lg:grid-cols-2 gap-6">
+        <div ref={statsRef} className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-3">
+              <Boxes className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-2xl text-[#34365C] mb-1">{stats.activeRequests}</p>
+            <p className="text-sm text-gray-600">Sample Requests</p>
+          </div>
+          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-3">
+              <TrendingUp className="w-6 h-6 text-red-600" />
+            </div>
+            <p className="text-2xl text-[#34365C] mb-1">{stats.highPriority}</p>
+            <p className="text-sm text-gray-600">High Priority</p>
+          </div>
+          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
+              <School className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-2xl text-[#34365C] mb-1">{stats.partnerSchools}</p>
+            <p className="text-sm text-gray-600">Partner Schools</p>
+          </div>
+          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
+              <Gift className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-2xl text-[#34365C] mb-1">{stats.donationHistory}</p>
+            <p className="text-sm text-gray-600">Donation Entries</p>
+          </div>
+        </div>
+
+        <div ref={requestsRef} className="bg-white rounded-2xl shadow-lg border border-[#ECE9FF] overflow-hidden mb-8">
+          <div className="p-5 bg-gradient-to-r from-[#F0EDFF] to-[#FAF9FF] border-b border-[#ECE9FF]">
+            <h2 className="text-[#34365C] text-xl font-semibold">Preview Requests</h2>
+            <p className="text-sm text-[#5C618F] mt-1">These are sample cards to illustrate final layout and request information architecture.</p>
+          </div>
+
+          <div className="p-5 grid lg:grid-cols-2 gap-4" style={{ perspective: "1000px" }}>
             {resourceRequests.map((request) => (
-              <div key={request.id} className="group relative bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] dark:from-card dark:via-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#8387CC]/10 to-[#4169E1]/10 dark:from-[#8387CC]/5 dark:to-[#4169E1]/5" />
-                
-                <div className="relative p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#DCD0FF] to-[#8387CC] dark:from-[#505485] dark:to-[#34365C] flex items-center justify-center flex-shrink-0 shadow-md">
-                        <Package className="w-6 h-6 text-white transition-colors duration-300" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-main mb-1 transition-colors duration-300">{request.item}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted transition-colors duration-300">
-                          <School className="w-4 h-4" />
-                          {request.school}
-                        </div>
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getUrgencyColor(request.urgency)} transition-colors duration-300`}>
-                      {request.urgency} Priority
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-muted mb-4 transition-colors duration-300">{request.description}</p>
-
-                  <div className="flex items-center gap-4 text-sm mb-4">
-                    <div className="flex items-center gap-1 text-muted transition-colors duration-300">
-                      <MapPin className="w-4 h-4" />
-                      {request.location}
-                    </div>
-                    <div className="flex items-center gap-1 text-muted transition-colors duration-300">
-                      <Package className="w-4 h-4" />
-                      {request.quantity}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-1 text-xs text-muted transition-colors duration-300">
-                      <Clock className="w-4 h-4" />
-                      Deadline: {request.deadline}
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="px-4 py-2 bg-[#F8F8FF] dark:bg-gray-100/10 text-main rounded-lg hover:bg-[#DCD0FF] dark:hover:bg-[#505485]/30 transition-all duration-300 text-sm">
-                        Details
-                      </button>
-                      <button className="px-4 py-2 bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white rounded-lg hover:scale-[1.05] transition-all duration-300 text-sm">
-                        Contribute
-                      </button>
-                    </div>
-                  </div>
+              <article key={request.id} className="rs-request-card rs-tilt rounded-xl border border-[#ECE9FF] bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h3 className="text-[#34365C] font-semibold text-lg">{request.item}</h3>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-[#E8EAFE] text-[#4D5190] uppercase tracking-wide">
+                    {request.urgency}
+                  </span>
                 </div>
-              </div>
+                <p className="text-sm text-gray-600 mb-4">{request.description}</p>
+                <div className="space-y-1.5 text-sm text-gray-600 mb-4">
+                  <p className="flex items-center gap-2"><School className="w-4 h-4" /> {request.school}</p>
+                  <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {request.location}</p>
+                  <p className="flex items-center gap-2"><Package className="w-4 h-4" /> {request.quantity}</p>
+                </div>
+                <div className="pt-3 border-t border-[#ECE9FF] flex items-center justify-between text-xs text-gray-500">
+                  <span>Posted {request.postedDate}</span>
+                  <span>Deadline {request.deadline}</span>
+                </div>
+              </article>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* My Requests Tab */}
-        {activeTab === "myRequests" && (
-          <div className="bg-card dark:bg-card rounded-2xl shadow-lg p-8 transition-colors duration-300">
-            <div className="text-center py-12">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#DCD0FF] to-[#8387CC] dark:from-[#505485] dark:to-[#34365C] flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Gift className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-main mb-2 transition-colors duration-300">No Active Requests</h3>
-              <p className="text-muted mb-6 transition-colors duration-300">You haven't created any resource requests yet</p>
-              <button className="px-6 py-3 bg-gradient-to-r from-[#4169E1] to-[#2f4fd4] dark:from-[#505485] dark:to-[#34365C] text-white rounded-lg hover:scale-[1.05] transition-transform duration-300 flex items-center gap-2 mx-auto">
-                <Plus className="w-5 h-5" />
-                Create Your First Request
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* My Donations Tab */}
-        {activeTab === "donations" && (
-          <div className="space-y-4">
-            {myDonations.map((donation) => (
-              <div key={donation.id} className="group bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] dark:from-card dark:via-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
-                      donation.status === "Delivered" 
-                        ? "bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30" 
-                        : "bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30"
-                    }`}>
-                      <CheckCircle className={`w-6 h-6 ${
-                        donation.status === "Delivered" 
-                          ? "text-green-600 dark:text-green-400" 
-                          : "text-blue-600 dark:text-blue-400"
-                      }`} />
-                    </div>
-                    <div>
-                      <h4 className="text-main font-medium transition-colors duration-300">{donation.item}</h4>
-                      <p className="text-sm text-muted transition-colors duration-300">To: {donation.recipient}</p>
-                      <p className="text-xs text-muted mt-1 transition-colors duration-300">{donation.date}</p>
-                    </div>
-                  </div>
+        <div ref={supportRef} className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-[#ECE9FF] p-6">
+            <h3 className="text-[#34365C] text-xl font-semibold mb-4">Sample Donation Timeline</h3>
+            <div className="space-y-3">
+              {myDonations.map((donation) => (
+                <div key={donation.id} className="rs-donation-row rounded-xl border border-[#ECE9FF] p-4 flex items-center justify-between gap-3">
                   <div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      donation.status === "Delivered" 
-                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" 
-                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                    } transition-colors duration-300`}>
+                    <p className="text-[#34365C] font-medium">{donation.item}</p>
+                    <p className="text-sm text-gray-600">To: {donation.recipient}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">{donation.date}</p>
+                    <span className="text-xs px-2 py-1 rounded-full bg-[#EEF0FF] text-[#4D5190]">
                       {donation.status}
                     </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        )}
 
-        {/* Notification Banner with gradient */}
-        <div className="mt-8 bg-gradient-to-r from-[#8387CC] to-[#4169E1] dark:from-[#505485] dark:to-[#34365C] rounded-2xl shadow-xl p-8 transition-all duration-300">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center flex-shrink-0">
-              <Bell className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h4 className="mb-2 text-white font-semibold">Enable Notifications</h4>
-              <p className="text-sm text-[#DCD0FF] dark:text-[#8387CC]/90 mb-6 transition-colors duration-300">
-                Get automatic notifications when new resource requests match your interests
-              </p>
-              <button className="px-6 py-3 bg-white dark:bg-gray-100 text-[#34365C] dark:text-[#34365C] rounded-lg hover:bg-[#DCD0FF] dark:hover:bg-[#8387CC]/20 transition-all duration-300 text-sm font-medium shadow-md">
-                Enable Notifications
-              </button>
-            </div>
+          <div className="bg-gradient-to-br from-[#8387CC] to-[#4169E1] rounded-2xl shadow-xl p-6 text-white">
+            <Bell className="w-10 h-10 mb-4 opacity-90" />
+            <h4 className="text-xl font-semibold mb-2">Smart Notifications</h4>
+            <p className="text-sm text-[#E4E7FF] mb-5">
+              Matching alerts, request deadlines, and delivery updates will be available when Resource Sharing goes live.
+            </p>
+            <button
+              type="button"
+              className="w-full py-3 rounded-lg bg-white/90 text-[#34365C] font-medium cursor-not-allowed"
+              aria-disabled="true"
+              disabled
+            >
+              Alerts Coming Soon
+            </button>
           </div>
         </div>
 
-        {/* Stats Banner */}
-        <div className="mt-8 bg-gradient-to-br from-[#F8F8FF] to-[#EEF0FF] dark:from-gray-100/5 dark:to-gray-100/10 rounded-2xl shadow-lg p-6 transition-colors duration-300">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-6 h-6 text-[#4169E1] dark:text-[#8387CC] transition-colors duration-300" />
-            <div>
-              <h4 className="text-main font-medium transition-colors duration-300">Recent Impact</h4>
-              <p className="text-sm text-muted transition-colors duration-300">
-                127 resources shared this month • 45 schools supported
-              </p>
-            </div>
-          </div>
+        <div className="mt-8 bg-gradient-to-br from-[#34365C] to-[#505485] rounded-2xl shadow-lg p-6 text-white text-center">
+          <HandHeart className="w-11 h-11 mx-auto mb-3 opacity-90" />
+          <h3 className="text-2xl font-semibold mb-2">Resource Sharing Is On The Way</h3>
+          <p className="text-[#DCDFFF] mb-4">
+            We are finalizing request moderation, contribution workflows, and verification layers. This concept page shows the direction and planned UX.
+          </p>
+          <button
+            type="button"
+            className="px-6 py-3 bg-white/90 text-[#34365C] rounded-lg font-medium cursor-not-allowed"
+            aria-disabled="true"
+            disabled
+          >
+            Early Access Coming Soon
+          </button>
         </div>
       </div>
     </div>

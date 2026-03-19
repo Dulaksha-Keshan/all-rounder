@@ -2,6 +2,7 @@
 "use client";
 
 import { use } from "react";
+import { useEffect } from "react";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
 import EventsAnalytics from "@/app/dashboard/_components/EventsAnalytics";
 import Menu from "@/app/dashboard/_components/Menu";
@@ -17,10 +18,29 @@ interface OrgAnalyticsProps {
 
 export default function OrgAnalytics({ params }: OrgAnalyticsProps) {
   const { orgId } = use(params);
-  const { getOrganizationById } = useOrganizationStore();
+  const {
+    getOrganizationById,
+    fetchOrganizations,
+    organizations,
+    isLoading
+  } = useOrganizationStore();
+
+  useEffect(() => {
+    if (!organizations.length) {
+      void fetchOrganizations();
+    }
+  }, [organizations.length, fetchOrganizations]);
 
   // Find the organization
   const org = getOrganizationById(orgId);
+
+  if (isLoading && !org) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--page-bg)]">
+        <div className="text-[var(--text-main)] font-semibold">Loading analytics...</div>
+      </div>
+    );
+  }
 
   // If organization not found, show 404
   if (!org) {

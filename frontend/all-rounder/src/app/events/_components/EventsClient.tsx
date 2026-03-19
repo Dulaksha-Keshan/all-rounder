@@ -1,30 +1,53 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Search, Filter, BarChart2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useEventStore } from '@/context/useEventStore';
+import { useSchoolStore } from '@/context/useSchoolStore';
 import { EventList } from './EventList';
 
 const LIMIT = 10;
 
 export default function EventsClient() {
+  const searchParams = useSearchParams();
   const { events, pagination, isLoading, fetchEvents } = useEventStore();
-  const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'completed'>('all');
+  const { schools, fetchSchools } = useSchoolStore();
+  const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [schoolSearchTerm, setSchoolSearchTerm] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
 
   useEffect(() => {
-    fetchEvents(1, LIMIT);
-  }, []);
+    void fetchEvents(1, LIMIT);
+    void fetchSchools();
+  }, [fetchEvents, fetchSchools]);
+
+  useEffect(() => {
+    const schoolIdFromQuery = searchParams.get('schoolId') || '';
+    if (schoolIdFromQuery) {
+      setSelectedSchoolId(schoolIdFromQuery);
+      const matchedSchool = schools.find((school) => school.school_id === schoolIdFromQuery);
+      if (matchedSchool) {
+        setSchoolSearchTerm(matchedSchool.name);
+      }
+    }
+  }, [searchParams, schools]);
 
   const handlePageChange = (newPage: number) => {
     fetchEvents(newPage, LIMIT);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const now = new Date();
+
   const filteredEvents = events.filter(event => {
+    const eventEnd = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+    const isCompleted = eventEnd < now;
     const matchesTab = activeTab === 'all' ||
-      (activeTab === 'registered' && event.status === 'Registered') ||
-      (activeTab === 'completed' && false);
+      (activeTab === 'upcoming' && !isCompleted) ||
+      (activeTab === 'completed' && isCompleted);
 
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -32,10 +55,21 @@ export default function EventsClient() {
     const matchesCategory = selectedCategory === 'All Categories' ||
       event.category === selectedCategory;
 
-    return matchesTab && matchesSearch && matchesCategory;
+    const matchesSchool = !selectedSchoolId ||
+      (event.hosts || []).some(
+        (host) => host.hostType === 'school' && host.hostId === selectedSchoolId
+      );
+
+    return matchesTab && matchesSearch && matchesCategory && matchesSchool;
   });
 
   const allCategories = Array.from(new Set(events.map(e => e.category).filter(Boolean)));
+  const filteredSchools = schools.filter((school) =>
+    school.name.toLowerCase().includes(schoolSearchTerm.toLowerCase())
+  );
+  const selectedSchool = selectedSchoolId
+    ? schools.find((school) => school.school_id === selectedSchoolId)
+    : null;
 
   return (
     <div className="min-h-screen py-0 bg-[var(--page-bg)] transition-colors duration-300">
@@ -78,13 +112,13 @@ export default function EventsClient() {
             All Competitions
           </button>
           <button
-            onClick={() => setActiveTab('registered')}
-            className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all ${activeTab === 'registered'
+            onClick={() => setActiveTab('upcoming')}
+            className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all ${activeTab === 'upcoming'
               ? 'bg-[var(--primary-blue)] text-white shadow-lg scale-105'
               : 'bg-[var(--white)] text-[var(--text-main)] hover:bg-[var(--secondary-light-lavender)]/20 shadow-md border border-[var(--gray-200)]'
               }`}
           >
-            My Registrations
+            Upcoming
           </button>
           <button
             onClick={() => setActiveTab('completed')}
@@ -120,9 +154,53 @@ export default function EventsClient() {
                 </select>
               </div>
 
+              <div className="mb-5 relative">
+                <label className="block text-sm font-bold text-[var(--text-main)] mb-2">School</label>
+                <input
+                  type="text"
+                  value={schoolSearchTerm}
+                  onChange={(e) => {
+                    setSchoolSearchTerm(e.target.value);
+                    setIsSchoolDropdownOpen(true);
+                    if (!e.target.value) {
+                      setSelectedSchoolId('');
+                    }
+                  }}
+                  onFocus={() => setIsSchoolDropdownOpen(true)}
+                  placeholder="Search school"
+                  className="w-full px-3 py-2 border-2 border-[var(--primary-purple)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)] bg-[var(--white)] text-sm font-medium text-[var(--text-main)]"
+                />
+
+                {isSchoolDropdownOpen && schoolSearchTerm.trim() && (
+                  <div className="absolute z-20 mt-2 w-full max-h-56 overflow-y-auto rounded-xl border border-[var(--gray-200)] bg-[var(--white)] shadow-lg">
+                    {filteredSchools.length > 0 ? (
+                      filteredSchools.map((school) => (
+                        <button
+                          key={school.school_id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSchoolId(school.school_id);
+                            setSchoolSearchTerm(school.name);
+                            setIsSchoolDropdownOpen(false);
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-[var(--secondary-light-lavender)]/20 text-sm text-[var(--text-main)]"
+                        >
+                          {school.name}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-[var(--text-muted)]">No schools found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={() => {
                   setSelectedCategory('All Categories');
+                  setSelectedSchoolId('');
+                  setSchoolSearchTerm('');
+                  setIsSchoolDropdownOpen(false);
                 }}
                 className="w-full px-4 py-2 bg-[var(--primary-blue)] text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm shadow-md"
               >
@@ -140,12 +218,12 @@ export default function EventsClient() {
                     <div className="text-xs text-[var(--text-muted)] font-medium">Total Events Available</div>
                   </div>
                   <div className="bg-[var(--primary-blue)]/10 rounded-xl p-4 border border-[var(--primary-blue)]/20 transition-all hover:shadow-md">
-                    <div className="text-2xl font-bold text-[var(--primary-blue)]">{events.filter(e => e.status === 'Registered').length}</div>
-                    <div className="text-xs text-[var(--primary-blue)] font-medium">Your Registrations</div>
+                    <div className="text-2xl font-bold text-[var(--primary-blue)]">{events.filter(e => new Date(e.endDate || e.startDate) >= now).length}</div>
+                    <div className="text-xs text-[var(--primary-blue)] font-medium">Upcoming Events</div>
                   </div>
                   <div className="bg-[var(--primary-purple)]/10 rounded-xl p-4 border border-[var(--primary-purple)]/20 transition-all hover:shadow-md">
-                    <div className="text-2xl font-bold text-[var(--primary-purple)]">{events.filter(e => e.status === 'Open').length}</div>
-                    <div className="text-xs text-[var(--primary-purple)] font-medium">Currently Open</div>
+                    <div className="text-2xl font-bold text-[var(--primary-purple)]">{events.filter(e => new Date(e.endDate || e.startDate) < now).length}</div>
+                    <div className="text-xs text-[var(--primary-purple)] font-medium">Completed Events</div>
                   </div>
                 </div>
               </div>
@@ -156,6 +234,25 @@ export default function EventsClient() {
           <div className="flex-1">
             {/* Search */}
             <div className="mb-8">
+              {selectedSchoolId && (
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-[var(--primary-blue)]/30 bg-[var(--primary-blue)]/10 px-4 py-3">
+                  <p className="text-sm font-medium text-[var(--primary-blue)]">
+                    Active School Filter: <span className="font-bold">{selectedSchool?.name || selectedSchoolId}</span>
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSchoolId('');
+                      setSchoolSearchTerm('');
+                      setIsSchoolDropdownOpen(false);
+                    }}
+                    className="rounded-lg border border-[var(--primary-blue)]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--primary-blue)] hover:bg-[var(--secondary-light-lavender)]/20"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+
               <div className="relative group">
                 <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
                   <Search className="w-5 h-5 text-[#8387CC] group-focus-within:text-[var(--primary-blue)] transition-colors" />

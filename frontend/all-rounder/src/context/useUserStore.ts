@@ -8,6 +8,7 @@ import { signInWithPopup, signInWithEmailAndPassword, onIdTokenChanged } from 'f
 import { auth, googleProvider } from '@/lib/firebase';
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { usePostStore } from "@/context/usePostStore";
+import { useEventStore } from "@/context/useEventStore";
 
 // Updated to match the exact roles your backend Express controller expects
 type UserRole = 'STUDENT' | 'TEACHER' | 'SCHOOL_ADMIN' | 'ORG_ADMIN' | 'SUPER_ADMIN';
@@ -54,6 +55,11 @@ interface UserState {
     isLoading: boolean;
     error: string | null;
 
+    // Viewed User Profile State (for viewing other user profiles)
+    viewedUserProfile: any | null;
+    viewedUserRole: UserRole | null;
+    isFetchingProfile: boolean;
+
     // Social State
     following: string[];
     followers: string[];
@@ -70,6 +76,7 @@ interface UserState {
     loginWithGoogle: (role: UserRole, schoolId?: string, organizationId?: string) => Promise<void>;
     logout: () => Promise<void>;
     fetchBackendProfile: () => Promise<void>;
+    fetchUserProfileById: (uid: string) => Promise<void>;
     updateProfile: (updates: Partial<Student | Teacher | Organization | any>) => Promise<void>;
     setError: (error: string | null) => void;
 
@@ -97,9 +104,22 @@ const clearAuthState = () => {
 
     useSchoolStore.getState().setActiveSchool(null);
     usePostStore.getState().clearAll();
+    useEventStore.getState().clearEventState();
 
     if (typeof window !== 'undefined') {
         localStorage.removeItem('user-storage');
+        localStorage.removeItem('event-storage');
+    }
+};
+
+// Prevent duplicate profile hydration requests when multiple auth checks
+// fire at the same time (e.g., app refresh + onIdTokenChanged).
+let inFlightBackendProfileFetch: Promise<void> | null = null;
+
+const hydrateInitialEventsIfNeeded = () => {
+    const eventState = useEventStore.getState();
+    if (eventState.events.length === 0 && !eventState.isLoading) {
+        void eventState.fetchEvents(1, 10);
     }
 };
 
@@ -111,6 +131,9 @@ export const useUserStore = create<UserState>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            viewedUserProfile: null,
+            viewedUserRole: null,
+            isFetchingProfile: false,
 
             // Initial Social State
             following: [],
@@ -234,6 +257,9 @@ export const useUserStore = create<UserState>()(
                         isAuthenticated: true,
                         error: null
                     });
+
+                    // Hydrate initial event list once login succeeds.
+                    hydrateInitialEventsIfNeeded();
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.response?.data?.error || error.message || 'Google Sign-In failed' });
                     throw error; // Rethrow if you want to handle it in the UI
@@ -243,41 +269,76 @@ export const useUserStore = create<UserState>()(
             },
 
             fetchBackendProfile: async () => {
-                set({ isLoading: true, error: null });
-                try {
-                    const response = await api.get('/users/');
-                    const userData = response.data.user;
+                if (inFlightBackendProfileFetch) {
+                    return inFlightBackendProfileFetch;
+                }
 
-                    if (userData.school_id) {
-                        const schoolStore = useSchoolStore.getState();
+                inFlightBackendProfileFetch = (async () => {
+                    set({ isLoading: true, error: null });
+                    try {
+                        const response = await api.get('/users/');
+                        const userData = response.data.user;
 
-                        let matchingSchool = schoolStore.schools.find(s => s.school_id === userData.school_id);
+                        if (userData.school_id) {
+                            const schoolStore = useSchoolStore.getState();
 
-                        if (!matchingSchool) {
-                            try {
-                                const schoolRes = await api.get(`/schools/${userData.school_id}`);
-                                matchingSchool = schoolRes.data.school; // Matches your getSchoolById controller
-                            } catch (err) {
-                                console.warn("Could not fetch the specific school for the user:", err);
+                            let matchingSchool = schoolStore.schools.find(s => s.school_id === userData.school_id);
+
+                            if (!matchingSchool) {
+                                try {
+                                    const schoolRes = await api.get(`/schools/${userData.school_id}`);
+                                    matchingSchool = schoolRes.data.school; // Matches your getSchoolById controller
+                                } catch (err) {
+                                    console.warn("Could not fetch the specific school for the user:", err);
+                                }
+                            }
+
+                            // 3. Set it if we successfully found/fetched it
+                            if (matchingSchool) {
+                                schoolStore.setActiveSchool(matchingSchool);
                             }
                         }
 
-                        // 3. Set it if we successfully found/fetched it
-                        if (matchingSchool) {
-                            schoolStore.setActiveSchool(matchingSchool);
-                        }
-                    }
+                        set({
+                            currentUser: userData,
+                            userRole: response.data.userType,
+                            isAuthenticated: true,
+                            error: null
+                        });
 
+                        // Hydrate initial event list after profile fetch/login.
+                        hydrateInitialEventsIfNeeded();
+                    } catch (error: any) {
+                        set({ error: error.response?.data?.message || error.message || 'Failed to fetch profile' });
+                    } finally {
+                        set({ isLoading: false });
+                        inFlightBackendProfileFetch = null;
+                    }
+                })();
+
+                return inFlightBackendProfileFetch;
+            },
+
+            fetchUserProfileById: async (uid: string) => {
+                set({ isFetchingProfile: true, error: null });
+                try {
+                    const response = await api.get(`/users/firebase/${uid}`);
+                    const userData = response.data.user;
+                    const userType = response.data.userType;
+
+                    // Store the viewed profile separately from current user
                     set({
-                        currentUser: userData,
-                        userRole: response.data.userType,
-                        isAuthenticated: true,
+                        viewedUserProfile: userData,
+                        viewedUserRole: userType,
                         error: null
                     });
                 } catch (error: any) {
-                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch profile' });
+                    const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch user profile';
+                    set({ error: errorMessage });
+                    // If 404, profile not found will be handled in the UI
+                    throw error;
                 } finally {
-                    set({ isLoading: false });
+                    set({ isFetchingProfile: false });
                 }
             },
 

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FAQSection from "./_components/FAQSection";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -15,6 +15,9 @@ type FAQItemType = {
 
 export default function HelpPage() {
   const [search, setSearch] = useState("");
+  const headerRef = useRef<HTMLElement>(null);
+  const supportRef = useRef<HTMLElement>(null);
+  const faqContainerRef = useRef<HTMLDivElement>(null);
 
   /* ⭐ Header stars animation */
   useEffect(() => {
@@ -29,13 +32,27 @@ export default function HelpPage() {
     });
 
     gsap.to(".float-star", {
-      y: -12,
+      y: -14,
       duration: 3,
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut",
       stagger: 1,
     });
+
+    if (headerRef.current) {
+      gsap.fromTo(
+        headerRef.current.querySelectorAll(".help-hero-item"),
+        { y: 24, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.7,
+          stagger: 0.12,
+          ease: "power2.out",
+        }
+      );
+    }
   }, []);
 
   /* 📜 FAQ scroll animation (WORKING & SAFE) */
@@ -43,6 +60,7 @@ export default function HelpPage() {
 
 
 useLayoutEffect(() => {
+  const hoverCleanups: Array<() => void> = [];
   const ctx = gsap.context(() => {
     const sections = gsap.utils.toArray<HTMLElement>(".faq-section");
 
@@ -50,20 +68,67 @@ useLayoutEffect(() => {
       gsap.from(section, {
         scrollTrigger: {
           trigger: section,
-          start: "top 85%",
+          start: "top 88%",
           once: true,
         },
         opacity: 0,
-        y: 40,
-        duration: 0.6,
+        y: 34,
+        duration: 0.65,
         ease: "power2.out",
+      });
+
+      const onEnter = () => {
+        gsap.to(section, {
+          y: -4,
+          boxShadow: "0 14px 30px rgba(52, 54, 92, 0.14)",
+          duration: 0.25,
+          ease: "power2.out",
+        });
+      };
+
+      const onLeave = () => {
+        gsap.to(section, {
+          y: 0,
+          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+          duration: 0.3,
+          ease: "power2.out",
+        });
+      };
+
+      section.addEventListener("mouseenter", onEnter);
+      section.addEventListener("mouseleave", onLeave);
+      hoverCleanups.push(() => {
+        section.removeEventListener("mouseenter", onEnter);
+        section.removeEventListener("mouseleave", onLeave);
       });
     });
 
-    ScrollTrigger.refresh();
-  });
+    if (supportRef.current) {
+      gsap.fromTo(
+        supportRef.current,
+        { y: 24, opacity: 0, scale: 0.98 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.65,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: supportRef.current,
+            start: "top 90%",
+            once: true,
+          },
+        }
+      );
+    }
 
-  return () => ctx.revert();
+    ScrollTrigger.refresh();
+  }, faqContainerRef);
+
+  return () => {
+    hoverCleanups.forEach((cleanup) => cleanup());
+    ctx.revert();
+  };
 }, []);
 
 
@@ -236,7 +301,7 @@ useLayoutEffect(() => {
     <main className="bg-[var(--secondary-pale-lavender)] min-h-screen px-4">
 
       {/* HEADER */}
-      <section className="relative bg-[#34365C] py-24 text-white w-screen -mx-4 overflow-hidden">
+      <section ref={headerRef} className="relative bg-[#34365C] py-24 text-white w-screen -mx-4 overflow-hidden">
         {/* ⭐ Decorative Stars */}
 {/*LEFT SIDE*/}
 <span className="big-star float-star absolute top-20 left-10 text-4xl opacity-70">★</span>
@@ -253,7 +318,7 @@ useLayoutEffect(() => {
 
 
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-6xl font-semibold mb-4">
+          <h1 className="help-hero-item text-6xl font-semibold mb-4">
             Need Help? <span className="text-[var(--primary-purple)]">We’re Here</span>
           </h1>
 
@@ -262,13 +327,13 @@ useLayoutEffect(() => {
             placeholder="Search questions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="relative z-10 mt-6 w-full max-w-xl rounded-xl px-5 py-4 text-white bg-white/10 border border-white/30"
+            className="help-hero-item relative z-10 mt-6 w-full max-w-xl rounded-xl px-5 py-4 text-white bg-white/10 border border-white/30"
           />
         </div>
       </section>
 
       {/* FAQ SECTIONS */}
-      <div className="max-w-4xl mx-auto mt-16 mb-24 space-y-8">
+      <div ref={faqContainerRef} className="max-w-4xl mx-auto mt-16 mb-24 space-y-8">
         {faqData.map((section, index) => {
           const filtered = filterItems(section.items);
           if (filtered.length === 0) return null;
@@ -284,7 +349,7 @@ useLayoutEffect(() => {
       </div>
 
       {/* STILL NEED HELP */}
-      <section className="max-w-4xl mx-auto mt-16 mb-16 rounded-2xl bg-[#2d337a] p-8 text-white shadow-lg">
+      <section ref={supportRef} className="max-w-4xl mx-auto mt-16 mb-16 rounded-2xl bg-[#2d337a] p-8 text-white shadow-lg">
        <h2 className="text-5xl font-semibold text-center mb-2">
             Still Need Help?
       </h2>

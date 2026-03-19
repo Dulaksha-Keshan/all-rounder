@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, GraduationCap, User, School, Building2, CheckCircle } from "lucide-react";
+import gsap from "gsap";
 
 const userTypes = [
   {
@@ -54,8 +58,52 @@ const userTypes = [
 ];
 
 export default function SignupPage() {
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pageRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const stars = gsap.utils.toArray<HTMLElement>(".auth-stars > div");
+      const orbs = gsap.utils.toArray<HTMLElement>(".auth-orb");
+
+      gsap
+        .timeline({ defaults: { ease: "power2.out" } })
+        .from(".signup-hero", { y: 28, opacity: 0, duration: 0.8 })
+        .from(
+          ".signup-grid .signup-role-card",
+          { y: 26, opacity: 0, duration: 0.7, stagger: 0.1 },
+          "-=0.35"
+        )
+        .from(".signup-info-card", { y: 20, opacity: 0, duration: 0.6, stagger: 0.12 }, "-=0.25");
+
+      gsap.to(orbs, {
+        y: "random(-14, 14)",
+        x: "random(-10, 10)",
+        duration: "random(5.5, 8)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.2,
+      });
+
+      gsap.to(stars, {
+        y: "random(-10, 10)",
+        x: "random(-6, 6)",
+        duration: "random(2.6, 4.4)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.08,
+      });
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <div
+      ref={pageRef}
       className="min-h-screen py-20 px-4 relative overflow-hidden"
       style={{
         background: "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 25%, #ffffff 50%, var(--secondary-light-lavender) 75%, var(--secondary-pale-lavender) 100%)",
@@ -63,27 +111,28 @@ export default function SignupPage() {
     >
       {/* Colorful Gradient Orbs */}
       <div
-        className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-25 blur-3xl pointer-events-none"
-        style={{ background: "var(--primary-purple)" }}
+        className="auth-orb absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-25 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-purple)", animationDuration: "6s" }}
       />
       <div
-        className="absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ background: "var(--primary-blue)" }}
+        className="auth-orb absolute top-20 -right-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-blue)", animationDuration: "7s", animationDelay: "0.6s" }}
       />
       <div
-        className="absolute bottom-0 -left-24 w-[450px] h-[450px] rounded-full opacity-22 blur-3xl pointer-events-none"
-        style={{ background: "var(--secondary-purple-light)" }}
+        className="auth-orb absolute bottom-0 -left-24 w-[450px] h-[450px] rounded-full opacity-22 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--secondary-purple-light)", animationDuration: "8s", animationDelay: "1.2s" }}
       />
       <div
-        className="absolute -bottom-32 right-10 w-[520px] h-[520px] rounded-full opacity-18 blur-3xl pointer-events-none"
-        style={{ background: "var(--secondary-light-lavender)" }}
+        className="auth-orb absolute -bottom-32 right-10 w-[520px] h-[520px] rounded-full opacity-18 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--secondary-light-lavender)", animationDuration: "7.2s", animationDelay: "0.9s" }}
       />
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full opacity-12 blur-3xl pointer-events-none"
-        style={{ background: "var(--primary-dark-purple)" }}
+        className="auth-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full opacity-12 blur-3xl pointer-events-none animate-pulse"
+        style={{ background: "var(--primary-dark-purple)", animationDuration: "9s", animationDelay: "1.5s" }}
       />
 
       {/* Beautiful Star Field Background */}
+      <div className="auth-stars">
       <div className="absolute top-10 left-[8%] text-4xl opacity-45 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3s" }}>★</div>
       <div className="absolute top-24 right-[12%] text-3xl opacity-40 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "4s", animationDelay: "0.5s" }}>★</div>
       <div className="absolute top-40 left-[25%] text-2xl opacity-35 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "3.5s", animationDelay: "1s" }}>★</div>
@@ -112,10 +161,11 @@ export default function SignupPage() {
       <div className="absolute top-2/5 right-[15%] text-4xl opacity-42 animate-pulse" style={{ color: "var(--primary-purple)", animationDuration: "3.2s", animationDelay: "0.9s" }}>★</div>
       <div className="absolute top-3/4 left-[50%] text-3xl opacity-38 animate-pulse" style={{ color: "var(--primary-blue)", animationDuration: "3.9s", animationDelay: "1.3s" }}>★</div>
       <div className="absolute top-4/5 right-[28%] text-2xl opacity-40 animate-pulse" style={{ color: "var(--primary-dark-purple)", animationDuration: "4.2s", animationDelay: "0.7s" }}>★</div>
+      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="signup-hero text-center mb-16">
           <div className="flex justify-center mb-8">
             <Image
               src="/icons/logoForPages.png"
@@ -135,14 +185,14 @@ export default function SignupPage() {
         </div>
 
         {/* User Type Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 max-w-7xl mx-auto">
+        <div className="signup-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 max-w-7xl mx-auto">
           {userTypes.map((userType) => {
             const Icon = userType.icon;
 
             return (
               <div
                 key={userType.type}
-                className="group bg-card rounded-2xl border border-gray-200 p-6 hover:border-gray-300 transition-all duration-300 hover:shadow-2xl flex flex-col h-full relative overflow-hidden"
+                className="signup-role-card group bg-card rounded-2xl border border-gray-200 p-6 hover:border-gray-300 transition-all duration-300 hover:shadow-2xl flex flex-col h-full relative overflow-hidden"
               >
                 {/* Subtle gradient glow on hover */}
                 <div
@@ -200,7 +250,7 @@ export default function SignupPage() {
         </div>
 
         {/* Already have account */}
-        <div className="bg-card rounded-2xl border border-gray-200 p-8 max-w-2xl mx-auto mb-12 text-center">
+        <div className="signup-info-card bg-card rounded-2xl border border-gray-200 p-8 max-w-2xl mx-auto mb-12 text-center">
           <h3 className="text-primary-dark text-xl font-bold mb-3">
             Already have an account?
           </h3>
@@ -218,7 +268,7 @@ export default function SignupPage() {
         </div>
 
         {/* Verification Requirements */}
-        <div className="bg-card rounded-2xl border border-gray-200 p-8 max-w-4xl mx-auto">
+        <div className="signup-info-card bg-card rounded-2xl border border-gray-200 p-8 max-w-4xl mx-auto">
           <h4 className="text-primary-dark text-lg font-bold mb-6 text-center">
             Verification Requirements
           </h4>

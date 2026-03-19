@@ -2,6 +2,7 @@
 
 import BigCalendar from "./BigCalender";
 import { useEventStore } from "@/context/useEventStore";
+import { useEffect } from "react";
 
 interface BigCalendarContainerProps {
   schoolId?: string;
@@ -14,14 +15,21 @@ const BigCalendarContainer = ({
   organizerId,
   type = "School"
 }: BigCalendarContainerProps) => {
-  const { events } = useEventStore();
+  const { events, fetchEvents, isLoading } = useEventStore();
+
+  useEffect(() => {
+    void fetchEvents(1, 100);
+  }, [fetchEvents]);
   // Determine which ID to use
   const id = schoolId || organizerId;
 
   // Filter events based on type
   const filteredEvents = events.filter((event) => {
     if (!id) return false;
-    return event.organizerId === id && event.organizerType === type;
+    const expectedHostType = type === "School" ? "school" : "organization";
+    return (event.hosts || []).some(
+      (host) => host.hostType === expectedHostType && host.hostId === id
+    );
   });
 
   const data = filteredEvents.map((event) => {
@@ -33,7 +41,7 @@ const BigCalendarContainer = ({
       title: event.title,
       start: startDate,
       end: endDate > startDate ? endDate : new Date(startDate.getTime() + 60 * 60 * 1000),
-      time: event.time || startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timeLabel: startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       location: event.location,
     };
   });
@@ -44,7 +52,11 @@ const BigCalendarContainer = ({
   return (
     <div className="h-[700px] p-4 bg-white rounded-md shadow">
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
+      {isLoading && events.length === 0 ? (
+        <div className="h-[600px] flex items-center justify-center text-gray-500">Loading events...</div>
+      ) : (
       <BigCalendar data={data} />
+      )}
     </div>
   );
 };

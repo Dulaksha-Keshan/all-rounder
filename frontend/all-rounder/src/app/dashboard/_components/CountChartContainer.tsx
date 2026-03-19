@@ -8,9 +8,11 @@ import { useStudentStore } from "@/context/useStudentStore";
 interface CountChartContainerProps {
   schoolId?: string;
   orgId?: string;
+  boysOverride?: number;
+  girlsOverride?: number;
 }
 
-const CountChartContainer = ({ schoolId, orgId }: CountChartContainerProps) => {
+const CountChartContainer = ({ schoolId, orgId, boysOverride, girlsOverride }: CountChartContainerProps) => {
   const { students } = useStudentStore();
   // Filter students based on schoolId or orgId
   let filteredStudents = students;
@@ -22,8 +24,10 @@ const CountChartContainer = ({ schoolId, orgId }: CountChartContainerProps) => {
   }
 
   // Count boys and girls from the filtered data
-  const boys = filteredStudents.filter((s) => s.sex === "MALE").length;
-  const girls = filteredStudents.filter((s) => s.sex === "FEMALE").length;
+  const fallbackBoys = filteredStudents.filter((s) => s.sex === "MALE").length;
+  const fallbackGirls = filteredStudents.filter((s) => s.sex === "FEMALE").length;
+  const boys = typeof boysOverride === "number" ? boysOverride : fallbackBoys;
+  const girls = typeof girlsOverride === "number" ? girlsOverride : fallbackGirls;
   const total = boys + girls;
 
   return (

@@ -1,296 +1,152 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
-import { useEventStore } from '@/context/useEventStore';
-import { Event } from '@/app/_type/type';
+import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { Calendar, Clock, MapPin } from 'lucide-react';
-import Image from 'next/image';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Calendar, Sparkles, Users, Trophy, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-export function EventDetails() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [direction, setDirection] = useState(1);
-  const [isMounted, setIsMounted] = useState(false);
+gsap.registerPlugin(ScrollTrigger);
 
-  const { events } = useEventStore();
+const spotlightCards = [
+  {
+    title: 'Live School Challenges',
+    description:
+      'Join weekly challenge drops curated by schools and mentors. Build consistency through short sprints and public progress.',
+    icon: Trophy,
+    badge: 'Weekly',
+    accent: 'from-[#8387CC] to-[#4169E1]',
+  },
+  {
+    title: 'Peer Collaboration Rooms',
+    description:
+      'Match with peers based on goals and skills, then work together on projects, prep, and portfolio outcomes.',
+    icon: Users,
+    badge: 'Collaborative',
+    accent: 'from-[#6B73C8] to-[#34365C]',
+  },
+  {
+    title: 'Milestone Timelines',
+    description:
+      'Track your growth in one place with visual milestones and guidance prompts to keep momentum strong.',
+    icon: Calendar,
+    badge: 'Structured',
+    accent: 'from-[#9A8EEA] to-[#6B73C8]',
+  },
+];
 
-  // Fix hydration by only rendering random particles on client
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+export function OpportunitySpotlight() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
 
-  // Auto-play functionality
-  useEffect(() => {
-    if (isPaused || events.length === 0) return;
+  useGSAP(
+    () => {
+      const heading = headingRef.current;
+      const cards = cardsRef.current?.querySelectorAll('.spotlight-card') || [];
+      const glow = sectionRef.current?.querySelector('.spotlight-glow');
 
-    const interval = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length);
-    }, 4000);
+      if (!heading || cards.length === 0) return;
 
-    return () => clearInterval(interval);
-  }, [isPaused]);
+      gsap.fromTo(
+        heading,
+        { y: 30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+          },
+        }
+      );
 
-  // Character-by-character title animation
-  useGSAP(() => {
-    const titleText = titleRef.current;
-    if (!titleText || !titleText.textContent) return;
+      gsap.fromTo(
+        cards,
+        { y: 50, opacity: 0, rotateX: -8 },
+        {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.75,
+          stagger: 0.15,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: cardsRef.current,
+            start: 'top 82%',
+          },
+        }
+      );
 
-    const chars = titleText.textContent.split('');
-    titleText.innerHTML = chars.map(char =>
-      `<span class="inline-block">${char === ' ' ? '&nbsp;' : char}</span>`
-    ).join('');
-
-    if (titleRef.current && titleRef.current.children) {
-      gsap.from(titleRef.current.children, {
-        yPercent: 100,
-        opacity: 0,
-        rotateX: -90,
-        stagger: 0.03,
-        duration: 0.8,
-        ease: 'back.out(1.7)',
-      });
-    }
-  }, []);
-
-  // Slide transition animation
-  useGSAP(() => {
-    const tl = gsap.timeline();
-
-    // Image entrance with 3D effect
-    tl.fromTo('.event-image',
-      {
-        scale: 0.8,
-        rotateY: direction > 0 ? 30 : -30,
-        opacity: 0,
-        filter: 'blur(10px)'
-      },
-      {
-        scale: 1,
-        rotateY: 0,
-        opacity: 1,
-        filter: 'blur(0px)',
-        duration: 1.2,
-        ease: 'power3.out'
+      if (glow) {
+        gsap.to(glow, {
+          xPercent: 30,
+          yPercent: 10,
+          repeat: -1,
+          yoyo: true,
+          duration: 5,
+          ease: 'sine.inOut',
+        });
       }
-    );
-
-    // Card container with slide effect
-    tl.fromTo('.event-card-container',
-      {
-        x: direction > 0 ? 100 : -100,
-        opacity: 0,
-        rotateY: direction > 0 ? 10 : -10
-      },
-      {
-        x: 0,
-        opacity: 1,
-        rotateY: 0,
-        duration: 0.9,
-        ease: 'power2.out'
-      },
-      '-=0.8'
-    );
-
-    // Event info with stagger
-    tl.from('.event-info-item',
-      {
-        y: 30,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: 'power2.out'
-      },
-      '-=0.5'
-    );
-
-    // Button with bounce
-    tl.fromTo('.event-button',
-      {
-        scale: 0,
-        rotation: -180,
-        opacity: 0
-      },
-      {
-        scale: 1,
-        rotation: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: 'elastic.out(1, 0.5)'
-      },
-      '-=0.4'
-    );
-  }, [currentIndex]);
-
-  const totalEvents = events.length;
-
-  const goToSlide = (index: number) => {
-    const newIndex = (index + totalEvents) % totalEvents;
-    setDirection(index > currentIndex ? 1 : -1);
-    setCurrentIndex(newIndex);
-  };
-
-  const currentEvent = events[currentIndex];
-
-  if (totalEvents === 0 || !currentEvent) {
-    return null;
-  }
-
-  // Category color mapping
-  const categoryColors: { [key: string]: string } = {
-    Workshop: 'bg-[var(--blue-500)]',
-    Competition: 'bg-[var(--red-500)]',
-    Social: 'bg-[var(--green-500)]',
-    Career: 'bg-[var(--purple-500)]',
-  };
+    },
+    { scope: sectionRef }
+  );
 
   return (
-    <section className='bg-gradient-to-br from-purple-100 via-[var(--pink-50)] to-purple-100 py-8 sm:py-10 lg:py-10 overflow-hidden'>
-      <div ref={containerRef} className="max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Animated Title */}
-        <h2
-          ref={titleRef}
-          className="text-3xl sm:text-4xl lg:text-4xl font-bold text-[var(--primary-dark-purple)] text-center mb-8 sm:mb-10 lg:mb-12 overflow-hidden"
-        >
-          Explore Our Events
-        </h2>
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden py-14 sm:py-16 lg:py-20 bg-gradient-to-br from-[#F5F2FF] via-[#FFFFFF] to-[#EEF2FF]"
+    >
+      <div className="spotlight-glow absolute -top-20 -right-20 w-72 h-72 bg-[#BDB4FF]/30 blur-3xl rounded-full pointer-events-none" />
 
-        {/* Event Carousel */}
-        <div
-          className="relative max-w-5xl mx-auto"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          style={{ perspective: '1000px' }}
-        >
-          {/* Left Arrow with hover effect */}
-          <button
-            className="absolute left-0 sm:left-2 lg:-left-16 top-1/2 -translate-y-1/2 -translate-x-0 sm:-translate-x-2 lg:-translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:-translate-x-20"
-            onClick={() => goToSlide(currentIndex - 1)}
-            aria-label="Previous event"
-          >
-            ‹
-          </button>
-
-          {/* Event Card with 3D effect */}
-          <div className="event-card-container relative px-12 sm:px-14 lg:px-0" style={{ transformStyle: 'preserve-3d' }}>
-            <div className="bg-[var(--white)] rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border-2 sm:border-4 border-[var(--primary-purple)] overflow-hidden relative group transform transition-transform duration-300 hover:scale-[1.02]">
-              {/* Image with parallax effect on hover */}
-              <div className="overflow-hidden relative h-[250px] sm:h-[350px] lg:h-[400px]">
-                <Image
-                  src={currentEvent.imageUrl || '/images/hero-1.jpg'} // Fallback image
-                  alt={currentEvent.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px"
-                  className="event-image object-cover transition-transform duration-700 group-hover:scale-110"
-                  priority
-                />
-
-                {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/80 via-[var(--black)]/30 to-transparent"></div>
-
-                {/* Event Title Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 text-[var(--white)]">
-                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2 event-info-item drop-shadow-lg">
-                    {currentEvent.title}
-                  </h3>
-                </div>
-
-                {/* Floating particles effect on hover */}
-                {isMounted && (
-                  <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                    {[...Array(6)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="absolute w-2 h-2 bg-[var(--white)]/40 rounded-full animate-pulse"
-                        style={{
-                          left: `${Math.random() * 100}%`,
-                          top: `${Math.random() * 100}%`,
-                          animationDelay: `${i * 0.2}s`,
-                          animationDuration: '3s'
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Event Details Section */}
-              <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-[var(--white)] to-purple-50">
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
-                  {/* Date */}
-                  <div className="event-info-item text-center">
-                    <Calendar className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
-                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Date</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
-                      {new Date(currentEvent.startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-                    </div>
-                  </div>
-
-                  {/* Time */}
-                  <div className="event-info-item text-center">
-                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
-                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Time</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">
-                      {currentEvent.time || new Date(currentEvent.startDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-
-                  {/* Location */}
-                  <div className="event-info-item text-center">
-                    <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mx-auto mb-1 sm:mb-2 text-[var(--primary-purple)]" />
-                    <div className="text-xs sm:text-sm text-[var(--gray-600)] font-medium">Location</div>
-                    <div className="text-[var(--primary-dark-purple)] font-bold text-xs sm:text-sm lg:text-base">{currentEvent.location}</div>
-                  </div>
-                </div>
-
-                {/* Find Out More Button with glow effect */}
-                <div className="flex justify-center event-button">
-                  <Link href="/events">
-                    <button className="relative px-6 sm:px-8 lg:px-10 py-3 sm:py-3.5 lg:py-4 bg-[var(--primary-purple)] text-[var(--white)] text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl hover:bg-[var(--primary-blue)] shadow-xl sm:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-[var(--white)]/20 overflow-hidden group/btn">
-                      <span className="relative z-10">Find Out More</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--white)]/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div ref={headingRef} className="text-center mb-10 sm:mb-12 opacity-0">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E9E2FF] text-[#4A4F8F] text-xs sm:text-sm font-semibold mb-4">
+            <Sparkles className="w-4 h-4" />
+            Explore The Platform
           </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#34365C] tracking-tight mb-3">
+            Your Next Opportunity Starts Here
+          </h2>
+          <p className="text-sm sm:text-base lg:text-lg text-[#5C5F8A] max-w-3xl mx-auto leading-relaxed">
+            Even before signing in, you can discover how All-Rounder helps students build momentum, collaborate deeply, and celebrate real growth.
+          </p>
+        </div>
 
-          {/* Right Arrow */}
-          <button
-            className="absolute right-0 sm:right-2 lg:-right-16 top-1/2 -translate-y-1/2 translate-x-0 sm:translate-x-2 lg:translate-x-16 w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl text-[var(--primary-purple)] hover:text-[var(--primary-blue)] z-20 transition-all duration-300 hover:scale-125 lg:hover:translate-x-20"
-            onClick={() => goToSlide(currentIndex + 1)}
-            aria-label="Next event"
+        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8" style={{ perspective: '1000px' }}>
+          {spotlightCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <article
+                key={card.title}
+                className="spotlight-card opacity-0 group rounded-3xl border border-[#DDD9FF] bg-white/80 backdrop-blur-sm p-6 sm:p-7 shadow-lg hover:shadow-2xl transition-all duration-300"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${card.accent} text-white flex items-center justify-center shadow-md`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-[#5D6093] bg-[#EEF0FF] px-3 py-1 rounded-full">
+                    {card.badge}
+                  </span>
+                </div>
+                <h3 className="text-xl font-extrabold text-[#34365C] mb-2">{card.title}</h3>
+                <p className="text-sm sm:text-base text-[#60638E] leading-relaxed">{card.description}</p>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-10 sm:mt-12 flex justify-center">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8387CC] to-[#4169E1] text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-transform hover:scale-[1.03]"
           >
-            ›
-          </button>
-        </div>
-
-        {/* Animated Carousel Dots */}
-        <div className="flex justify-center gap-2 sm:gap-3 mt-8 sm:mt-10 lg:mt-12">
-          {events.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${index === currentIndex
-                ? 'bg-[var(--primary-purple)] w-8 sm:w-10 lg:w-12 shadow-lg shadow-[var(--primary-purple)]/50'
-                : 'bg-[var(--secondary-light-lavender)] hover:bg-[var(--primary-purple)] w-2 sm:w-3 hover:w-4 sm:hover:w-6'
-                }`}
-              aria-label={`Go to event ${index + 1}`}
-            />
-          ))}
-        </div>
-
-        {/* Navigation Info with animation */}
-        <div className="text-center mt-4 sm:mt-6 text-[var(--primary-dark-purple)] font-bold text-base sm:text-lg">
-          <span className="inline-block transition-transform duration-300 hover:scale-110">
-            {currentIndex + 1} / {totalEvents}
-          </span>
+            Get Started
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     </section>

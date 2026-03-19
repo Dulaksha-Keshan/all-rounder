@@ -13,7 +13,7 @@ interface EventType {
   title: string;
   start: Date;
   end: Date;
-  time?: string;
+  timeLabel?: string;
   location?: string;
 }
 
@@ -42,12 +42,12 @@ const BigCalendar: React.FC<BigCalendarProps> = ({ data }) => {
         components={{
           event: ({ event }) => (
             <div
-              title={`Time: ${event.time || "N/A"}\nLocation: ${event.location || "N/A"}`}
+              title={`Time: ${event.timeLabel || "N/A"}\nLocation: ${event.location || "N/A"}`}
               className="text-sm"
             >
               <strong>{event.title}</strong>
               <div style={{ fontSize: "0.75em" }}>
-                {event.time ? `Time: ${event.time}` : ""}
+                {event.timeLabel ? `Time: ${event.timeLabel}` : ""}
                 {event.location ? ` | Location: ${event.location}` : ""}
               </div>
             </div>

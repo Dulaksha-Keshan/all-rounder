@@ -8,9 +8,7 @@ import Table from "@/app/dashboard/_components/Table";
 import SearchBar from "@/components/SearchBar";
 import Pagination from "@/components/Pagination";
 import GoBackButton from "@/components/GoBackButton";
-import { useTeacherStore } from "@/context/useTeacherStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
-import { Teacher } from "@/app/_type/type";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
@@ -29,27 +27,42 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
         : 1;
     const search = searchParams.get("search")?.toLowerCase() || "";
 
-    const { teachers } = useTeacherStore();
-    const { getSchoolById } = useSchoolStore();
+    const {
+        getSchoolById,
+        fetchSchools,
+        schools,
+        schoolTeachers,
+        fetchSchoolTeachers,
+        isLoading,
+    } = useSchoolStore();
+
+    useEffect(() => {
+        if (!schools.length) {
+            void fetchSchools();
+        }
+        void fetchSchoolTeachers(schoolId);
+    }, [schools.length, fetchSchools, fetchSchoolTeachers, schoolId]);
 
     // Find the school - show 404 if not found
     const school = getSchoolById(schoolId);
+
+    if (isLoading && !school) {
+        return <div className="p-6 text-[var(--text-main)]">Loading teachers...</div>;
+    }
 
     if (!school) {
         notFound();
     }
 
-    // ------------- FILTER BY SCHOOL ID -------------
-    let filteredTeachers = teachers.filter(
-        (teacher) => teacher.school_id === schoolId
-    );
+    // ------------- FILTER & SEARCH (Backend already filters by schoolId) -------------
+    let filteredTeachers = schoolTeachers;
 
-    // ------------- SEARCH -------------
+    // ------------- SEARCH BY NAME OR SUBJECT FIELD -------------
     if (search) {
         filteredTeachers = filteredTeachers.filter(
             (teacher) =>
                 teacher.name.toLowerCase().includes(search) ||
-                teacher.email.toLowerCase().includes(search)
+                (teacher.subject && teacher.subject.toLowerCase().includes(search))
         );
     }
 
@@ -63,9 +76,8 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
 
     const columns = [
         { header: "Teacher", accessor: "name" },
-        { header: "Email", accessor: "email", className: "hidden md:table-cell" },
-        { header: "Teacher ID", accessor: "id", className: "hidden lg:table-cell" },
-        { header: "Gender", accessor: "sex", className: "hidden lg:table-cell" },
+        { header: "Subject", accessor: "subject", className: "hidden md:table-cell" },
+        { header: "Designation", accessor: "designation", className: "hidden lg:table-cell" },
         { header: "Actions", accessor: "action" },
     ];
 
@@ -74,6 +86,13 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
     useEffect(() => {
         if (!tableRef.current) return;
         const rows = tableRef.current.querySelectorAll('tbody tr');
+        
+        // Guard: only animate if rows exist
+        if (rows.length === 0) {
+            console.log("No rows found to animate");
+            return;
+        }
+        
         gsap.fromTo(rows,
             { y: 10, opacity: 0 },
             {
@@ -86,7 +105,7 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
         );
     }, [data]);
 
-    const renderRow = (teacher: Teacher) => (
+    const renderRow = (teacher: any) => (
         <tr
             key={teacher.uid}
             className="border-b border-[var(--gray-100)] text-sm hover:bg-[var(--gray-50)] transition-all opacity-0"
@@ -105,23 +124,12 @@ const TeacherListPageContent = ({ schoolId }: { schoolId: string }) => {
             </td>
 
             <td className="hidden md:table-cell text-[var(--text-muted)] py-4 px-6">
-                {teacher.email}
-            </td>
-
-            <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6 text-center">
-                <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-purple)] px-3 py-1 rounded-full text-xs font-bold">
-                    #{teacher.uid}
-                </span>
+                {teacher.subject || "—"}
             </td>
 
             <td className="hidden lg:table-cell text-[var(--text-muted)] py-4 px-6">
-                <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${teacher.sex === "MALE"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-pink-100 text-pink-700"
-                        }`}
-                >
-                    {teacher.sex}
+                <span className="bg-[var(--secondary-light-lavender)] text-[var(--primary-purple)] px-3 py-1 rounded-full text-xs font-bold">
+                    {teacher.designation || "Staff"}
                 </span>
             </td>
 

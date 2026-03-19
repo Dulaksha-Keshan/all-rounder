@@ -23,7 +23,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
     if (event.attachments && event.attachments.length > 0) {
       return event.attachments[0];
     }
-    return event.imageUrl || '/images/hero-1.jpg';
+    return '/images/hero-1.jpg';
   };
 
   // Format start date and time

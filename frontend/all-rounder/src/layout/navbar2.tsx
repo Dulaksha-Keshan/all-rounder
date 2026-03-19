@@ -10,7 +10,6 @@ import {
   LogOut,
   HomeIcon,
   BookOpen,
-  Gift,
   Trophy,
   Calendar,
   ChevronDown,
@@ -66,7 +65,6 @@ export function Navbar() {
   const navIcons = [
     { id: "home", label: "Home", icon: HomeIcon, path: "/home" },
     { id: "resources", label: "Resources", icon: BookOpen, path: "/resourceSharing" },
-    { id: "donations", label: "Donations", icon: Gift, path: "/donations" },
     { id: "events", label: "Events", icon: Calendar, path: "/events" },
     { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard" },
   ];
@@ -116,7 +114,7 @@ export function Navbar() {
               {/* Public Navigation Links - Desktop view */}
               <div className="flex items-center gap-6">
                 <button
-                  onClick={() => scrollToSection("Home")}
+                  onClick={() => router.push("/")}
                   className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   Home
@@ -128,16 +126,16 @@ export function Navbar() {
                   About Us
                 </button>
                 <button
-                  onClick={() => scrollToSection("features")}
+                  onClick={() => scrollToSection("Features")}
                   className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
                   Features
                 </button>
                 <button
-                  onClick={() => scrollToSection("Events")}
+                  onClick={() => router.push("/vision")}
                   className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
                 >
-                  Events
+                  Vision
                 </button>
               </div>
 
@@ -183,11 +181,15 @@ export function Navbar() {
 
           {mobileMenuOpen && (
             <div className="bg-gradient-to-b from-white/90 to-[#F8F7FF]/90 backdrop-blur-md border-t-2 border-[#DCD0FF]/50 px-4 py-4 space-y-3">
-              {["Home", "AboutUs", "Features", "Events"].map((section) => (
+              {["Home", "AboutUs", "Features", "Vision"].map((section) => (
                 <button
                   key={section}
                   onClick={() => {
-                    scrollToSection(section);
+                    if (section === "Vision") {
+                      router.push("/vision");
+                    } else {
+                      scrollToSection(section);
+                    }
                     setMobileMenuOpen(false);
                   }}
                   className="block w-full text-left px-4 py-2 text-[#34365C] hover:bg-gradient-to-r hover:from-[#DCD0FF]/50 hover:to-[#F0EFFF]/50 rounded-lg transition font-medium"
@@ -199,7 +201,7 @@ export function Navbar() {
                       ? "About Us"
                       : section === "Features"
                         ? "Features"
-                        : "Events"}
+                        : "Vision"}
                 </button>
               ))}
 

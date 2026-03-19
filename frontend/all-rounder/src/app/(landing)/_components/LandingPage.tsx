@@ -1,7 +1,7 @@
 
 import { Trophy, Palette, Users } from 'lucide-react';
 import FeatureCard from './FeatureCard';
-import { EventDetails } from './Events';
+import { OpportunitySpotlight } from './Events';
 import { HeroSection } from './Hero';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
@@ -13,6 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function LandingPage() {
   const missionRef = useRef<HTMLDivElement>(null);
   const stakeholderRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (missionRef.current) {
@@ -48,6 +49,59 @@ export default function LandingPage() {
         }
       );
     }
+
+    if (ctaRef.current) {
+      gsap.to(ctaRef.current, {
+        y: -4,
+        duration: 1.4,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+    }
+
+    const tiltCards = gsap.utils.toArray<HTMLElement>('.tilt-card');
+    const cleanups: Array<() => void> = [];
+
+    tiltCards.forEach((card) => {
+      const onMove = (event: MouseEvent) => {
+        const rect = card.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width - 0.5;
+        const relY = (event.clientY - rect.top) / rect.height - 0.5;
+
+        gsap.to(card, {
+          rotateY: relX * 8,
+          rotateX: relY * -8,
+          y: -4,
+          duration: 0.25,
+          ease: 'power2.out',
+          transformPerspective: 800,
+          transformOrigin: 'center',
+        });
+      };
+
+      const onLeave = () => {
+        gsap.to(card, {
+          rotateY: 0,
+          rotateX: 0,
+          y: 0,
+          duration: 0.35,
+          ease: 'power2.out',
+        });
+      };
+
+      card.addEventListener('mousemove', onMove);
+      card.addEventListener('mouseleave', onLeave);
+
+      cleanups.push(() => {
+        card.removeEventListener('mousemove', onMove);
+        card.removeEventListener('mouseleave', onLeave);
+      });
+    });
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
   }, []);
 
   return (
@@ -69,7 +123,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Create */}
-            <div className="mission-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
+            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Palette className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -84,7 +138,7 @@ export default function LandingPage() {
             </div>
 
             {/* Contribute */}
-            <div className="mission-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
+            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -99,7 +153,7 @@ export default function LandingPage() {
             </div>
 
             {/* Celebrate */}
-            <div className="mission-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl md:col-span-2 lg:col-span-1 opacity-0">
+            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl md:col-span-2 lg:col-span-1 opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Trophy className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -114,7 +168,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className='flex justify-center mt-4 sm:mt-5'>
+          <div ref={ctaRef} className='flex justify-center mt-4 sm:mt-5'>
             <Link href="/vision">
               <button className="px-6 sm:px-9 py-2.5 sm:py-3 bg-[var(--primary-purple)] text-white rounded-lg text-base sm:text-lg font-bold hover:bg-[var(--primary-blue)] mt-5 shadow-lg hover:shadow-xl transition-all">
                 → Learn More
@@ -140,7 +194,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* For Students */}
-            <div className="stakeholder-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
+            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Students
               </h3>
@@ -165,7 +219,7 @@ export default function LandingPage() {
             </div>
 
             {/* For Teachers */}
-            <div className="stakeholder-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
+            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Teachers
               </h3>
@@ -190,7 +244,7 @@ export default function LandingPage() {
             </div>
 
             {/* For Schools */}
-            <div className="stakeholder-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 md:col-span-2 lg:col-span-1 opacity-0">
+            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 md:col-span-2 lg:col-span-1 opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Schools
               </h3>
@@ -216,8 +270,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/*  Events Section */}
-        <div id="Events"><EventDetails /></div>
+        {/* Opportunity Spotlight Section */}
+        <div id="OpportunitySpotlight"><OpportunitySpotlight /></div>
 
       </main>
 

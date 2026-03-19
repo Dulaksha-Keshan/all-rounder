@@ -39,6 +39,7 @@ interface EventState {
     updateEvent: (id: string, updates: UpdateEventInput) => Promise<void>;
     deleteEvent: (id: string) => Promise<void>;
     setActiveEvent: (event: Event | null) => void;
+    clearEventState: () => void;
     rsvpEvent: (eventId: string) => Promise<void>;
     getEventById: (id: string) => Event | undefined; // Sync selector
     fetchEventById: (id: string) => Promise<Event | undefined>; // Async fetch
@@ -178,6 +179,14 @@ export const useEventStore = create<EventState>()(
             },
 
             setActiveEvent: (event) => set({ activeEvent: event }),
+
+            clearEventState: () => set({
+                events: [],
+                activeEvent: null,
+                pagination: { page: 1, pages: 1, total: 0, count: 0 },
+                isLoading: false,
+                error: null,
+            }),
 
             rsvpEvent: async (eventId) => {
                 set({ isLoading: true, error: null });

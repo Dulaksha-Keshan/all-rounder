@@ -160,7 +160,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
       {/* Tab Content */}
       {activeTab === "Overview" && <SchoolOverviewTab school={school} />}
       {activeTab === "Achievements" && <SchoolAchievementsTab />}
-      {activeTab === "Events" && <SchoolEventsTab />}
+      {activeTab === "Events" && <SchoolEventsTab schoolId={school.school_id} />}
 
       {/* TEACHERS TAB */}
       {activeTab === "Teachers" && (

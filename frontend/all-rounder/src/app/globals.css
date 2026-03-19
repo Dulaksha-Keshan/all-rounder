@@ -246,3 +246,57 @@ html {
 body {
   transition: background-color 0.3s ease;
 }
+
+.global-cursor-fx {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+}
+
+.cursor-dot,
+.cursor-ring,
+.cursor-trail-dot,
+.cursor-ripple {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #5f62a8;
+}
+
+.cursor-ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(95, 98, 168, 0.55);
+  background: rgba(220, 208, 255, 0.12);
+}
+
+.cursor-trail-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: rgba(131, 135, 204, 0.35);
+}
+
+.cursor-ripple {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid rgba(95, 98, 168, 0.55);
+}
+
+@media (pointer: coarse), (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .global-cursor-fx {
+    display: none;
+  }
+}
