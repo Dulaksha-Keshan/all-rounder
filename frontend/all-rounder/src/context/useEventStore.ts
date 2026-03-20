@@ -17,6 +17,30 @@ function normalizeEvent(raw: any): Event {
     };
 }
 
+function isEventForSchool(event: Event, schoolId: string): boolean {
+    const normalizedSchoolId = String(schoolId || "");
+    if (!normalizedSchoolId) return false;
+
+    const hosts = event.hosts || [];
+    const hasSchoolHost = hosts.some((host: any) => {
+        const hostType = String(host?.hostType || "").toLowerCase();
+        const hostId = String(host?.hostId || host?.id || "");
+        return hostType === "school" && hostId === normalizedSchoolId;
+    });
+
+    if (hasSchoolHost) return true;
+
+    // Legacy payload fallback.
+    const legacyOrganizerId = String((event as any).organizerId || "");
+    const legacyOrganizerType = String((event as any).organizerType || "").toLowerCase();
+    if (legacyOrganizerType === "school" && legacyOrganizerId === normalizedSchoolId) {
+        return true;
+    }
+
+    // Some legacy payloads use organizer as school id.
+    return String(event.organizer || "") === normalizedSchoolId;
+}
+
 export interface EventPagination {
     page: number;
     pages: number;
@@ -26,6 +50,7 @@ export interface EventPagination {
 
 interface EventState {
     events: Event[];
+    schoolEventsById: Record<string, Event[]>;
     activeEvent: Event | null;
     pagination: EventPagination;
     isLoading: boolean;
@@ -34,6 +59,8 @@ interface EventState {
     // Actions
     setEvents: (events: Event[]) => void;
     fetchEvents: (page?: number, limit?: number) => Promise<void>;
+    fetchSchoolEvents: (schoolId: string, page?: number, limit?: number) => Promise<Event[]>;
+    getSchoolEvents: (schoolId: string) => Event[];
     /** Create a new event. Only SCHOOL_ADMIN / ORG_ADMIN / SUPER_ADMIN should call this. */
     createEvent: (input: CreateEventInput) => Promise<Event | undefined>;
     updateEvent: (id: string, updates: UpdateEventInput) => Promise<void>;
@@ -49,6 +76,7 @@ export const useEventStore = create<EventState>()(
     persist(
         (set, get) => ({
             events: [],
+            schoolEventsById: {},
             activeEvent: null,
             pagination: { page: 1, pages: 1, total: 0, count: 0 },
             isLoading: false,
@@ -70,6 +98,47 @@ export const useEventStore = create<EventState>()(
                 } finally {
                     set({ isLoading: false });
                 }
+            },
+
+            fetchSchoolEvents: async (schoolId, page = 1, limit = 100) => {
+                if (!schoolId) return [];
+
+                const normalizedSchoolId = String(schoolId);
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get('/events', { params: { page, limit } });
+                    const { data, count, total, page: currentPage, pages } = response.data;
+                    const normalized = (data as any[]).map(normalizeEvent);
+                    const filteredForSchool = normalized.filter((event) => isEventForSchool(event, normalizedSchoolId));
+
+                    set((state) => ({
+                        events: normalized,
+                        schoolEventsById: {
+                            ...state.schoolEventsById,
+                            [normalizedSchoolId]: filteredForSchool,
+                        },
+                        pagination: { page: currentPage, pages, total, count },
+                    }));
+
+                    return filteredForSchool;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch school events' });
+                    return [];
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            getSchoolEvents: (schoolId: string) => {
+                const normalizedSchoolId = String(schoolId || "");
+                if (!normalizedSchoolId) return [];
+
+                const cached = get().schoolEventsById[normalizedSchoolId];
+                if (cached && cached.length > 0) {
+                    return cached;
+                }
+
+                return get().events.filter((event) => isEventForSchool(event, normalizedSchoolId));
             },
 
             setEvents: (events) => set({ events }),
@@ -182,6 +251,7 @@ export const useEventStore = create<EventState>()(
 
             clearEventState: () => set({
                 events: [],
+                schoolEventsById: {},
                 activeEvent: null,
                 pagination: { page: 1, pages: 1, total: 0, count: 0 },
                 isLoading: false,
@@ -242,6 +312,7 @@ export const useEventStore = create<EventState>()(
             name: 'event-storage',
             partialize: (state) => ({
                 events: state.events,
+                schoolEventsById: state.schoolEventsById,
                 activeEvent: state.activeEvent,
                 pagination: state.pagination,
             }),

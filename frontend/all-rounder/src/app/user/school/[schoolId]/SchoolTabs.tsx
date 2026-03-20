@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { School } from "@/app/_type/type";
 import { useSchoolStore } from "@/context/useSchoolStore";
@@ -10,8 +10,8 @@ import SchoolEventsTab from "./SchoolEventsTab";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
-// Added Teachers and Students to the tab list
-const tabs = ["Overview", "Achievements", "Events", "Teachers", "Students"];
+const adminTabs = ["Overview", "Achievements", "Events", "Teachers", "Students"];
+const viewerTabs = ["Overview", "Achievements", "Events"];
 
 interface SchoolTabsProps {
   school: School;
@@ -20,7 +20,13 @@ interface SchoolTabsProps {
 
 export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
   const router = useRouter();
+  const resolvedSchoolId = String((school as any)?.school_id || (school as any)?.id || (school as any)?._id || "");
   const [activeTab, setActiveTab] = useState("Overview");
+  const fetchedStatisticsBySchoolIdRef = useRef<Record<string, boolean>>({});
+  const fetchedTeachersBySchoolIdRef = useRef<Record<string, boolean>>({});
+  const fetchedStudentsBySchoolIdRef = useRef<Record<string, boolean>>({});
+  const fetchedVerificationBySchoolIdRef = useRef<Record<string, boolean>>({});
+  const tabs = isAdmin ? adminTabs : viewerTabs;
   const [requestSubTab, setRequestSubTab] = useState<"pending" | "processed">("pending");
   const [hasLoadedAllRequests, setHasLoadedAllRequests] = useState(false);
   const [verificationModal, setVerificationModal] = useState<{
@@ -41,6 +47,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
     schoolStudents, 
     fetchSchoolTeachers, 
     fetchSchoolStudents,
+    fetchSchoolStatistics,
     pendingRequests,
     approvedRequests,
     rejectedRequests,
@@ -53,23 +60,47 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
     return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
   });
 
-  // Hydrate the lists when the component mounts or school ID changes
+  // Fetch school-level statistics once per school.
   useEffect(() => {
-    if (school.school_id) {
-      fetchSchoolTeachers(school.school_id);
-      fetchSchoolStudents(school.school_id);
+    if (!resolvedSchoolId) return;
+    if (fetchedStatisticsBySchoolIdRef.current[resolvedSchoolId]) return;
 
-      if (isAdmin) {
-        fetchVerificationRequests(school.school_id);
-      }
+    fetchedStatisticsBySchoolIdRef.current[resolvedSchoolId] = true;
+    void fetchSchoolStatistics(resolvedSchoolId);
+  }, [
+    resolvedSchoolId,
+    fetchSchoolStatistics,
+  ]);
+
+  // Fetch teachers + pending verification when teachers tab is opened.
+  useEffect(() => {
+    if (!resolvedSchoolId || activeTab !== "Teachers") return;
+
+    if (!fetchedTeachersBySchoolIdRef.current[resolvedSchoolId]) {
+      fetchedTeachersBySchoolIdRef.current[resolvedSchoolId] = true;
+      void fetchSchoolTeachers(resolvedSchoolId);
+    }
+
+    if (isAdmin && !fetchedVerificationBySchoolIdRef.current[resolvedSchoolId]) {
+      fetchedVerificationBySchoolIdRef.current[resolvedSchoolId] = true;
+      void fetchVerificationRequests(resolvedSchoolId);
     }
   }, [
-    school.school_id,
+    resolvedSchoolId,
+    activeTab,
     isAdmin,
     fetchSchoolTeachers,
-    fetchSchoolStudents,
     fetchVerificationRequests,
   ]);
+
+  // Fetch students only when students tab is opened.
+  useEffect(() => {
+    if (!resolvedSchoolId || activeTab !== "Students") return;
+    if (fetchedStudentsBySchoolIdRef.current[resolvedSchoolId]) return;
+
+    fetchedStudentsBySchoolIdRef.current[resolvedSchoolId] = true;
+    void fetchSchoolStudents(resolvedSchoolId);
+  }, [resolvedSchoolId, activeTab, fetchSchoolStudents]);
 
   useEffect(() => {
     if (
@@ -86,7 +117,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
   useEffect(() => {
     setHasLoadedAllRequests(false);
     setRequestSubTab("pending");
-  }, [school.school_id]);
+  }, [resolvedSchoolId]);
 
   const formatDate = (date: string | undefined) => {
     if (!date) return "N/A";
@@ -159,8 +190,8 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
 
       {/* Tab Content */}
       {activeTab === "Overview" && <SchoolOverviewTab school={school} />}
-      {activeTab === "Achievements" && <SchoolAchievementsTab />}
-      {activeTab === "Events" && <SchoolEventsTab schoolId={school.school_id} />}
+      {activeTab === "Achievements" && <SchoolAchievementsTab schoolId={resolvedSchoolId} />}
+      {activeTab === "Events" && <SchoolEventsTab schoolId={resolvedSchoolId} />}
 
       {/* TEACHERS TAB */}
       {activeTab === "Teachers" && (

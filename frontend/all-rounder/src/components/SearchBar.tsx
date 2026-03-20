@@ -42,7 +42,7 @@ const SearchBar = () => {
                 name="search"
                 onChange={handleChange}
                 placeholder="Search..."
-                className="w-[200px] py-2.5 bg-transparent outline-none text-[var(--text-main)] placeholder:text-[var(--text-muted)]"
+                className="w-[280px] py-2.5 bg-transparent outline-none text-[var(--text-main)] placeholder:text-[var(--text-muted)]"
             />
         </form>
     );

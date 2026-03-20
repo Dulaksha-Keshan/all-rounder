@@ -80,6 +80,7 @@ export interface School {
   name: string;
   address: string;
   district: string;
+  gender?: "Boys" | "Girls" | "Mixed";
   student_count?: number;
   email: string;
   contact_number: string;
@@ -374,20 +375,54 @@ export interface ResourceRequest {
   title: string;
   description: string;
   resourceType: "funding" | "equipment" | "mentorship" | "venue" | "software" | "other";
-  quantity: number;
+  quantity?: number;
   urgency: "low" | "medium" | "high";
   requestedFor: string;
   neededBy?: string; // Date string
-  status: "pending" | "approved" | "rejected" | "fulfilled";
+  status: "open" | "closed" | "fulfilled";
   visibility: "public" | "private";
   createdBy: string; // User ID
+  schoolId: string;
   remarks?: string;
   contactNumber?: string;
   email?: string;
   isDeleted?: boolean;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
 
+export interface ResourceRequestWithSchool {
+  request: ResourceRequest;
+  school: Pick<School, "school_id" | "name" | "address" | "district" | "contact_number"> & {
+    province?: string;
+  } | null;
+}
+
+export interface CreateResourceRequestInput {
+  title: string;
+  description: string;
+  resourceType: ResourceRequest["resourceType"];
+  requestedFor: string;
+  quantity?: number;
+  urgency?: ResourceRequest["urgency"];
+  neededBy?: string;
+  visibility?: ResourceRequest["visibility"];
+  remarks?: string;
+  contactNumber?: string;
+  email?: string;
+}
+
+export type UpdateResourceRequestInput = Partial<CreateResourceRequestInput> & {
+  status?: ResourceRequest["status"];
+};
+
+export interface ResourceRequestQuery {
+  status?: ResourceRequest["status"];
+  resourceType?: ResourceRequest["resourceType"];
+  visibility?: ResourceRequest["visibility"];
+  urgency?: ResourceRequest["urgency"];
+  keyword?: string;
 }
 
 

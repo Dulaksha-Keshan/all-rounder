@@ -134,6 +134,17 @@ export default function SchoolSignup() {
     school.name.toLowerCase().includes(schoolSearchTerm.toLowerCase())
   );
 
+  const isStep1Valid = Boolean(formData.schoolId);
+  const isStep2Valid = Boolean(
+    formData.firstName.trim() &&
+    formData.lastName.trim() &&
+    formData.email.trim() &&
+    formData.dateOfBirth &&
+    (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
+  );
+  const isStep3Valid = uploadedFiles.length > 0;
+  const isCurrentStepValid = currentStep === 1 ? isStep1Valid : currentStep === 2 ? isStep2Valid : isStep3Valid;
+
   const handleGoogleInitiate = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -160,6 +171,10 @@ export default function SchoolSignup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isCurrentStepValid) {
+      return;
+    }
 
     // Step 1 Validation
     if (currentStep === 1) {
@@ -384,7 +399,7 @@ export default function SchoolSignup() {
                     <label className={labelClass}>Date of Birth *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required />
+                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required placeholder="YYYY-MM-DD" title="Date of birth (YYYY-MM-DD)" />
                     </div>
                   </div>
                 </div>
@@ -525,7 +540,7 @@ export default function SchoolSignup() {
               {currentStep > 1 && (
                 <button type="button" onClick={() => setCurrentStep(currentStep - 1)} disabled={isAuthLoading} className="flex-1 py-3 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50">Back</button>
               )}
-              <button type="submit" disabled={isAuthLoading} className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary-dark-purple)" }}>
+              <button type="submit" disabled={isAuthLoading || !isCurrentStepValid} className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary-dark-purple)" }}>
                 {isAuthLoading && currentStep === 3 ? "Creating Account..." : (currentStep === 3 ? "Submit for Verification" : "Next")}
               </button>
             </div>

@@ -39,6 +39,8 @@ interface SchoolState {
     schoolTeachers: any[]; 
     schoolStudents: any[];
     schoolStatistics: any | null;
+    schoolStatisticsBySchoolId: Record<string, any>;
+    schoolStudentBreakdownBySchoolId: Record<string, { male: number; female: number; total: number }>;
 
     // Verification request states (for school admins approving teachers)
     pendingRequests: VerificationRequest[];
@@ -51,6 +53,7 @@ interface SchoolState {
     // Actions
     setSchools: (schools: School[]) => void;
     fetchSchools: () => Promise<void>;
+    fetchSchoolById: (school_id: string) => Promise<School | null>;
     addSchool: (school: School) => Promise<void>;
     updateSchool: (school_id: string, updates: Partial<School>) => Promise<void>;
     deleteSchool: (school_id: string) => Promise<void>;
@@ -76,6 +79,8 @@ export const useSchoolStore = create<SchoolState>()(
             schoolTeachers: [],
             schoolStudents: [],
             schoolStatistics: null,
+            schoolStatisticsBySchoolId: {},
+            schoolStudentBreakdownBySchoolId: {},
             pendingRequests: [],
             approvedRequests: [],
             rejectedRequests: [],
@@ -91,6 +96,39 @@ export const useSchoolStore = create<SchoolState>()(
                     set({ schools: response.data.schools || [] });
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch schools' });
+                } finally {
+                    set({ isLoading: false });
+                }
+            },
+
+            fetchSchoolById: async (school_id: string) => {
+                if (!school_id) return null;
+
+                const existing = get().schools.find((s: any) => {
+                    const candidateId = String(s.school_id || s.id || s._id || '');
+                    return candidateId === String(school_id);
+                });
+
+                if (existing) return existing;
+
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await api.get(`/schools/${school_id}`);
+                    const fetchedSchool = response.data?.school || response.data?.data || response.data || null;
+
+                    if (!fetchedSchool) return null;
+
+                    set((state) => ({
+                        schools: [...state.schools.filter((s: any) => {
+                            const candidateId = String(s.school_id || s.id || s._id || '');
+                            return candidateId !== String(fetchedSchool.school_id || fetchedSchool.id || fetchedSchool._id || '');
+                        }), fetchedSchool]
+                    }));
+
+                    return fetchedSchool;
+                } catch (error: any) {
+                    set({ error: error.response?.data?.message || error.message || 'Failed to fetch school' });
+                    return null;
                 } finally {
                     set({ isLoading: false });
                 }
@@ -150,7 +188,10 @@ export const useSchoolStore = create<SchoolState>()(
             setActiveSchool: (school) => set({ activeSchool: school }),
 
             getSchoolById: (school_id: string) => {
-                return get().schools.find(s => s.school_id === school_id) || null;
+                return get().schools.find((s: any) => {
+                    const candidateId = String(s.school_id || s.id || s._id || '');
+                    return candidateId === String(school_id);
+                }) || null;
             },
 
 
@@ -174,7 +215,42 @@ export const useSchoolStore = create<SchoolState>()(
                     const response = await api.get(`/schools/${school_id}/students`);
                     // Extract students array from response - backend returns { students: [...] }
                     const students = response.data?.students || response.data?.data || [];
-                    set({ schoolStudents: students });
+
+                    const normalizedSchoolGender = String(
+                        get().getSchoolById(school_id)?.gender || get().activeSchool?.gender || ''
+                    ).toLowerCase();
+
+                    let male = 0;
+                    let female = 0;
+
+                    if (normalizedSchoolGender === 'boys') {
+                        male = students.length;
+                        female = 0;
+                    } else if (normalizedSchoolGender === 'girls') {
+                        male = 0;
+                        female = students.length;
+                    } else {
+                        students.forEach((student: any) => {
+                            const sex = String(student?.sex || student?.gender || '').toUpperCase();
+                            if (sex === 'MALE' || sex === 'M') {
+                                male += 1;
+                            } else if (sex === 'FEMALE' || sex === 'F') {
+                                female += 1;
+                            }
+                        });
+                    }
+
+                    set((state) => ({
+                        schoolStudents: students,
+                        schoolStudentBreakdownBySchoolId: {
+                            ...state.schoolStudentBreakdownBySchoolId,
+                            [school_id]: {
+                                male,
+                                female,
+                                total: students.length,
+                            },
+                        },
+                    }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch students' });
                 } finally {
@@ -183,10 +259,18 @@ export const useSchoolStore = create<SchoolState>()(
             },
 
             fetchSchoolStatistics: async (school_id) => {
+                if (!school_id) return;
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.get(`/schools/${school_id}/statistics`);
-                    set({ schoolStatistics: response.data.statistics || null });
+                    const statistics = response.data.statistics || null;
+                    set((state) => ({
+                        schoolStatistics: statistics,
+                        schoolStatisticsBySchoolId: {
+                            ...state.schoolStatisticsBySchoolId,
+                            [school_id]: statistics,
+                        },
+                    }));
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch statistics' });
                 } finally {

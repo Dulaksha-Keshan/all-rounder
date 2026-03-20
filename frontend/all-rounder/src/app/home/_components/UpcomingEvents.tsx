@@ -2,33 +2,83 @@
 
 import { Calendar } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { useEventStore } from "@/context/useEventStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import { useUserStore } from "@/context/useUserStore";
 import { Event } from "@/app/_type/type";
+
+const parseEventTime = (value: unknown): number => {
+    if (value instanceof Date) {
+        const time = value.getTime();
+        return Number.isFinite(time) ? time : NaN;
+    }
+
+    if (typeof value === "string") {
+        const parsed = new Date(value).getTime();
+        return Number.isFinite(parsed) ? parsed : NaN;
+    }
+
+    return NaN;
+};
 
 export default function UpcomingEvents() {
     const containerRef = useRef<HTMLDivElement>(null);
     const events = useEventStore((state) => state.events);
-    const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+    const fetchEvents = useEventStore((state) => state.fetchEvents);
+    const fetchSchoolEvents = useEventStore((state) => state.fetchSchoolEvents);
+    const getSchoolEvents = useEventStore((state) => state.getSchoolEvents);
+    const schoolEventsById = useEventStore((state) => state.schoolEventsById);
+    const isEventsLoading = useEventStore((state) => state.isLoading);
+    const currentUser = useUserStore((state) => state.currentUser);
+    const userRole = useUserStore((state) => state.userRole);
+    const activeSchool = useSchoolStore((state) => state.activeSchool);
 
+    const schoolId =
+        (currentUser as any)?.school_id ||
+        (currentUser as any)?.schoolId ||
+        (currentUser as any)?.school?.school_id ||
+        activeSchool?.school_id;
+    const normalizedSchoolId = schoolId ? String(schoolId) : "";
+    const isSchoolUser = userRole === "STUDENT" || userRole === "TEACHER" || userRole === "SCHOOL_ADMIN";
+
+    // Hydrate school events from the same source used by the school profile Events tab.
     useEffect(() => {
-        // Filter and sort events
-        const now = new Date();
-        const futureEvents = events
+        if (!isSchoolUser) return;
+        if (!normalizedSchoolId) return;
+
+        void fetchSchoolEvents(normalizedSchoolId, 1, 100);
+    }, [
+        isSchoolUser,
+        normalizedSchoolId,
+        fetchSchoolEvents,
+    ]);
+
+    // Keep baseline events hydrated for non-school roles.
+    useEffect(() => {
+        if (isSchoolUser) return;
+        if (isEventsLoading) return;
+        if (events.length >= 10) return;
+
+        void fetchEvents(1, 20);
+    }, [isSchoolUser, isEventsLoading, events.length, fetchEvents]);
+
+    const upcomingEvents = useMemo(() => {
+        const sourceEvents: Event[] = isSchoolUser && normalizedSchoolId
+            ? (schoolEventsById[normalizedSchoolId] || getSchoolEvents(normalizedSchoolId))
+            : events;
+
+        const nowMs = Date.now();
+
+        return sourceEvents
             .filter(event => {
-                const eventDate = new Date(event.startDate);
-                return eventDate >= now;
+                const startMs = parseEventTime(event.startDate);
+                return Number.isFinite(startMs) && startMs > nowMs;
             })
-            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-            .slice(0, 3); // Take top 3
-
-        // Map to display format if needed, or use directly
-        const displayEvents = futureEvents;
-
-        setUpcomingEvents(displayEvents);
-
-    }, [events]);
+            .sort((a, b) => parseEventTime(a.startDate) - parseEventTime(b.startDate))
+            .slice(0, 3);
+    }, [events, isSchoolUser, normalizedSchoolId, schoolEventsById, getSchoolEvents]);
 
     useEffect(() => {
         if (!containerRef.current || upcomingEvents.length === 0) return;
@@ -52,8 +102,12 @@ export default function UpcomingEvents() {
 
             <div className="space-y-4">
                 {upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event, index) => (
-                        <div key={index} className="event-item flex gap-4 p-3 rounded-xl hover:bg-[var(--gray-50)] transition-all cursor-pointer border border-transparent hover:border-[var(--gray-200)] opacity-0">
+                    upcomingEvents.map((event) => (
+                        <Link
+                            key={event._id}
+                            href={`/events/${event._id}`}
+                            className="event-item flex gap-4 p-3 rounded-xl hover:bg-[var(--gray-50)] transition-all cursor-pointer border border-transparent hover:border-[var(--gray-200)]"
+                        >
                             <div className="w-12 h-12 rounded-lg bg-[var(--secondary-pale-lavender)] flex items-center justify-center flex-shrink-0 text-[var(--primary-purple)]">
                                 <Calendar size={24} />
                             </div>
@@ -68,11 +122,13 @@ export default function UpcomingEvents() {
                                     {event.category || 'Event'}
                                 </span>
                             </div>
-                        </div>
+                        </Link>
                     ))
                 ) : (
 
-                    <p className="text-sm text-[var(--text-muted)]">No upcoming events found.</p>
+                    <p className="text-sm text-[var(--text-muted)]">
+                        {isSchoolUser ? "No upcoming events for your school yet." : "No upcoming events found."}
+                    </p>
                 )}
             </div>
 

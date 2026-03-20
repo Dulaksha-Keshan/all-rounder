@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { School } from "@/app/_type/type";
-import { Building2 } from "lucide-react"; // Kept if you want to use it later
 import { useRouter } from "next/navigation";
 
 interface SchoolHeaderProps {
@@ -19,7 +18,7 @@ export default function SchoolHeader({ school, isAdmin }: SchoolHeaderProps) {
         {/* Avatar */}
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] flex items-center justify-center shadow-lg overflow-hidden shrink-0">
           <Image
-            src={"/images/schools/default-school.png"}
+            src={"/icons/Avatar.png"}
             alt={school.name}
             width={96}
             height={96}

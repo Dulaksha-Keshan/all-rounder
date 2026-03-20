@@ -62,6 +62,10 @@ interface FeedSliceState {
   feedItems: FeedItemEntity[];
   feedPagination: PaginationState;
   isFetchingFeed: boolean;
+
+  schoolAchievementPostIdsBySchoolId: Record<string, string[]>;
+  schoolAchievementPaginationBySchoolId: Record<string, PaginationState>;
+  isFetchingSchoolAchievementsBySchoolId: Set<string>;
 }
 
 interface CreateDraftState {
@@ -98,6 +102,8 @@ interface PostStoreState extends PostsSliceState, CommentsSliceState, FeedSliceS
 
   // ==================== FEED ACTIONS ====================
   fetchFeed: (page?: number, limit?: number) => Promise<void>;
+  fetchSchoolAchievementPosts: (schoolId: string, page?: number, limit?: number) => Promise<void>;
+  getSchoolAchievementPosts: (schoolId: string) => PostEntity[];
 
   // ==================== DRAFT ACTIONS ====================
   setCreateDraftField: (field: keyof CreateDraftState, value: any) => void;
@@ -193,6 +199,9 @@ export const usePostStore = create<PostStoreState>()(
       feedItems: [],
       feedPagination: { page: 1, limit: 10 },
       isFetchingFeed: false,
+      schoolAchievementPostIdsBySchoolId: {},
+      schoolAchievementPaginationBySchoolId: {},
+      isFetchingSchoolAchievementsBySchoolId: new Set(),
 
       // Draft
       createDraft: {
@@ -217,6 +226,13 @@ export const usePostStore = create<PostStoreState>()(
 
       getCommentsByPostId: (postId) => {
         return get().commentsByPostId[postId] || [];
+      },
+
+      getSchoolAchievementPosts: (schoolId) => {
+        const postIds = get().schoolAchievementPostIdsBySchoolId[schoolId] || [];
+        return postIds
+          .map((postId) => get().postsById[postId])
+          .filter((post): post is PostEntity => Boolean(post));
       },
 
       //  ERROR HANDLING 
@@ -670,6 +686,65 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
+      fetchSchoolAchievementPosts: async (schoolId, page = 1, limit = 10) => {
+        if (!schoolId) return;
+
+        set((state) => ({
+          isFetchingSchoolAchievementsBySchoolId: new Set([
+            ...state.isFetchingSchoolAchievementsBySchoolId,
+            schoolId,
+          ]),
+          error: null,
+        }));
+
+        try {
+          const response = await api.get(`/posts/school/${schoolId}`, {
+            params: { page, limit },
+          });
+
+          const posts = Array.isArray(response.data?.posts) ? response.data.posts : [];
+          const normalized = posts.map(normalizePost);
+          const upsertedPostsById: Record<string, PostEntity> = {};
+          const postIds: string[] = [];
+
+          normalized.forEach((post: PostEntity) => {
+            upsertedPostsById[post.id] = post;
+            postIds.push(post.id);
+          });
+
+          const pagination = response.data?.pagination || {};
+
+          set((state) => ({
+            postsById: { ...state.postsById, ...upsertedPostsById },
+            schoolAchievementPostIdsBySchoolId: {
+              ...state.schoolAchievementPostIdsBySchoolId,
+              [schoolId]: postIds,
+            },
+            schoolAchievementPaginationBySchoolId: {
+              ...state.schoolAchievementPaginationBySchoolId,
+              [schoolId]: {
+                page: pagination.page || page,
+                limit: pagination.limit || limit,
+                totalItems: pagination.totalItems,
+                totalPages: pagination.totalPages,
+                hasNextPage: pagination.hasNextPage,
+              },
+            },
+            isFetchingSchoolAchievementsBySchoolId: new Set(
+              [...state.isFetchingSchoolAchievementsBySchoolId].filter((id) => id !== schoolId)
+            ),
+          }));
+        } catch (error: any) {
+          const message = error.response?.data?.message || error.message;
+          set((state) => ({
+            error: message,
+            isFetchingSchoolAchievementsBySchoolId: new Set(
+              [...state.isFetchingSchoolAchievementsBySchoolId].filter((id) => id !== schoolId)
+            ),
+          }));
+        }
+      },
+
       // ==================== DRAFT: MANAGEMENT ====================
       setCreateDraftField: (field, value) => {
         set((state) => ({
@@ -691,6 +766,9 @@ export const usePostStore = create<PostStoreState>()(
           myPostIds: [],
           userPostIdsByKey: {},
           feedItems: [],
+          schoolAchievementPostIdsBySchoolId: {},
+          schoolAchievementPaginationBySchoolId: {},
+          isFetchingSchoolAchievementsBySchoolId: new Set(),
           commentsByPostId: {},
           commentPaginationByPostId: {},
           feedPagination: { page: 1, limit: 10 },

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, use, useEffect, useMemo } from 'react';
+import { useState, use, useEffect, useMemo, useRef } from 'react';
 import NextImage from 'next/image';
 import { notFound } from 'next/navigation';
+import gsap from 'gsap';
 // import GoBackButton from '@/components/GoBackButton'; // Uncomment if needed
 import { useHomeStore } from '@/context/useHomeStore';
 import { useUserStore } from '@/context/useUserStore';
@@ -14,6 +15,7 @@ import { useSkillStore } from '@/context/useSkillStore';
 import PostCard from '@/app/home/_components/PostCard';
 import ProfilePostsGallery from '@/app/user/_components/ProfilePostsGallery';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import SkillPickerModal from '@/components/SkillPickerModal';
 import { PostEntity } from '@/app/_type/type';
 
 const EMPTY_POST_IDS: string[] = [];
@@ -24,11 +26,13 @@ interface StudentProfileProps {
 
 export default function StudentProfile({ params }: StudentProfileProps) {
   const { id } = use(params);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // --- STORES ---
-  const { currentUser, userRole, updateProfile, followers, following, followRequests, sentRequests, followUser, unfollowUser, sendFollowRequest, cancelFollowRequest } = useUserStore();
+  const { currentUser, userRole, updateProfile, followers, following, followRequests, sentRequests, followUser, unfollowUser, sendFollowRequest, cancelFollowRequest, fetchBackendProfile } = useUserStore();
   const { getStudentById } = useStudentStore();
-  const { getSchoolById, schools, fetchSchools } = useSchoolStore();
+  const { getSchoolById, schools, fetchSchools, setActiveSchool } = useSchoolStore();
+    const activeSchoolFromStore = useSchoolStore((state) => state.activeSchool);
   const { drafts, deleteDraft } = useHomeStore();
   const postsById = usePostStore((state) => state.postsById);
   const myPostIds = usePostStore((state) => state.myPostIds);
@@ -54,6 +58,16 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     if (schools.length === 0) fetchSchools();
   }, [schools.length, fetchSchools]);
 
+  // Set active school based on viewed student's school
+  useEffect(() => {
+    if (viewedStudent?.school_id) {
+      const school = getSchoolById(viewedStudent.school_id);
+      if (school) {
+        setActiveSchool(school);
+      }
+    }
+  }, [viewedStudent?.school_id, getSchoolById, setActiveSchool]);
+
   useEffect(() => {
     if (isOwnProfile) {
       fetchMyPosts();
@@ -69,6 +83,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const [editData, setEditData] = useState<any>({});
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
+  const [isSkillPickerOpen, setIsSkillPickerOpen] = useState(false);
 
   // --- HELPERS ---
   const skillNameById = useMemo(() => {
@@ -145,13 +160,31 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     }
   }, [viewedStudent?.skills, allSkills.length, hasFetchedAllSkills, isLoadingAllSkills, fetchAllSkills]);
 
+  useEffect(() => {
+    if (!pageRef.current) return;
+
+    const sections = pageRef.current.querySelectorAll('.student-anim-item');
+
+    gsap.fromTo(
+      sections,
+      { y: 18, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.55,
+        stagger: 0.07,
+        ease: 'power2.out',
+      }
+    );
+  }, [activeTab]);
+
   if (!viewedStudent) {
     notFound(); // Triggers Next.js 404 page if user doesn't exist
   }
 
   // --- HELPERS ---
   const school = getSchoolById(viewedStudent.school_id || viewedStudent.schoolId);
-  const schoolName = school?.name || 'Unknown School';
+  const schoolName = activeSchoolFromStore?.name || school?.name || 'Unknown School';
 
   const formatDate = (date: string | Date | undefined) => {
     if (!date) return 'N/A';
@@ -164,8 +197,6 @@ export default function StudentProfile({ params }: StudentProfileProps) {
     const ageDifMs = Date.now() - birthday.getTime();
     return Math.abs(new Date(ageDifMs).getUTCFullYear() - 1970);
   };
-
-  const registeredEventsWithDetails: any[] = []; // Placeholder until event logic is added
 
   // --- ACTIONS ---
   const handleSave = async () => {
@@ -187,9 +218,9 @@ export default function StudentProfile({ params }: StudentProfileProps) {
 
   const isFollowing = following.includes(viewedStudent.uid);
   const isRequested = sentRequests.includes(viewedStudent.uid);
-  // Calculate dynamic follower/following counts
-  const followersCount = isOwnProfile ? followers.length : (viewedStudent.followers?.length || 0);
-  const followingCount = isOwnProfile ? following.length : (viewedStudent.following?.length || 0);
+  // Calculate dynamic follower/following counts using the new API properties
+  const followersCount = currentUser?.followerCount ?? viewedStudent?.followerCount ?? 0;
+  const followingCount = currentUser?.followingCount ?? viewedStudent?.followingCount ?? 0;
   
   const handleFollowAction = () => {
     if (isFollowing) {
@@ -202,11 +233,11 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF] p-4 md:p-8">
+    <div ref={pageRef} className="min-h-screen bg-gradient-to-br from-[#F5F3FF] to-[#E5DEFF] p-4 md:p-8">
       <div className="max-w-7xl mx-auto mt-20"> {/* Added mt-20 to clear fixed navbar */}
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6 border border-[#DCD0FF]/50 relative overflow-hidden">
+        <div className="student-anim-item bg-white rounded-xl shadow-lg p-8 mb-6 border border-[#DCD0FF]/50 relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-indigo-100 to-transparent rounded-bl-full -z-10 opacity-50" />
 
@@ -284,7 +315,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-md mb-6 border border-[#DCD0FF]/50 overflow-x-auto hide-scrollbar">
+        <div className="student-anim-item bg-white rounded-xl shadow-md mb-6 border border-[#DCD0FF]/50 overflow-x-auto hide-scrollbar">
           <div className="flex w-max min-w-full border-b border-gray-100">
             <button
               onClick={() => setActiveTab('overview')}
@@ -306,15 +337,6 @@ export default function StudentProfile({ params }: StudentProfileProps) {
                     }`}
                 >
                   Settings
-                </button>
-                <button
-                  onClick={() => setActiveTab('activities')}
-                  className={`flex-1 px-6 py-4 font-bold whitespace-nowrap transition-all ${activeTab === 'activities'
-                    ? 'border-b-2 border-[#4169E1] text-[#4169E1] bg-blue-50/50'
-                    : 'text-gray-500 hover:text-[#34365C] hover:bg-gray-50'
-                    }`}
-                >
-                  History
                 </button>
                 <button
                   onClick={() => setActiveTab('skills')}
@@ -479,30 +501,12 @@ export default function StudentProfile({ params }: StudentProfileProps) {
           </div>
         )}
 
-        {/* ACTIVITIES TAB */}
-        {activeTab === 'activities' && isOwnProfile && (
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100 animate-fadeIn">
-            <h2 className="text-xl font-bold text-[#34365C] mb-6 border-b pb-4">Event History</h2>
-            {registeredEventsWithDetails.length > 0 ? (
-              <div className="space-y-4">
-                {/* Event mapping logic remains unchanged */}
-              </div>
-            ) : (
-              <div className="py-12 flex flex-col items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4 text-2xl">📅</div>
-                <h3 className="text-lg font-bold text-gray-700 mb-1">No Events Yet</h3>
-                <p className="text-gray-500 text-sm">You haven't registered for any events.</p>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* SKILLS TAB */}
         {activeTab === 'skills' && isOwnProfile && (
           <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100 animate-fadeIn">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
               <h2 className="text-xl font-bold text-[#34365C]">My Skills & Talents</h2>
-              <button className="text-sm font-semibold text-[#4169E1] hover:underline">+ Add Skill</button>
+              <button onClick={() => setIsSkillPickerOpen(true)} className="text-sm font-semibold text-[#4169E1] hover:underline">+ Add Skill</button>
             </div>
             {viewedStudent.skills && viewedStudent.skills.length > 0 ? (
               <div className="flex flex-wrap gap-3">
@@ -561,6 +565,18 @@ export default function StudentProfile({ params }: StudentProfileProps) {
           confirmLabel="Delete"
           cancelLabel="Cancel"
           variant="danger"
+        />
+
+        <SkillPickerModal
+          isOpen={isSkillPickerOpen}
+          onClose={() => setIsSkillPickerOpen(false)}
+          onComplete={async () => {
+            setIsSkillPickerOpen(false);
+            // Refresh current user profile to show newly added skills
+            if (isOwnProfile) {
+              await fetchBackendProfile();
+            }
+          }}
         />
       </div>
     </div>

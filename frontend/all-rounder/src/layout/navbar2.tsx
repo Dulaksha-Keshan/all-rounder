@@ -137,6 +137,12 @@ export function Navbar() {
                 >
                   Vision
                 </button>
+                <button
+                  onClick={() => router.push("/resourceSharing")}
+                  className="text-[#34365C] hover:text-[#8387CC] transition font-semibold text-sm"
+                >
+                  Resources
+                </button>
               </div>
 
               <div className="flex items-center gap-4 flex-shrink-0">
@@ -181,12 +187,14 @@ export function Navbar() {
 
           {mobileMenuOpen && (
             <div className="bg-gradient-to-b from-white/90 to-[#F8F7FF]/90 backdrop-blur-md border-t-2 border-[#DCD0FF]/50 px-4 py-4 space-y-3">
-              {["Home", "AboutUs", "Features", "Vision"].map((section) => (
+              {["Home", "AboutUs", "Features", "Vision", "Resources"].map((section) => (
                 <button
                   key={section}
                   onClick={() => {
                     if (section === "Vision") {
                       router.push("/vision");
+                    } else if (section === "Resources") {
+                      router.push("/resourceSharing");
                     } else {
                       scrollToSection(section);
                     }
@@ -201,7 +209,9 @@ export function Navbar() {
                       ? "About Us"
                       : section === "Features"
                         ? "Features"
-                        : "Vision"}
+                        : section === "Vision"
+                          ? "Vision"
+                          : "Resources"}
                 </button>
               ))}
 

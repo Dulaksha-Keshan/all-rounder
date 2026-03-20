@@ -26,6 +26,8 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
     getSchoolById,
     fetchSchools,
     schools,
+    fetchSchoolStudents,
+    schoolStudentBreakdownBySchoolId,
     fetchSchoolStatistics,
     schoolStatistics,
     isLoading: schoolsLoading
@@ -64,8 +66,9 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
     if (!events.length) {
       void fetchEvents(1, 100);
     }
+    void fetchSchoolStudents(schoolId);
     void fetchSchoolStatistics(schoolId);
-  }, [schools.length, events.length, fetchSchools, fetchEvents, fetchSchoolStatistics, schoolId]);
+  }, [schools.length, events.length, fetchSchools, fetchEvents, fetchSchoolStudents, fetchSchoolStatistics, schoolId]);
 
   // Find the school to get its name
   const school = getSchoolById(schoolId);
@@ -103,12 +106,18 @@ export default function SchoolDashboard({ params }: SchoolDashboardProps) {
     ["eventCount", "eventsCount", "totalEvents", "events", "event_count"],
     schoolEvents.length
   );
-  const boysCount = getNumberFromStats(
+  const studentsBreakdown = schoolStudentBreakdownBySchoolId[schoolId];
+
+  const boysCount = typeof studentsBreakdown?.male === "number"
+    ? studentsBreakdown.male
+    : getNumberFromStats(
     schoolStatistics,
     ["maleStudents", "boys", "boysCount", "maleCount", "male_count"],
     0
   );
-  const girlsCount = getNumberFromStats(
+  const girlsCount = typeof studentsBreakdown?.female === "number"
+    ? studentsBreakdown.female
+    : getNumberFromStats(
     schoolStatistics,
     ["femaleStudents", "girls", "girlsCount", "femaleCount", "female_count"],
     0

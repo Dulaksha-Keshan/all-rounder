@@ -11,24 +11,25 @@ interface SchoolEventsTabProps {
 }
 
 export default function SchoolEventsTab({ schoolId }: SchoolEventsTabProps) {
-  const { events, isLoading, fetchEvents } = useEventStore();
+  const isLoading = useEventStore((state) => state.isLoading);
+  const schoolEventsById = useEventStore((state) => state.schoolEventsById);
+  const fetchSchoolEvents = useEventStore((state) => state.fetchSchoolEvents);
+  const getSchoolEvents = useEventStore((state) => state.getSchoolEvents);
 
   useEffect(() => {
-    void fetchEvents(1, 100);
-  }, [fetchEvents]);
+    if (!schoolId) return;
+    void fetchSchoolEvents(schoolId, 1, 100);
+  }, [schoolId, fetchSchoolEvents]);
 
   const schoolEvents = useMemo(() => {
-    return events
-      .filter((event) =>
-        (event.hosts || []).some(
-          (host) => host.hostType === "school" && host.hostId === schoolId
-        )
-      )
+    const eventsForSchool = schoolEventsById[schoolId] || getSchoolEvents(schoolId);
+
+    return eventsForSchool
       .sort(
         (a, b) =>
           new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       );
-  }, [events, schoolId]);
+  }, [schoolEventsById, getSchoolEvents, schoolId]);
 
   return (
     <div className="mt-6 bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">

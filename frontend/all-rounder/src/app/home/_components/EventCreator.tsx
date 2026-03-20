@@ -10,6 +10,13 @@ import { useUserStore } from "@/context/useUserStore";
 
 const EVENT_TYPES = ["workshop", "competition", "seminar", "webinar", "conference", "other"] as const;
 
+const formatOptionLabel = (value: string) =>
+  value
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
 type EventType = (typeof EVENT_TYPES)[number];
 
 const emptyHost = (): CreateEventHostInput => ({
@@ -108,6 +115,24 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
   );
 
   const isAuthorized = userRole === "SCHOOL_ADMIN" || userRole === "ORG_ADMIN";
+
+  const startMs = startDate ? new Date(startDate).getTime() : NaN;
+  const endMs = endDate ? new Date(endDate).getTime() : NaN;
+  const hasRequiredEventFields = Boolean(
+    title.trim() &&
+    description.trim() &&
+    category.trim() &&
+    organizer.trim() &&
+    location.trim() &&
+    eligibility.trim() &&
+    startDate &&
+    endDate
+  );
+  const isEventDateChronological =
+    Number.isFinite(startMs) &&
+    Number.isFinite(endMs) &&
+    endMs >= startMs;
+  const canSubmitEvent = hasRequiredEventFields && isEventDateChronological;
 
   useEffect(() => {
     if (schools.length === 0) {
@@ -340,7 +365,7 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
 
         <select value={eventType} onChange={(e) => setEventType(e.target.value as EventType)} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900">
           {EVENT_TYPES.map((type) => (
-            <option key={type} value={type}>{type}</option>
+            <option key={type} value={type}>{formatOptionLabel(type)}</option>
           ))}
         </select>
 
@@ -355,19 +380,25 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
         </div>
 
         <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Start Date & Time</label>
           <input
             type="datetime-local"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            title="Start date and time"
+            placeholder="YYYY-MM-DDTHH:mm"
             className={`w-full px-3 py-2 bg-gray-50 border rounded-lg text-sm text-gray-900 ${fieldErrors.startDate ? "border-red-400" : "border-gray-200"}`}
           />
           {fieldErrors.startDate && <p className="mt-1 text-xs text-red-600">{fieldErrors.startDate}</p>}
         </div>
         <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">End Date & Time</label>
           <input
             type="datetime-local"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            title="End date and time"
+            placeholder="YYYY-MM-DDTHH:mm"
             className={`w-full px-3 py-2 bg-gray-50 border rounded-lg text-sm text-gray-900 ${fieldErrors.endDate ? "border-red-400" : "border-gray-200"}`}
           />
           {fieldErrors.endDate && <p className="mt-1 text-xs text-red-600">{fieldErrors.endDate}</p>}
@@ -539,7 +570,7 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={isLoading}
+          disabled={isLoading || !canSubmitEvent}
           className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 inline-flex items-center gap-2"
         >
           {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}

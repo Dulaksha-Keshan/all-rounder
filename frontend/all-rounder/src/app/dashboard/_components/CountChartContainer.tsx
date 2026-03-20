@@ -2,6 +2,8 @@
 
 "use client";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 import CountChart from "./CountChart";
 import { useStudentStore } from "@/context/useStudentStore";
 
@@ -14,6 +16,8 @@ interface CountChartContainerProps {
 
 const CountChartContainer = ({ schoolId, orgId, boysOverride, girlsOverride }: CountChartContainerProps) => {
   const { students } = useStudentStore();
+  const cardRef = useRef<HTMLDivElement>(null);
+
   // Filter students based on schoolId or orgId
   let filteredStudents = students;
 
@@ -30,12 +34,33 @@ const CountChartContainer = ({ schoolId, orgId, boysOverride, girlsOverride }: C
   const girls = typeof girlsOverride === "number" ? girlsOverride : fallbackGirls;
   const total = boys + girls;
 
+  useEffect(() => {
+    if (!cardRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".student-chart-block",
+        { y: 16, opacity: 0, scale: 0.98 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.55,
+          stagger: 0.08,
+          ease: "power2.out",
+        }
+      );
+    }, cardRef);
+
+    return () => ctx.revert();
+  }, [boys, girls]);
+
   return (
-    <div className="bg-white rounded-xl w-full h-[500px] p-4">
+    <div ref={cardRef} className="bg-white rounded-xl w-full h-[500px] p-4">
       {/* TITLE */}
-      <div className="flex justify-between items-center">
+      <div className="student-chart-block flex justify-between items-center">
         <h1 className="text-lg font-semibold">Students</h1>
-        <Image src='/images/maleFemale.webp' alt="Male Female" width={20} height={20} />
+        <Image src='/images/Dashboard/maleFemale.webp' alt="Male Female" width={20} height={20} />
       </div>
 
       {/* CHART */}
@@ -45,14 +70,14 @@ const CountChartContainer = ({ schoolId, orgId, boysOverride, girlsOverride }: C
 
           {/* BOTTOM */}
           <div className="flex justify-center gap-16 mt-4">
-            <div className="flex flex-col gap-1 items-center">
+            <div className="student-chart-block flex flex-col gap-1 items-center">
               <div className="w-5 h-5 bg-blue-500 rounded-full" />
               <h1 className="font-bold">{boys}</h1>
               <h2 className="text-xs text-gray-500">
                 Boys ({Math.round((boys / total) * 100)}%)
               </h2>
             </div>
-            <div className="flex flex-col gap-1 items-center">
+            <div className="student-chart-block flex flex-col gap-1 items-center">
               <div className="w-5 h-5 bg-purple-500 rounded-full" />
               <h1 className="font-bold">{girls}</h1>
               <h2 className="text-xs text-gray-500">

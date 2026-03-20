@@ -64,6 +64,7 @@ export default function StudentSignup() {
   const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
   const [teacherError, setTeacherError] = useState("");
   const [documentError, setDocumentError] = useState("");
+  const [birthDateError, setBirthDateError] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,6 +101,67 @@ export default function StudentSignup() {
     (teacher.name || "").toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
     (teacher.subject || "").toLowerCase().includes(teacherSearchTerm.toLowerCase())
   ) : [];
+
+  const selectedSchool = schools.find((school) => school.school_id === formData.schoolId);
+  const normalizedSchoolGender = String(selectedSchool?.gender || "Mixed").toLowerCase();
+  const isMixedSchool = !formData.schoolId || normalizedSchoolGender === "mixed";
+  const isGenderSelectionDisabled = !isMixedSchool;
+
+  const calculateAge = (dob: string) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    if (Number.isNaN(birthDate.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age -= 1;
+    }
+    return age;
+  };
+
+  const age = calculateAge(formData.dateOfBirth);
+  const isStudentAgeValid = age !== null && age >= 13 && age <= 19;
+
+  const isStep1Valid = Boolean(
+    formData.firstName.trim() &&
+    formData.lastName.trim() &&
+    formData.email.trim() &&
+    formData.phone.trim() &&
+    formData.dateOfBirth &&
+    formData.gender &&
+    isStudentAgeValid
+  );
+
+  const isStep2Valid = Boolean(
+    formData.schoolId &&
+    formData.grade &&
+    (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
+  );
+
+  const isStep3Valid = formData.verificationOption === "TEACHER_REQUEST"
+    ? Boolean(formData.teacher_id)
+    : uploadedFiles.length > 0;
+
+  const isCurrentStepValid = currentStep === 1
+    ? isStep1Valid
+    : currentStep === 2
+      ? isStep2Valid
+      : isStep3Valid;
+
+  useEffect(() => {
+    if (!formData.schoolId) return;
+
+    if (normalizedSchoolGender === "boys" && formData.gender !== "male") {
+      updateField("gender", "male");
+    }
+
+    if (normalizedSchoolGender === "girls" && formData.gender !== "female") {
+      updateField("gender", "female");
+    }
+  }, [formData.schoolId, normalizedSchoolGender]);
 
   const addFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
@@ -169,6 +231,15 @@ export default function StudentSignup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isCurrentStepValid) {
+      if (currentStep === 1 && !isStudentAgeValid) {
+        setBirthDateError("Student age must be between 13 and 19 years.");
+      }
+      return;
+    }
+
+    setBirthDateError("");
 
     if (currentStep === 2) {
       if (!isGoogleFlow) {
@@ -333,8 +404,26 @@ export default function StudentSignup() {
                     <label className={labelClass}>Date of Birth *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required />
+                      <input
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => {
+                          updateField("dateOfBirth", e.target.value);
+                          const nextAge = calculateAge(e.target.value);
+                          if (nextAge === null || nextAge < 13 || nextAge > 19) {
+                            setBirthDateError("Student age must be between 13 and 19 years.");
+                          } else {
+                            setBirthDateError("");
+                          }
+                        }}
+                        className={iconInputClass}
+                        style={inputStyle}
+                        required
+                        placeholder="YYYY-MM-DD"
+                        title="Date of birth (YYYY-MM-DD)"
+                      />
                     </div>
+                    {birthDateError && <p className="text-sm text-red-500 mt-1">{birthDateError}</p>}
                   </div>
                   <div>
                     <label className={labelClass}>Gender *</label>
@@ -391,6 +480,13 @@ export default function StudentSignup() {
                               updateField("schoolId", school.school_id);
                               setSchoolSearchTerm(school.name);
                               setIsSchoolDropdownOpen(false);
+
+                              const schoolGender = String(school.gender || "Mixed").toLowerCase();
+                              if (schoolGender === "boys") {
+                                updateField("gender", "male");
+                              } else if (schoolGender === "girls") {
+                                updateField("gender", "female");
+                              }
                               
                               // NEW: Immediately fetch teachers for this school!
                               fetchSchoolTeachers(school.school_id);
@@ -504,11 +600,31 @@ export default function StudentSignup() {
                 {formData.verificationOption === "TEACHER_REQUEST" && (
                   <>
                     <div className="p-4 border rounded-lg mb-6" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
-                      <p className="text-sm text-gray-700">Select an active teacher from your school. A verification request will be sent to their portal.</p>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) => updateField("gender", e.target.value)}
+                      className={inputClass}
+                      style={inputStyle}
+                      required
+                      disabled={isGenderSelectionDisabled}
+                    >
                     </div>
-
-                    <div className="relative">
+                      {isMixedSchool ? (
+                        <>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </>
+                      ) : normalizedSchoolGender === "boys" ? (
+                        <option value="male">Male</option>
+                      ) : (
+                        <option value="female">Female</option>
+                      )}
                       <label className={labelClass}>Select Your Teacher *</label>
+                    {!isMixedSchool && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Gender is auto-selected based on school type ({selectedSchool?.gender}).
+                      </p>
+                    )}
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
                         <input
@@ -646,7 +762,7 @@ export default function StudentSignup() {
               {currentStep > 1 && (
                 <button type="button" onClick={() => setCurrentStep(currentStep - 1)} disabled={isAuthLoading} className="flex-1 py-3 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50">Back</button>
               )}
-              <button type="submit" disabled={isAuthLoading} className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary-purple)" }}>
+              <button type="submit" disabled={isAuthLoading || !isCurrentStepValid} className="flex-1 py-3 text-white rounded-lg font-medium hover:opacity-90 transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary-purple)" }}>
                 {isAuthLoading && currentStep === 3 ? "Creating Account..." : (currentStep === 3 ? "Submit for Verification" : "Next")}
               </button>
             </div>

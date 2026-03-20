@@ -153,8 +153,61 @@ return (
 // }
 
 import { School } from "@/app/_type/type";
+import { useEffect, useMemo } from "react";
+import { useEventStore } from "@/context/useEventStore";
+import { useSchoolStore } from "@/context/useSchoolStore";
+import SchoolOverviewStatsSkeleton from "../../../../../skeletons/SchoolOverviewStatsSkeleton";
 
 export default function SchoolOverviewTab({ school }: { school: School }) {
+  const resolvedSchoolId = String((school as any)?.school_id || (school as any)?.id || (school as any)?._id || "");
+  const schoolStudents = useSchoolStore((state) => state.schoolStudents);
+  const schoolTeachers = useSchoolStore((state) => state.schoolTeachers);
+  const schoolStatisticsBySchoolId = useSchoolStore((state) => state.schoolStatisticsBySchoolId);
+  const isLoading = useSchoolStore((state) => state.isLoading);
+  const schoolEventsById = useEventStore((state) => state.schoolEventsById);
+  const getSchoolEvents = useEventStore((state) => state.getSchoolEvents);
+  const fetchSchoolEvents = useEventStore((state) => state.fetchSchoolEvents);
+
+  const schoolStatistics = schoolStatisticsBySchoolId[resolvedSchoolId] || null;
+
+  useEffect(() => {
+    if (!resolvedSchoolId) return;
+    void fetchSchoolEvents(resolvedSchoolId, 1, 100);
+  }, [resolvedSchoolId, fetchSchoolEvents]);
+
+  const schoolEventsCount = useMemo(() => {
+    const events = schoolEventsById[resolvedSchoolId] || getSchoolEvents(resolvedSchoolId);
+    return events.length;
+  }, [schoolEventsById, getSchoolEvents, resolvedSchoolId]);
+
+  const pickNumber = (value: unknown): number | null => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) {
+      return Number(value);
+    }
+    return null;
+  };
+
+  const getStat = (keys: string[], fallback = 0) => {
+    for (const key of keys) {
+      const direct = pickNumber((schoolStatistics as any)?.[key]);
+      if (direct !== null) return direct;
+
+      const nested = pickNumber((schoolStatistics as any)?.counts?.[key]);
+      if (nested !== null) return nested;
+
+      const nestedStats = pickNumber((schoolStatistics as any)?.stats?.[key]);
+      if (nestedStats !== null) return nestedStats;
+    }
+    return fallback;
+  };
+
+  const studentsCount = getStat(["studentCount", "studentsCount", "students"], school.student_count || 0);
+  const teachersCount = getStat(["teacherCount", "teachersCount", "teachers"], 0);
+  const eventsCount = getStat(["eventCount", "eventsCount", "events"], schoolEventsCount);
+  const achievementsCount = getStat(["achievementCount", "achievementsCount", "achievements"]);
+  const shouldShowStatsSkeleton = isLoading && !schoolStatistics;
+
   return (
     <div className="space-y-6 mt-6">
       {/* About */}
@@ -169,12 +222,16 @@ export default function SchoolOverviewTab({ school }: { school: School }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Students" value={0} />
-        <StatCard label="Teachers" value={0} />
-        <StatCard label="Events" value={0} />
-        <StatCard label="Achievements" value={0} />
-      </div>
+      {shouldShowStatsSkeleton ? (
+        <SchoolOverviewStatsSkeleton />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Students" value={studentsCount} />
+          <StatCard label="Teachers" value={teachersCount} />
+          <StatCard label="Events" value={eventsCount} />
+          <StatCard label="Achievements" value={achievementsCount} />
+        </div>
+      )}
     </div>
   );
 }
