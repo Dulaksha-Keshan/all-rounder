@@ -106,6 +106,7 @@ const toSafePost = (post: any, authorName: string | null = null) => ({
   tags: post.tags,
   authorId: post.authorId,
   authorType: post.authorType,
+  schoolId: post.schoolId ?? null,
   authorName,
   likeCount: post.likes?.count || 0,
   commentCount: post.commentCount || 0,
@@ -268,11 +269,19 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
   try {
     const authorId = req.headers["x-user-uid"] as string;
     const authorType = req.headers["x-user-type"] as string;
+    const schoolId = req.headers["x-school-id"] as string;
 
     // Validate headers
     if (!authorId || !authorType) {
       res.status(400).json({
         message: "x-user-uid and x-user-type headers are required",
+      });
+      return;
+    }
+
+    if (!schoolId) {
+      res.status(400).json({
+        message: "x-school-id header is required",
       });
       return;
     }
@@ -345,6 +354,7 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
       tags: normalizedTagsResult.tags,
       authorType,
       authorId,
+      schoolId,
       likes: {
         count: 0,
         userIds: [],
@@ -498,6 +508,59 @@ export const getPostsByUser = async (
 
     res.status(200).json({
       message: "User posts fetched successfully",
+      posts: safePosts,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getPostsBySchoolId = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const schoolId = req.params.schoolId as string;
+    const page = Math.max(1, parseInt((req.query.page as string) || "1", 10));
+    const limit = Math.max(1, parseInt((req.query.limit as string) || "10", 10));
+    const skip = (page - 1) * limit;
+
+    if (!schoolId) {
+      res.status(400).json({
+        message: "schoolId is required",
+      });
+      return;
+    }
+
+    const filter: any = {
+      schoolId,
+      isDeleted: false,
+      visibility: "public",
+      category: "achievement",
+    };
+
+    const [posts, totalItems] = await Promise.all([
+      Post.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Post.countDocuments(filter),
+    ]);
+
+    const safePosts = await mapPostsWithAuthorNames(posts);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.status(200).json({
+      message: "School posts fetched successfully",
+      schoolId,
+      count: safePosts.length,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        hasNextPage: page < totalPages,
+      },
       posts: safePosts,
     });
   } catch (error: any) {

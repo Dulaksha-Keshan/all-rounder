@@ -34,8 +34,8 @@ const resourceRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "fulfilled"],
-      default: "pending",
+      enum: ["open", "closed", "fulfilled"],
+      default: "open",
     },
     visibility: {
       type: String,
@@ -43,9 +43,13 @@ const resourceRequestSchema = new mongoose.Schema(
       default: "private",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
+    },
+    schoolId: {
+      type: String,
+      required: true,
+      index: true,
     },
     remarks: {
       type: String,

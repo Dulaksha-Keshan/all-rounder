@@ -1,6 +1,37 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
+import axios from "axios";
 import ResourceRequest from "../mongoose/resourceRequestModel.js";
+
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://user-service:3001";
+
+type SchoolProfile = {
+  school_id: string;
+  name: string;
+  address: string;
+  district: string;
+  province: string;
+  contact_number: string;
+};
+
+const getSchoolProfile = async (schoolId: string): Promise<SchoolProfile | null> => {
+  try {
+    const response = await axios.get(
+      `${USER_SERVICE_URL}/api/schools/internal/${schoolId}/resource-profile`,
+      { timeout: 2500 }
+    );
+
+    return response.data?.school ?? null;
+  } catch (error) {
+    console.error(`[ResourceController] Failed to fetch school profile for ${schoolId}:`, error);
+    return null;
+  }
+};
+
+const enrichResourceWithSchool = async (request: any): Promise<{ request: any; school: SchoolProfile | null }> => {
+  const school = request?.schoolId ? await getSchoolProfile(request.schoolId) : null;
+  return { request, school };
+};
 
 export const createResource = async (
   req: Request,
@@ -8,10 +39,26 @@ export const createResource = async (
 ): Promise<void> => {
   try {
     const creatorId = req.headers["x-user-uid"] as string;
+    const userType = req.headers["x-user-type"] as string;
+    const schoolId = req.headers["x-school-id"] as string;
 
     if (!creatorId) {
       res.status(400).json({
         message: "x-user-uid header is required",
+      });
+      return;
+    }
+
+    if (userType !== "SCHOOL_ADMIN") {
+      res.status(403).json({
+        message: "Only SCHOOL_ADMIN can create resource requests",
+      });
+      return;
+    }
+
+    if (!schoolId) {
+      res.status(400).json({
+        message: "x-school-id header is required",
       });
       return;
     }
@@ -57,11 +104,14 @@ export const createResource = async (
       contactNumber,
       email,
       createdBy: creatorId,
+      schoolId,
     });
+
+    const enrichedResponse = await enrichResourceWithSchool(resourceRequest);
 
     res.status(201).json({
       message: "Resource request created successfully",
-      resourceRequest,
+      ...enrichedResponse,
     });
   } catch (error: any) {
     console.error(error);
@@ -99,10 +149,21 @@ export const getAllResources = async (
       .sort({ createdAt: -1 });
       // .populate("createdBy", "name email");
 
+    const schoolIds = Array.from(new Set(resources.map((resource) => resource.schoolId).filter(Boolean)));
+    const schoolEntries = await Promise.all(
+      schoolIds.map(async (id) => [id, await getSchoolProfile(id)] as const)
+    );
+    const schoolMap = new Map<string, SchoolProfile | null>(schoolEntries);
+
+    const shapedResources = resources.map((request) => ({
+      request,
+      school: schoolMap.get(request.schoolId) ?? null,
+    }));
+
     res.status(200).json({
       message: "Resources fetched successfully",
-      count: resources.length,
-      resources,
+      count: shapedResources.length,
+      resources: shapedResources,
     });
   } catch (error: any) {
     console.error(error);
@@ -141,9 +202,11 @@ export const getResourceById = async (
       return;
     }
 
+    const enrichedResponse = await enrichResourceWithSchool(resource);
+
     res.status(200).json({
       message: "Resource fetched successfully",
-      resource,
+      ...enrichedResponse,
     });
   } catch (error: any) {
     console.error(error);
@@ -254,10 +317,21 @@ export const searchResources = async (
       createdAt: -1,
     });
 
+    const schoolIds = Array.from(new Set(resources.map((resource) => resource.schoolId).filter(Boolean)));
+    const schoolEntries = await Promise.all(
+      schoolIds.map(async (id) => [id, await getSchoolProfile(id)] as const)
+    );
+    const schoolMap = new Map<string, SchoolProfile | null>(schoolEntries);
+
+    const shapedResources = resources.map((request) => ({
+      request,
+      school: schoolMap.get(request.schoolId) ?? null,
+    }));
+
     res.status(200).json({
       message: "Resource requests fetched successfully",
-      count: resources.length,
-      resources,
+      count: shapedResources.length,
+      resources: shapedResources,
     });
   } catch (error: any) {
     console.error(error);

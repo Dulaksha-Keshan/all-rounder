@@ -3,6 +3,7 @@ import {
   createPost,
   getMyPosts,
   getPostsByUser,
+  getPostsBySchoolId,
   getPostById,
   getAllPosts,
   updatePost,
@@ -38,6 +39,11 @@ router.get("/me", getMyPosts);
 // Params: userId
 // Query: userType, category
 router.get("/user/:userId", getPostsByUser);
+
+// Get public posts by school id
+// Params: schoolId
+// Optional query: category
+router.get("/school/:schoolId", getPostsBySchoolId);
 
 // Get home feed posts (latest public posts)
 // No headers required

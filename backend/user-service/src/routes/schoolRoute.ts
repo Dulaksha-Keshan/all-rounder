@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   listSchools,
   getSchoolById,
+  getSchoolResourceProfile,
   createSchool,
   updateSchool,
   getSchoolStudents,
@@ -12,6 +13,7 @@ import {
 const router = Router();
 
 router.get("/", listSchools);
+router.get("/internal/:id/resource-profile", getSchoolResourceProfile);
 router.get("/:id", getSchoolById);
 router.post("/", createSchool);
 router.patch("/:id", updateSchool);

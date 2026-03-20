@@ -284,8 +284,6 @@ app.post(
 // group 3 school scoped operations
 const schoolScopedMiddleware = [
   verifyToken,
-  requireRole("SCHOOL_ADMIN", "SUPER_ADMIN"),
-  requireSchoolAccess("id"),
 ];
 
 app.patch("/api/schools/:id", ...schoolScopedMiddleware, userServiceProxy("^/api/schools"));
@@ -403,6 +401,7 @@ app.post("/api/posts", verifyToken,requireRole("STUDENT"), contentServiceProxy("
 // Get posts of logged-in user
 app.get("/api/posts/me", verifyToken, contentServiceProxy(""));
 app.get("/api/posts/user/:userId", verifyToken, contentServiceProxy(""));
+app.get("/api/posts/school/:schoolId", verifyToken, contentServiceProxy(""));
 app.get("/api/posts/:id", verifyToken, contentServiceProxy(""));
 
 
@@ -444,6 +443,21 @@ app.get("/api/events/:id", verifyToken, contentServiceProxy(""));
 app.put("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
 // Delete an event by ID
 app.delete("/api/events/:id", ...eventAdminMiddleware, contentServiceProxy(""));
+
+// RESOURCE SHARING ROUTES (proxied to content-service)
+app.post(
+  "/api/resources/schools/:schoolId",
+  verifyToken,
+  requireRole("SCHOOL_ADMIN"),
+  requireSchoolAccess("schoolId"),
+  contentServiceProxy("")
+);
+
+app.get("/api/resources", contentServiceProxy(""));
+app.get("/api/resources/search", contentServiceProxy(""));
+app.get("/api/resources/:id", contentServiceProxy(""));
+app.put("/api/resources/:id", verifyToken, contentServiceProxy(""));
+app.delete("/api/resources/:id", verifyToken, contentServiceProxy(""));
 
 
 

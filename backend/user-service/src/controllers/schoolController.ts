@@ -69,6 +69,7 @@ export const listSchools = async (req: Request, res: Response): Promise<void> =>
         principal_name: true,
         web_link: true,
         created_at: true,
+        gender: true,
       },
       orderBy: {
         name: "asc",
@@ -107,6 +108,39 @@ export const getSchoolById = async (req: Request, res: Response): Promise<void> 
     const dbEnd = process.hrtime(dbStart);
     const dbTime = (dbEnd[0] * 1000 + dbEnd[1] / 1000000).toFixed(2);
     console.log(`[Performance] PostgreSQL Retrieval Latency: ${dbTime}ms`);
+
+    if (!school) {
+      res.status(404).json({ message: "School not found" });
+      return;
+    }
+
+    res.status(200).json({ school });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getSchoolResourceProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ message: "School ID is required" });
+      return;
+    }
+
+    const school = await prisma.school.findUnique({
+      where: { school_id: id as string },
+      select: {
+        school_id: true,
+        name: true,
+        address: true,
+        district: true,
+        province: true,
+        contact_number: true,
+      },
+    });
 
     if (!school) {
       res.status(404).json({ message: "School not found" });

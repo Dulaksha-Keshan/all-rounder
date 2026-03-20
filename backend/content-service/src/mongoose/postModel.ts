@@ -72,6 +72,10 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    schoolId: {
+      type: String,
+      default: null,
+    },
     likes: {
       type: likeSchema,
       default: () => ({
@@ -103,6 +107,7 @@ const postSchema = new mongoose.Schema(
 
 
 postSchema.index({ authorId: 1 });
+postSchema.index({ schoolId: 1 });
 postSchema.index({ category: 1 });
 postSchema.index({ createdAt: -1 });
 

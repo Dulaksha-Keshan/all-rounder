@@ -96,13 +96,15 @@ export class RecommendationEngine {
     const eventFilter: any = { isDeleted: false, visibility: "public" };
 
     if (skills && skills.length > 0) {
-      const skillNames = skills.map(s => s.skill_name);
-      const categories = [...new Set(skills.map(s => s.category))];
+      const skillIds = skills
+        .map((s) => Number(s?.skill_id))
+        .filter((id) => Number.isFinite(id));
+      const categories = [...new Set(skills.map((s) => s?.category).filter(Boolean))];
 
-      // Match posts by category OR if any tag matches a skill name
+      // Match posts by category OR if any numeric tag matches a skill id
       postFilter.$or = [
         { category: { $in: categories } },
-        { tags: { $in: skillNames } }
+        { tags: { $in: skillIds } }
       ];
 
       // Match events by category
