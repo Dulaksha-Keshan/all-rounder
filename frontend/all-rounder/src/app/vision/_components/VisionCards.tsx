@@ -62,13 +62,13 @@ export default function VisionCards() {
       ].map((item, i) => (
         <div
           key={i}
-          className="vision-card bg-[#F3EEFF] border border-[#8387CC]/40 rounded-2xl px-8 py-6 shadow-md text-center flex flex-col items-center"
+          className="vision-card surface-readable-strong rounded-2xl px-8 py-6 text-center flex flex-col items-center"
         >
           <h3 className="text-2xl font-bold text-[#34365C] mb-4">
             {item.title}
           </h3>
 
-          <p className="text-gray-700 leading-relaxed mb-4 text-[18px] text-center">
+          <p className="text-[#4A4E77] leading-relaxed mb-4 text-[18px] text-center">
             {item.text}
           </p>
 

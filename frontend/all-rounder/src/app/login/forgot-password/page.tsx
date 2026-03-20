@@ -14,36 +14,6 @@ const PASSWORD_REQUIREMENTS = [
   "One number",
 ];
 
-const STAR_POSITIONS = [
-  "top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl opacity-40",
-  "top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl opacity-30",
-  "bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl opacity-25",
-  "top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl opacity-35",
-  "bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl opacity-30",
-  "top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl opacity-25",
-  "top-1/4 left-1/4 text-2xl sm:text-3xl opacity-20",
-  "bottom-1/3 right-1/4 text-xl sm:text-2xl opacity-20",
-];
-
-function PageBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Gradient Orbs */}
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-30 blur-3xl" style={{ background: "var(--primary-purple)" }} />
-      <div className="absolute -top-20 right-0 w-[380px] h-[380px] rounded-full opacity-20 blur-3xl" style={{ background: "var(--primary-blue)" }} />
-      <div className="absolute bottom-0 -right-24 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl" style={{ background: "var(--secondary-light-lavender)" }} />
-      <div className="absolute -bottom-20 left-10 w-[300px] h-[300px] rounded-full opacity-20 blur-2xl" style={{ background: "var(--primary-dark-purple)" }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl" style={{ background: "var(--secondary-purple-light)" }} />
-
-      {/* Stars */}
-      {STAR_POSITIONS.map((classes, i) => (
-        <div key={i} className={`absolute ${classes}`} style={{ color: "var(--primary-dark-purple)" }}>
-          ★
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function PageHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -104,10 +74,6 @@ function PasswordInput({
   );
 }
 
-const PAGE_STYLE = {
-  background: "linear-gradient(135deg, var(--secondary-pale-lavender) 0%, var(--secondary-light-lavender) 50%, var(--secondary-pale-lavender) 100%)",
-};
-
 export default function ForgotPasswordPage() {
   //const resetToken = useAuthStore((s) => s.resetToken);
   //const clearResetToken = useAuthStore((s) => s.clearResetToken);
@@ -144,11 +110,10 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen py-40 px-4 relative overflow-hidden" style={PAGE_STYLE}>
-        <PageBackground />
+      <div className="min-h-screen py-40 px-4 relative">
         <div className="max-w-md mx-auto relative z-10">
           <PageHeader title="Success!" subtitle="Your password has been reset" />
-          <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+          <div className="surface-readable-strong rounded-xl p-8">
             <div className="text-center space-y-6">
               <div className="flex justify-center">
                 <div className="bg-green-100 p-4 rounded-full">
@@ -176,12 +141,11 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen py-40 px-4 relative overflow-hidden" style={PAGE_STYLE}>
-      <PageBackground />
+    <div className="min-h-screen py-40 px-4 relative">
       <div className="max-w-md mx-auto relative z-10">
         <PageHeader title="Reset Password" subtitle="Choose a new secure password" />
 
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="surface-readable-strong rounded-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <PasswordInput
               id="newPassword"

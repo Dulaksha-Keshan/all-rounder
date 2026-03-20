@@ -77,6 +77,7 @@ export default function SchoolSignup() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
   const [passwordError, setPasswordError] = useState("");
+  const [birthDateError, setBirthDateError] = useState("");
   const [schoolError, setSchoolError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -141,12 +142,31 @@ export default function SchoolSignup() {
     school.name.toLowerCase().includes(schoolSearchTerm.toLowerCase())
   );
 
+  const calculateAge = (dob: string) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    if (Number.isNaN(birthDate.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age -= 1;
+    }
+    return age;
+  };
+
+  const age = calculateAge(formData.dateOfBirth);
+  const isAdminAgeValid = age !== null && age > 23;
+
   const isStep1Valid = Boolean(formData.schoolId);
   const isStep2Valid = Boolean(
     formData.firstName.trim() &&
     formData.lastName.trim() &&
     formData.email.trim() &&
     formData.dateOfBirth &&
+    isAdminAgeValid &&
     (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
   );
   const isStep3Valid = uploadedFiles.length > 0;
@@ -193,12 +213,20 @@ export default function SchoolSignup() {
     }
 
     // Step 2 Validation
+    if (currentStep === 2 && !isAdminAgeValid) {
+      setBirthDateError("School admin must be older than 23 years.");
+      return;
+    }
+
     if (currentStep === 2 && !isGoogleFlow) {
       if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
         setPasswordError("Passwords do not match");
         return;
       }
       setPasswordError("");
+    }
+    if (currentStep === 2) {
+      setBirthDateError("");
     }
 
     if (currentStep < 3) {
@@ -218,6 +246,7 @@ export default function SchoolSignup() {
         
         // System Routing Fields
         payload.append("role", "SCHOOL_ADMIN");
+        payload.append("authProvider", isGoogleFlow ? "GOOGLE" : "EMAIL");
         payload.append("schoolId", formData.schoolId);
         payload.append("verificationOption", formData.verificationType);
         
@@ -287,7 +316,7 @@ export default function SchoolSignup() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="surface-readable-strong rounded-xl p-8">
 
           <form onSubmit={handleSubmit}>
 
@@ -405,8 +434,26 @@ export default function SchoolSignup() {
                     <label className={labelClass}>Date of Birth *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required placeholder="YYYY-MM-DD" title="Date of birth (YYYY-MM-DD)" />
+                      <input
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => {
+                          updateField("dateOfBirth", e.target.value);
+                          const nextAge = calculateAge(e.target.value);
+                          if (nextAge === null || nextAge <= 23) {
+                            setBirthDateError("School admin must be older than 23 years.");
+                          } else {
+                            setBirthDateError("");
+                          }
+                        }}
+                        className={iconInputClass}
+                        style={inputStyle}
+                        required
+                        placeholder="YYYY-MM-DD"
+                        title="Date of birth (YYYY-MM-DD)"
+                      />
                     </div>
+                    {birthDateError && <p className="text-sm text-red-500 mt-1">{birthDateError}</p>}
                   </div>
                 </div>
 

@@ -98,7 +98,7 @@ export function OpportunitySpotlight() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden py-14 sm:py-16 lg:py-20 bg-gradient-to-br from-[#F5F2FF] via-[#FFFFFF] to-[#EEF2FF]"
+      className="relative overflow-hidden py-14 sm:py-16 lg:py-20"
     >
       <div className="spotlight-glow absolute -top-20 -right-20 w-72 h-72 bg-[#BDB4FF]/30 blur-3xl rounded-full pointer-events-none" />
 
@@ -122,7 +122,7 @@ export function OpportunitySpotlight() {
             return (
               <article
                 key={card.title}
-                className="spotlight-card opacity-0 group rounded-3xl border border-[#DDD9FF] bg-white/80 backdrop-blur-sm p-6 sm:p-7 shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="spotlight-card opacity-0 group rounded-3xl surface-readable p-6 sm:p-7 hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex items-center justify-between mb-5">
                   <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${card.accent} text-white flex items-center justify-center shadow-md`}>

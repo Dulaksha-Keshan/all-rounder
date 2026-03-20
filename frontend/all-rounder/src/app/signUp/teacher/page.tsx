@@ -145,11 +145,18 @@ export default function TeacherSignup() {
     formData.firstName.trim() &&
     formData.lastName.trim() &&
     formData.email.trim() &&
+    formData.phone.trim() &&
     formData.dateOfBirth &&
     (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
   );
 
-  const isStep2Valid = Boolean(formData.schoolId);
+  const isStep2Valid = Boolean(
+    formData.schoolId &&
+    (() => {
+      const grade = Number(formData.grade);
+      return Number.isFinite(grade) && grade >= 6 && grade <= 13;
+    })()
+  );
   const isStep3Valid = formData.verificationType === "ADMIN_APPROVAL" || uploadedFiles.length > 0;
   const isCurrentStepValid = currentStep === 1 ? isStep1Valid : currentStep === 2 ? isStep2Valid : isStep3Valid;
 
@@ -172,7 +179,7 @@ export default function TeacherSignup() {
       }));
       
       setIsGoogleFlow(true);
-      setCurrentStep(2); 
+      setCurrentStep(1);
     } catch (error) {
       console.error("Google Initiation failed", error);
     }
@@ -216,6 +223,7 @@ export default function TeacherSignup() {
         if (formData.phone) payload.append("contact_number", formData.phone);
         
         payload.append("role", "TEACHER");
+        payload.append("authProvider", isGoogleFlow ? "GOOGLE" : "EMAIL");
         payload.append("schoolId", formData.schoolId);
         payload.append("verificationOption", formData.verificationType);
         
@@ -282,7 +290,7 @@ export default function TeacherSignup() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="surface-readable-strong rounded-xl p-8">
 
           <form onSubmit={handleSubmit}>
 
@@ -327,10 +335,10 @@ export default function TeacherSignup() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Phone Number</label>
+                    <label className={labelClass}>Phone Number *</label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={iconInputClass} style={inputStyle} />
+                      <input type="tel" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} className={iconInputClass} style={inputStyle} required />
                     </div>
                   </div>
                   <div>
@@ -454,8 +462,13 @@ export default function TeacherSignup() {
                     </div>
                   </div>
                   <div>
-                    <label className={labelClass}>Grades Taught</label>
-                    <input type="text" value={formData.grade} onChange={(e) => updateField("grade", e.target.value)} className={inputClass} style={inputStyle} placeholder="e.g., Grades 10-12" />
+                    <label className={labelClass}>Grade Taught *</label>
+                    <select value={formData.grade} onChange={(e) => updateField("grade", e.target.value)} className={inputClass} style={inputStyle} required>
+                      <option value="">Select Grade</option>
+                      {Array.from({ length: 8 }, (_, i) => i + 6).map((grade) => (
+                        <option key={grade} value={grade}>Grade {grade}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

@@ -14,7 +14,6 @@ export function HeroSection() {
   const laptopRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
   const iconsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const starsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -83,41 +82,18 @@ export function HeroSection() {
         }
       });
 
-      // Single twinkling animation for stars
-      starsRef.current.forEach((star, i) => {
-        gsap.to(star, {
-          scale: 1.3,
-          opacity: 0.6,
-          duration: 2 + Math.random() * 0.5,
-          delay: i * 0.3,
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
-        });
-      });
     });
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 lg:py-20 overflow-hidden bg-[var(--primary-dark-purple)]">
-      {/* Decorative Stars - Single Style (★ only) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div ref={(el) => { starsRef.current[0] = el; }} className="absolute top-10 sm:top-20 left-5 sm:left-10 text-3xl sm:text-4xl lg:text-5xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[1] = el; }} className="absolute top-20 sm:top-32 right-10 sm:right-20 text-2xl sm:text-3xl lg:text-4xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[2] = el; }} className="absolute bottom-20 sm:bottom-32 left-16 sm:left-32 text-4xl sm:text-5xl lg:text-6xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[3] = el; }} className="absolute top-1/3 right-16 sm:right-32 text-3xl sm:text-4xl lg:text-5xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[4] = el; }} className="absolute bottom-10 sm:bottom-20 right-6 sm:right-12 text-2xl sm:text-3xl lg:text-4xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[5] = el; }} className="absolute top-1/2 left-10 sm:left-20 text-xl sm:text-2xl lg:text-3xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[6] = el; }} className="absolute top-1/4 left-1/4 text-2xl sm:text-3xl text-[var(--secondary-light-lavender)]">★</div>
-        <div ref={(el) => { starsRef.current[7] = el; }} className="absolute bottom-1/3 right-1/4 text-xl sm:text-2xl text-[var(--secondary-light-lavender)]">★</div>
-      </div>
+    <section className="relative w-full min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 lg:py-20 overflow-hidden">
 
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="max-w-7xl mx-auto w-full relative z-10">
         {/* Text Content */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-16 z-10 relative px-4">
-          <h1 ref={headingRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-3 sm:mb-4 text-[var(--secondary-pale-lavender)]">
+          <h1 ref={headingRef} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-3 sm:mb-4 text-[var(--primary-dark-purple)]">
             Show the full story of{' '}
             <span ref={subheadingRef} className="inline-block relative text-[var(--primary-blue)]">
               who you are
@@ -126,9 +102,9 @@ export function HeroSection() {
               </svg>
             </span>
           </h1>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 lg:mb-8 text-[var(--secondary-light-lavender)]">beyond grades</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 lg:mb-8 text-[var(--primary-purple)]">beyond grades</h1>
 
-          <p ref={descriptionRef} className="text-base sm:text-lg lg:text-xl max-w-3xl mx-auto mb-6 sm:mb-8 lg:mb-10 text-[var(--secondary-pale-lavender)] opacity-90 px-4">
+          <p ref={descriptionRef} className="text-base sm:text-lg lg:text-xl max-w-3xl mx-auto mb-6 sm:mb-8 lg:mb-10 text-[var(--text-muted)] opacity-95 px-4">
             Your journey deserves to be seen. Build a profile that transforms your achievements, passions, and experiences into a powerful first impression.
           </p>
 
@@ -141,7 +117,7 @@ export function HeroSection() {
             </Link>
 
             <Link href="/help">
-              <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--secondary-light-lavender)] bg-transparent text-[var(--secondary-light-lavender)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-purple-200 hover:text-[var(--black)]">
+              <button className="w-full sm:w-auto px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 rounded-2xl font-bold text-base sm:text-lg border-2 border-[var(--primary-blue)] bg-white/20 text-[var(--primary-dark-purple)] transition-all transform hover:scale-105 hover:-translate-y-0.5 hover:bg-white/40 hover:text-[var(--primary-blue)]">
                 <span className="flex items-center justify-center gap-3">Learn More</span>
               </button>
             </Link>

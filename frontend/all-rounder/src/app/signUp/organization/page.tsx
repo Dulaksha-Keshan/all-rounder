@@ -82,6 +82,7 @@ export default function OrganizationSignup() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [passwordError, setPasswordError] = useState("");
+  const [birthDateError, setBirthDateError] = useState("");
   const [orgError, setOrgError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -120,6 +121,24 @@ export default function OrganizationSignup() {
     org.organization_name.toLowerCase().includes(orgSearchTerm.toLowerCase())
   );
 
+  const calculateAge = (dob: string) => {
+    if (!dob) return null;
+    const birthDate = new Date(dob);
+    if (Number.isNaN(birthDate.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age -= 1;
+    }
+    return age;
+  };
+
+  const age = calculateAge(formData.dateOfBirth);
+  const isAdminAgeValid = age !== null && age > 23;
+
   const isStep1Valid = registrationMode === "new"
     ? Boolean(formData.organizationName.trim() && formData.contactPerson.trim())
     : Boolean(formData.organizationId);
@@ -129,6 +148,7 @@ export default function OrganizationSignup() {
     formData.lastName.trim() &&
     formData.email.trim() &&
     formData.dateOfBirth &&
+    isAdminAgeValid &&
     (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
   );
 
@@ -208,12 +228,20 @@ export default function OrganizationSignup() {
       setOrgError("");
     }
 
+    if (currentStep === 2 && !isAdminAgeValid) {
+      setBirthDateError("Organization admin must be older than 23 years.");
+      return;
+    }
+
     if (currentStep === 2 && !isGoogleFlow) {
       if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
         setPasswordError("Passwords do not match");
         return;
       }
       setPasswordError("");
+    }
+    if (currentStep === 2) {
+      setBirthDateError("");
     }
 
     if (currentStep < 3) {
@@ -238,6 +266,7 @@ export default function OrganizationSignup() {
         } else {
           adminData.password = formData.password;
         }
+        adminData.authProvider = isGoogleFlow ? "GOOGLE" : "EMAIL";
 
         // 2. Route based on Registration Mode
         if (registrationMode === "new") {
@@ -264,6 +293,7 @@ export default function OrganizationSignup() {
           if (adminData.staff_id) payload.append("staff_id", adminData.staff_id);
           
           payload.append("role", "ORG_ADMIN");
+          payload.append("authProvider", isGoogleFlow ? "GOOGLE" : "EMAIL");
           payload.append("organizationId", formData.organizationId);
           payload.append("verificationOption", formData.verificationType);
           
@@ -346,7 +376,7 @@ export default function OrganizationSignup() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="surface-readable-strong rounded-xl p-8">
 
           <form onSubmit={handleSubmit}>
 
@@ -491,8 +521,26 @@ export default function OrganizationSignup() {
                     <label className={labelClass}>Date of Birth *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required placeholder="YYYY-MM-DD" title="Date of birth (YYYY-MM-DD)" />
+                      <input
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => {
+                          updateField("dateOfBirth", e.target.value);
+                          const nextAge = calculateAge(e.target.value);
+                          if (nextAge === null || nextAge <= 23) {
+                            setBirthDateError("Organization admin must be older than 23 years.");
+                          } else {
+                            setBirthDateError("");
+                          }
+                        }}
+                        className={iconInputClass}
+                        style={inputStyle}
+                        required
+                        placeholder="YYYY-MM-DD"
+                        title="Date of birth (YYYY-MM-DD)"
+                      />
                     </div>
+                    {birthDateError && <p className="text-sm text-red-500 mt-1">{birthDateError}</p>}
                   </div>
                 </div>
 

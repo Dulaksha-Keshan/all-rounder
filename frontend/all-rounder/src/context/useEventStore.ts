@@ -51,6 +51,7 @@ export interface EventPagination {
 interface EventState {
     events: Event[];
     schoolEventsById: Record<string, Event[]>;
+    schoolEventsFetchedById: Record<string, boolean>;
     activeEvent: Event | null;
     pagination: EventPagination;
     isLoading: boolean;
@@ -72,11 +73,14 @@ interface EventState {
     fetchEventById: (id: string) => Promise<Event | undefined>; // Async fetch
 }
 
+const inFlightSchoolEventsRequests: Partial<Record<string, Promise<Event[]>>> = {};
+
 export const useEventStore = create<EventState>()(
     persist(
         (set, get) => ({
             events: [],
             schoolEventsById: {},
+            schoolEventsFetchedById: {},
             activeEvent: null,
             pagination: { page: 1, pages: 1, total: 0, count: 0 },
             isLoading: false,
@@ -104,8 +108,18 @@ export const useEventStore = create<EventState>()(
                 if (!schoolId) return [];
 
                 const normalizedSchoolId = String(schoolId);
+
+                const state = get();
+                if (state.schoolEventsFetchedById[normalizedSchoolId]) {
+                    return state.schoolEventsById[normalizedSchoolId] || [];
+                }
+
+                if (inFlightSchoolEventsRequests[normalizedSchoolId]) {
+                    return inFlightSchoolEventsRequests[normalizedSchoolId];
+                }
+
                 set({ isLoading: true, error: null });
-                try {
+                const requestPromise = (async () => {
                     const response = await api.get('/events', { params: { page, limit } });
                     const { data, count, total, page: currentPage, pages } = response.data;
                     const normalized = (data as any[]).map(normalizeEvent);
@@ -117,14 +131,25 @@ export const useEventStore = create<EventState>()(
                             ...state.schoolEventsById,
                             [normalizedSchoolId]: filteredForSchool,
                         },
+                        schoolEventsFetchedById: {
+                            ...state.schoolEventsFetchedById,
+                            [normalizedSchoolId]: true,
+                        },
                         pagination: { page: currentPage, pages, total, count },
                     }));
 
                     return filteredForSchool;
+                })();
+
+                inFlightSchoolEventsRequests[normalizedSchoolId] = requestPromise;
+
+                try {
+                    return await requestPromise;
                 } catch (error: any) {
                     set({ error: error.response?.data?.message || error.message || 'Failed to fetch school events' });
                     return [];
                 } finally {
+                    delete inFlightSchoolEventsRequests[normalizedSchoolId];
                     set({ isLoading: false });
                 }
             },
@@ -252,6 +277,7 @@ export const useEventStore = create<EventState>()(
             clearEventState: () => set({
                 events: [],
                 schoolEventsById: {},
+                schoolEventsFetchedById: {},
                 activeEvent: null,
                 pagination: { page: 1, pages: 1, total: 0, count: 0 },
                 isLoading: false,
@@ -313,6 +339,7 @@ export const useEventStore = create<EventState>()(
             partialize: (state) => ({
                 events: state.events,
                 schoolEventsById: state.schoolEventsById,
+                schoolEventsFetchedById: state.schoolEventsFetchedById,
                 activeEvent: state.activeEvent,
                 pagination: state.pagination,
             }),

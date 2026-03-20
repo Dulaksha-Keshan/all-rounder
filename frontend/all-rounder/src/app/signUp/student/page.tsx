@@ -144,7 +144,10 @@ export default function StudentSignup() {
 
   const isStep2Valid = Boolean(
     formData.schoolId &&
-    formData.grade &&
+    (() => {
+      const grade = Number(formData.grade);
+      return Number.isFinite(grade) && grade >= 6 && grade <= 13;
+    })() &&
     (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
   );
 
@@ -230,7 +233,7 @@ export default function StudentSignup() {
       }));
       
       setIsGoogleFlow(true);
-      setCurrentStep(2); 
+      setCurrentStep(1);
     } catch (error) {
       console.error("Google Initiation failed", error);
     }
@@ -289,6 +292,7 @@ export default function StudentSignup() {
         payload.append("email", formData.email);
         payload.append("name", `${formData.firstName} ${formData.lastName}`.trim());
         payload.append("role", "STUDENT");
+        payload.append("authProvider", isGoogleFlow ? "GOOGLE" : "EMAIL");
         payload.append("dateOfBirth", formData.dateOfBirth);
         payload.append("schoolId", formData.schoolId);
         payload.append("gender", formData.gender);
@@ -358,7 +362,7 @@ export default function StudentSignup() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
+        <div className="surface-readable-strong rounded-xl p-8">
 
           <form onSubmit={handleSubmit}>
 
@@ -514,7 +518,9 @@ export default function StudentSignup() {
                     <label className={labelClass}>Grade/Class *</label>
                     <select value={formData.grade} onChange={(e) => updateField("grade", e.target.value)} className={inputClass} style={inputStyle} required>
                       <option value="">Select Grade</option>
-                      {[...Array(12)].map((_, i) => (<option key={i + 1} value={i + 1}>Grade {i + 1}</option>))}
+                      {Array.from({ length: 8 }, (_, i) => i + 6).map((grade) => (
+                        <option key={grade} value={grade}>Grade {grade}</option>
+                      ))}
                     </select>
                   </div>
                   <div>

@@ -6,7 +6,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import Image from 'next/image';
 
-const AUTO_SLIDE_INTERVAL_MS = 5000;
+const AUTO_SLIDE_INTERVAL_MS = 2600;
 
 const FeatureCard = () => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -17,15 +17,15 @@ const FeatureCard = () => {
 
   useGSAP(() => {
     if (imageLoaded) {
-      gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 1 });
+      gsap.fromTo('#title', { opacity: 0 }, { opacity: 1, duration: 0.55 });
       gsap.fromTo('.feature-visual img', { opacity: 0, xPercent: -100 }, {
-        xPercent: 0, opacity: 1, duration: 1, ease: 'power1.inOut'
+        xPercent: 0, opacity: 1, duration: 0.55, ease: 'power1.inOut'
       });
       gsap.fromTo('.details h2', { yPercent: 100, opacity: 0 }, {
-        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8
+        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.45
       });
       gsap.fromTo('.details p', { yPercent: 100, opacity: 0 }, {
-        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.8, delay: 0.1
+        yPercent: 0, opacity: 1, ease: 'power1.inOut', duration: 0.45, delay: 0.06
       });
     }
   }, [currentIndex, imageLoaded]);
@@ -78,7 +78,7 @@ const FeatureCard = () => {
     <section
       id="features"
       aria-labelledby="features-heading"
-      className="relative py-12 sm:py-16 px-4 sm:px-6 bg-purple-100"
+      className="relative py-12 sm:py-16 px-4 sm:px-6"
       onMouseEnter={() => setIsAutoPaused(true)}
       onMouseLeave={() => setIsAutoPaused(false)}
     >

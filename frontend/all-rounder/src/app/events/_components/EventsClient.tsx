@@ -90,9 +90,9 @@ export default function EventsClient() {
           </div>
 
           <h1 className="text-6xl font-bold mb-4">
-            Competitions & <span className="text-[var(--primary-blue)]">Events Hub</span>
+            Competitions & <span className="text-white">Events Hub</span>
           </h1>
-          <p className="text-xl text-[var(--accent-purple-text)] max-w-2xl font-medium">
+          <p className="text-xl text-white/90 max-w-2xl font-medium">
             Discover opportunities to showcase your talents, learn new skills, and compete with peers across various disciplines
           </p>
         </div>

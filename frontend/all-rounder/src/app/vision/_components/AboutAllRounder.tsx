@@ -2,7 +2,7 @@
 
 export default function AboutAllRounder() {
   return (
-    <section className="relative w-full bg-gradient-to-r from-[#34365C] via-[#3B3E70] to-[#34365C] text-white py-24 overflow-hidden">
+    <section className="relative w-full bg-gradient-to-r from-[#34365C]/84 via-[#3B3E70]/82 to-[#34365C]/84 backdrop-blur-[1px] text-white py-24 overflow-hidden">
 
       {/* ⭐ Blinking Stars (Friend Style) */}
       <div className="absolute inset-0 pointer-events-none">

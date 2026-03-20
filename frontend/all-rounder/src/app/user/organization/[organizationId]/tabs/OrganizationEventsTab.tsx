@@ -1,6 +1,6 @@
 export default function OrganizationEventsTab() {
   return (
-    <div className="mt-6 bg-white rounded-xl border border-indigo-100 shadow-md p-6">
+    <div className="mt-6 surface-readable-strong rounded-xl p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-2">
         Events
       </h2>

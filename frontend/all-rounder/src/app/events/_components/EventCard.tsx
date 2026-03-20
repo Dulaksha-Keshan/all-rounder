@@ -33,7 +33,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
   };
 
   return (
-    <div ref={cardRef} className="bg-[var(--white)] rounded-2xl overflow-hidden shadow-xl shadow-[#DCD0FF]/25 border border-[#DCD0FF]/50 hover:border-[#8387CC] transition-all duration-500 hover:shadow-2xl hover:shadow-[#8387CC]/20 group opacity-0">
+    <div ref={cardRef} className="surface-readable-strong rounded-2xl overflow-hidden hover:border-[#8387CC] transition-all duration-500 hover:shadow-2xl hover:shadow-[#8387CC]/20 group opacity-0">
       <div className="flex flex-col md:flex-row h-full">
         {/* Image Section */}
         <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden bg-[#F8F8FF]">
@@ -46,7 +46,7 @@ export function EventCard({ event, index = 0 }: { event: Event; index?: number }
         </div>
 
         {/* Content Section */}
-        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-white">
+        <div className="flex-grow p-6 md:p-8 flex flex-col justify-between bg-transparent">
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <span className="px-3 py-1 bg-[var(--secondary-pale-lavender)] text-[var(--primary-purple)] text-xs font-bold rounded-lg border border-[var(--secondary-light-lavender)]">

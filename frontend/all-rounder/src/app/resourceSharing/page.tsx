@@ -361,28 +361,28 @@ export default function ResourceSharing() {
         </div>
 
         <div ref={statsRef} className="grid md:grid-cols-4 gap-4 mb-8">
-          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+          <div className="rs-stat-card rs-tilt surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-3">
               <Boxes className="w-6 h-6 text-purple-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{stats.totalRequests}</p>
             <p className="text-sm text-gray-600">Total Requests</p>
           </div>
-          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+          <div className="rs-stat-card rs-tilt surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-3">
               <TrendingUp className="w-6 h-6 text-red-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{stats.highPriority}</p>
             <p className="text-sm text-gray-600">High Priority Open</p>
           </div>
-          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+          <div className="rs-stat-card rs-tilt surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
               <School className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{stats.partnerSchools}</p>
             <p className="text-sm text-gray-600">Partner Schools</p>
           </div>
-          <div className="rs-stat-card rs-tilt bg-white rounded-xl shadow-md p-6 text-center border border-[#ECE9FF]">
+          <div className="rs-stat-card rs-tilt surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
               <HandHeart className="w-6 h-6 text-green-600" />
             </div>
@@ -391,7 +391,7 @@ export default function ResourceSharing() {
           </div>
         </div>
 
-        <form onSubmit={handleSearch} className="mb-6 bg-white rounded-2xl border border-[#ECE9FF] shadow-lg p-5 grid lg:grid-cols-8 gap-3">
+        <form onSubmit={handleSearch} className="mb-6 surface-readable-strong rounded-2xl p-5 grid lg:grid-cols-8 gap-3">
           <label className="lg:col-span-2">
             <span className="sr-only">Keyword</span>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#D9D4FF]">
@@ -494,7 +494,7 @@ export default function ResourceSharing() {
         </form>
 
         {canCreate && (
-          <form onSubmit={handleCreateRequest} className="mb-8 bg-white rounded-2xl border border-[#ECE9FF] shadow-lg p-5">
+          <form onSubmit={handleCreateRequest} className="mb-8 surface-readable-strong rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <PlusCircle className="w-5 h-5 text-[#4169E1]" />
               <h2 className="text-[#34365C] text-lg font-semibold">Create Resource Request</h2>
@@ -604,7 +604,7 @@ export default function ResourceSharing() {
           </form>
         )}
 
-        <div ref={requestsRef} className="bg-white rounded-2xl shadow-lg border border-[#ECE9FF] overflow-hidden mb-8">
+        <div ref={requestsRef} className="surface-readable-strong rounded-2xl overflow-hidden mb-8">
           <div className="p-5 bg-gradient-to-r from-[#F0EDFF] to-[#FAF9FF] border-b border-[#ECE9FF]">
             <h2 className="text-[#34365C] text-xl font-semibold">Live Resource Requests</h2>
             <p className="text-sm text-[#5C618F] mt-1">Reach out directly to schools and help fulfill urgent needs faster.</p>
@@ -622,7 +622,7 @@ export default function ResourceSharing() {
               const school = resource.school;
 
               return (
-                <article key={request.id} className="rs-request-card rs-tilt rounded-xl border border-[#ECE9FF] bg-gradient-to-br from-white via-[#F8F8FF] to-[#EEF0FF] p-5">
+                <article key={request.id} className="rs-request-card rs-tilt surface-readable rounded-xl p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <h3 className="text-[#34365C] font-semibold text-lg">{request.title}</h3>
                     <span className="text-xs px-2.5 py-1 rounded-full bg-[#E8EAFE] text-[#4D5190] uppercase tracking-wide">

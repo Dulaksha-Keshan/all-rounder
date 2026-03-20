@@ -70,7 +70,7 @@ export default function MeetOurTeam() {
   };
 
   return (
-    <section className="w-full py-20 bg-white overflow-hidden">
+    <section className="w-full py-20 overflow-hidden">
       <h2 className="text-3xl md:text-4xl font-bold text-center text-[#34365C] mb-14">
         Meet Our Team
       </h2>
@@ -90,7 +90,7 @@ export default function MeetOurTeam() {
               ${position === 'hidden' ? 'opacity-0 scale-50 pointer-events-none' : ''}
               `}
             >
-              <div className="w-[320px] md:w-[450px] h-[400px] bg-[#F3EEFF] border border-[#8387CC]/40 rounded-3xl shadow-xl p-8 flex flex-col items-center text-center">
+              <div className="w-[320px] md:w-[450px] h-[400px] surface-readable-strong rounded-3xl p-8 flex flex-col items-center text-center">
 
                 <div className="relative w-40 h-40 rounded-2xl overflow-hidden mb-6 border border-[#8387CC]/40">
                   <NextImage

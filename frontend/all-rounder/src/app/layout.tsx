@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/layout/navbar2";
-import Footer from "@/layout/Footer";
-import GoToTopButton from "@/components/GoToTopButton";
-import GlobalCursorFX from "@/components/GlobalCursorFX";
-import AppToastHost from "@/components/AppToastHost";
+import RootAppShell from "@/components/RootAppShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +15,37 @@ const geistMono = Geist_Mono({
 
 // changed this accordingly :) -(the browsing icon and title)
 export const metadata: Metadata = {
+  metadataBase: new URL("https://all-rounder.lk"),
   title: "All-Rounder",
   description: "All-Rounder - Celebrate.Connect.Contribute.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "All-Rounder",
+    description: "All-Rounder - Celebrate.Connect.Contribute.",
+    url: "https://all-rounder.lk",
+    siteName: "All-Rounder",
+    type: "website",
+    images: [
+      {
+        url: "/icons/browserImage.png",
+        width: 512,
+        height: 512,
+        alt: "All-Rounder",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "All-Rounder",
+    description: "All-Rounder - Celebrate.Connect.Contribute.",
+    images: ["/icons/browserImage.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/icons/browserImage.png",
   },
@@ -31,12 +56,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  isAuthenticated = false,
-  userType,
 }: Readonly<{
   children: React.ReactNode;
-  isAuthenticated?: boolean;
-  userType?: "student" | "teacher" | "school" | "organization";
 }>) {
 
   const websiteSchema = JSON.stringify({
@@ -57,19 +78,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GlobalCursorFX />
-        <AppToastHost />
-        <Navbar/>
-        <main className="pt-20 md:pt-28">
-          {children}
-        </main>
+        <RootAppShell>{children}</RootAppShell>
         {/* Added the structured data script here */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: websiteSchema }}
         />
-        <Footer />
-        <GoToTopButton />
       </body>
     </html>
   );

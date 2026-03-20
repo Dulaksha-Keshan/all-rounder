@@ -6,6 +6,7 @@ import PostCard from "./PostCard";
 import { PostEntity } from "@/app/_type/type";
 import { usePostStore } from "@/context/usePostStore";
 import { useUserStore } from "@/context/useUserStore";
+import FeedSkeleton from "../../../../skeletons/FeedSkeleton";
 
 interface FeedProps {
   posts: PostEntity[];
@@ -64,13 +65,7 @@ export default function Feed({
   };
 
   if (isLoading) {
-    return (
-      <div className="w-full space-y-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 h-64 animate-pulse" />
-        ))}
-      </div>
-    );
+    return <FeedSkeleton items={3} />;
   }
 
   return (

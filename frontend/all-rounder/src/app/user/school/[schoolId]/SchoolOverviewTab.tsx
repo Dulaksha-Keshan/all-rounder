@@ -165,6 +165,7 @@ export default function SchoolOverviewTab({ school }: { school: School }) {
   const schoolStatisticsBySchoolId = useSchoolStore((state) => state.schoolStatisticsBySchoolId);
   const isLoading = useSchoolStore((state) => state.isLoading);
   const schoolEventsById = useEventStore((state) => state.schoolEventsById);
+  const schoolEventsFetchedById = useEventStore((state) => state.schoolEventsFetchedById);
   const getSchoolEvents = useEventStore((state) => state.getSchoolEvents);
   const fetchSchoolEvents = useEventStore((state) => state.fetchSchoolEvents);
 
@@ -172,8 +173,9 @@ export default function SchoolOverviewTab({ school }: { school: School }) {
 
   useEffect(() => {
     if (!resolvedSchoolId) return;
+    if (schoolEventsFetchedById[resolvedSchoolId]) return;
     void fetchSchoolEvents(resolvedSchoolId, 1, 100);
-  }, [resolvedSchoolId, fetchSchoolEvents]);
+  }, [resolvedSchoolId, schoolEventsFetchedById, fetchSchoolEvents]);
 
   const schoolEventsCount = useMemo(() => {
     const events = schoolEventsById[resolvedSchoolId] || getSchoolEvents(resolvedSchoolId);
@@ -211,7 +213,7 @@ export default function SchoolOverviewTab({ school }: { school: School }) {
   return (
     <div className="space-y-6 mt-6">
       {/* About */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+      <div className="surface-readable-strong rounded-xl p-6">
         <h2 className="text-xl font-bold text-[#34365C] mb-2">
           About School
         </h2>
@@ -238,7 +240,7 @@ export default function SchoolOverviewTab({ school }: { school: School }) {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+    <div className="surface-readable-strong rounded-xl p-6 text-center">
       <p className="text-3xl font-bold text-[#8387CC]">{value}</p>
       <p className="text-sm text-gray-600 mt-1">{label}</p>
     </div>

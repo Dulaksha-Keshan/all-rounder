@@ -191,28 +191,28 @@ export default function LeaderboardPage() {
 
         {/* Stats Overview */}
         <div ref={statsRef} className="grid md:grid-cols-4 gap-4 mb-8">
-          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-3">
               <Target className="w-6 h-6 text-purple-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{currentUser.points}</p>
             <p className="text-sm text-gray-600">Your Points</p>
           </div>
-          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mb-3">
               <Zap className="w-6 h-6 text-orange-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">{currentUser.streak} days</p>
             <p className="text-sm text-gray-600">Current Streak</p>
           </div>
-          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
               <Trophy className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-2xl text-[#34365C] mb-1">#{currentUser.rank}</p>
             <p className="text-sm text-gray-600">Your Rank</p>
           </div>
-          <div className="stat-card bg-white rounded-xl shadow-md p-6 text-center">
+          <div className="stat-card surface-readable-strong rounded-xl p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
               <Award className="w-6 h-6 text-green-600" />
             </div>
@@ -222,7 +222,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Top 3 Podium */}
-        <div ref={podiumRef} className="bg-white rounded-xl shadow-lg p-8 mb-8 border border-[#ECE9FF]">
+        <div ref={podiumRef} className="surface-readable-strong rounded-xl p-8 mb-8">
           <h2 className="text-[#34365C] text-center mb-8">Top Performers</h2>
           <div className="flex items-end justify-center gap-4 mb-8">
             {[1, 0, 2].map((i) => {
@@ -257,7 +257,7 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Full Leaderboard */}
-        <div ref={tableRef} className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#ECE9FF]">
+        <div ref={tableRef} className="surface-readable-strong rounded-xl overflow-hidden">
           <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F0EDFF] to-[#FAF9FF] border-b border-[#ECE9FF]">
             <p className="text-sm text-[#51558E] font-medium">
               Preview mode: rankings below are illustrative and do not reflect live user activity yet.

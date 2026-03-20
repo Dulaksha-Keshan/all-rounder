@@ -17,7 +17,7 @@ export default function VisionPage() {
         <VisionHero />
 
         {/* VISION CARDS */}
-        <section className="bg-gray-100/95 px-6 py-20">
+        <section className="px-6 py-20">
           <VisionCards />
         </section>
 

@@ -13,7 +13,7 @@ export default function SchoolHeader({ school, isAdmin }: SchoolHeaderProps) {
   const router = useRouter();
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 border border-[#DCD0FF]/50">
+    <div className="surface-readable-strong rounded-xl p-8">
       <div className="flex items-center gap-6">
         {/* Avatar */}
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#8387CC] to-[#4169E1] flex items-center justify-center shadow-lg overflow-hidden shrink-0">

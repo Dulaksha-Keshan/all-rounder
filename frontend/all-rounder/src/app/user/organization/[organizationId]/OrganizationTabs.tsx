@@ -21,7 +21,7 @@ export default function OrganizationTabs({
   return (
     <>
       {/* Tab Header */}
-      <div className="bg-white rounded-xl shadow-lg border border-[#DCD0FF]/50 overflow-x-auto">
+      <div className="surface-readable-strong rounded-xl overflow-x-auto">
         <div className="flex">
           {tabs.map((tab) => (
             <button

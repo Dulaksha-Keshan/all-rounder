@@ -171,7 +171,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
   return (
     <>
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-lg border border-[#DCD0FF]/50 overflow-x-auto hide-scrollbar">
+      <div className="surface-readable-strong rounded-xl overflow-x-auto hide-scrollbar">
         <div className="flex w-max min-w-full">
           {tabs.map((tab) => (
             <button
@@ -201,7 +201,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
 
       {/* TEACHERS TAB */}
       {activeTab === "Teachers" && (
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-[#DCD0FF]/50 animate-in fade-in duration-300">
+        <div className="surface-readable-strong rounded-xl p-6 md:p-8 animate-in fade-in duration-300">
           {isAdmin && (
             <div className="mb-8 rounded-xl border border-[#DCD0FF]/70 bg-[#F9F8FF] p-4 md:p-6">
               <div className="flex items-center justify-between gap-3 mb-4">
@@ -237,7 +237,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                       {pendingRequests.map((request) => (
                         <div
                           key={request.id}
-                          className="rounded-lg border border-gray-200 bg-white p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                          className="rounded-lg surface-readable p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
                         >
                           <div>
                             <p className="font-bold text-[#34365C]">{getRequestDisplayName(request)}</p>
@@ -285,7 +285,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-white">
+                    <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-xl surface-readable">
                       <p className="text-gray-500 font-medium">No pending teacher verification requests.</p>
                     </div>
                   )}
@@ -299,7 +299,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                       {processedRequests.map((request) => (
                         <div
                           key={request.id}
-                          className="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-4"
+                          className="rounded-lg surface-readable p-4 flex items-center justify-between gap-4"
                         >
                           <div>
                             <p className="font-bold text-[#34365C]">{getRequestDisplayName(request)}</p>
@@ -333,7 +333,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-white">
+                    <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-xl surface-readable">
                       <p className="text-gray-500 font-medium">No processed verification requests yet.</p>
                     </div>
                   )}
@@ -380,7 +380,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
 
       {/* STUDENTS TAB */}
       {activeTab === "Students" && (
-        <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-[#DCD0FF]/50 animate-in fade-in duration-300">
+        <div className="surface-readable-strong rounded-xl p-6 md:p-8 animate-in fade-in duration-300">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-[#34365C]">Enrolled Students</h2>
           </div>

@@ -10,6 +10,7 @@ export interface Student {
   profile_picture?: string;
   is_active: boolean;
   is_frozen: boolean;
+  is_verified?: boolean;
 
   grade: string;
   organizationId?: string;
@@ -35,6 +36,7 @@ export interface Teacher {
   contact_number?: string;
   profile_picture?: string;
   is_active: boolean;
+  is_verified?: boolean;
 
   subject?: string;
   designation?: string;
@@ -62,6 +64,7 @@ export interface Admin {
   contact_number?: string;
   profile_picture?: string;
   is_active: boolean;
+  is_verified?: boolean;
 
   staff_id?: string;
   created_at: string;

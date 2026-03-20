@@ -10,6 +10,7 @@ export default function Home() {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+  const isVerified = useUserStore((state) => state.isVerified);
   const fetchBackendProfile = useUserStore((state) => state.fetchBackendProfile);
 
   // On hard refresh, validate active Firebase session and hydrate backend profile.
@@ -39,13 +40,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!isCheckingAuth && isAuthenticated) {
+      if (isVerified === false) {
+        router.replace("/verification-pending");
+        return;
+      }
+
       router.replace("/home");
     }
-  }, [isAuthenticated, isCheckingAuth, router]);
-
-  if (isCheckingAuth) {
-    return null;
-  }
+  }, [isAuthenticated, isCheckingAuth, isVerified, router]);
 
   // Prevent a quick landing-page flash for authenticated users
   if (isAuthenticated) return null;

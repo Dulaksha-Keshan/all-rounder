@@ -9,7 +9,7 @@ export default function OrganizationOverviewTab({
   return (
     <div className="space-y-6 mt-6">
       {/* ABOUT */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+      <div className="surface-readable-strong rounded-xl p-6">
         <h2 className="text-xl font-bold text-[#34365C] mb-2">
           About Organization
         </h2>
@@ -28,7 +28,7 @@ export default function OrganizationOverviewTab({
       </div>
 
       {/* CONTACT */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+      <div className="surface-readable-strong rounded-xl p-6">
         <h2 className="text-xl font-bold text-[#34365C] mb-4">
           Contact Information
         </h2>
@@ -47,7 +47,7 @@ export default function OrganizationOverviewTab({
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50 text-center">
+    <div className="surface-readable-strong rounded-xl p-6 text-center">
       <p className="text-3xl font-bold text-[#8387CC]">{value}</p>
       <p className="text-sm text-gray-600 mt-1">{label}</p>
     </div>

@@ -106,7 +106,7 @@ export default function LandingPage() {
 
   return (
 
-    <div className="flex flex-col min-h-screen bg-[var(--page-bg)] transition-colors duration-300">
+    <div className="flex flex-col min-h-screen bg-transparent transition-colors duration-300">
 
       <main className="flex-grow">
         <div id="Home">
@@ -123,7 +123,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Create */}
-            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
+            <div className="mission-card tilt-card surface-readable rounded-xl p-6 sm:p-8 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Palette className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -138,7 +138,7 @@ export default function LandingPage() {
             </div>
 
             {/* Contribute */}
-            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
+            <div className="mission-card tilt-card surface-readable rounded-xl p-6 sm:p-8 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
             </div>
 
             {/* Celebrate */}
-            <div className="mission-card tilt-card bg-[var(--gray-50)] rounded-xl p-6 sm:p-8 shadow-lg border-2 border-[var(--secondary-light-lavender)]/20 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl md:col-span-2 lg:col-span-1 opacity-0">
+            <div className="mission-card tilt-card surface-readable rounded-xl p-6 sm:p-8 hover:border-[var(--primary-purple)] transition-all hover:shadow-xl md:col-span-2 lg:col-span-1 opacity-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--primary-purple)] to-[var(--primary-blue)] rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Trophy className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
@@ -194,7 +194,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* For Students */}
-            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
+            <div className="stakeholder-card tilt-card surface-readable rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Students
               </h3>
@@ -219,7 +219,7 @@ export default function LandingPage() {
             </div>
 
             {/* For Teachers */}
-            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 opacity-0">
+            <div className="stakeholder-card tilt-card surface-readable rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Teachers
               </h3>
@@ -244,7 +244,7 @@ export default function LandingPage() {
             </div>
 
             {/* For Schools */}
-            <div className="stakeholder-card tilt-card bg-gradient-to-br from-[var(--secondary-light-lavender)]/20 to-[var(--secondary-pale-lavender)]/10 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[var(--primary-purple)]/20 md:col-span-2 lg:col-span-1 opacity-0">
+            <div className="stakeholder-card tilt-card surface-readable rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all md:col-span-2 lg:col-span-1 opacity-0">
               <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-main)] mb-4 sm:mb-6 flex items-center gap-3">
                 For Schools
               </h3>

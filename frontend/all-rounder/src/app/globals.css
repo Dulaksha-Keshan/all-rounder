@@ -210,6 +210,24 @@ body {
   background: var(--card-bg-gradient-light);
 }
 
+@layer utilities {
+  .surface-readable {
+    background: linear-gradient(135deg, rgba(248, 248, 255, 0.84), rgba(239, 234, 255, 0.78));
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px) saturate(122%);
+    -webkit-backdrop-filter: blur(8px) saturate(122%);
+    box-shadow: 0 20px 48px -26px rgba(52, 54, 92, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.64);
+  }
+
+  .surface-readable-strong {
+    background: linear-gradient(135deg, rgba(248, 248, 255, 0.92), rgba(239, 234, 255, 0.86));
+    border: 1px solid rgba(255, 255, 255, 0.74);
+    backdrop-filter: blur(10px) saturate(126%);
+    -webkit-backdrop-filter: blur(10px) saturate(126%);
+    box-shadow: 0 24px 56px -28px rgba(52, 54, 92, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  }
+}
+
 /* ===== INTERACTIVE STATES ===== */
 /* Hover Transitions */
 .hover-transition {

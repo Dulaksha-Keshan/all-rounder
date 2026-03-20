@@ -13,13 +13,15 @@ interface SchoolEventsTabProps {
 export default function SchoolEventsTab({ schoolId }: SchoolEventsTabProps) {
   const isLoading = useEventStore((state) => state.isLoading);
   const schoolEventsById = useEventStore((state) => state.schoolEventsById);
+  const schoolEventsFetchedById = useEventStore((state) => state.schoolEventsFetchedById);
   const fetchSchoolEvents = useEventStore((state) => state.fetchSchoolEvents);
   const getSchoolEvents = useEventStore((state) => state.getSchoolEvents);
 
   useEffect(() => {
     if (!schoolId) return;
+    if (schoolEventsFetchedById[schoolId]) return;
     void fetchSchoolEvents(schoolId, 1, 100);
-  }, [schoolId, fetchSchoolEvents]);
+  }, [schoolId, schoolEventsFetchedById, fetchSchoolEvents]);
 
   const schoolEvents = useMemo(() => {
     const eventsForSchool = schoolEventsById[schoolId] || getSchoolEvents(schoolId);
@@ -32,7 +34,7 @@ export default function SchoolEventsTab({ schoolId }: SchoolEventsTabProps) {
   }, [schoolEventsById, getSchoolEvents, schoolId]);
 
   return (
-    <div className="mt-6 bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+    <div className="mt-6 surface-readable-strong rounded-xl p-6">
       <h2 className="text-xl font-bold text-[#34365C] mb-4">School Events</h2>
 
       {isLoading && schoolEvents.length === 0 ? (
@@ -48,7 +50,7 @@ export default function SchoolEventsTab({ schoolId }: SchoolEventsTabProps) {
               <Link
                 key={event._id}
                 href={`/events/${event._id}`}
-                className="block rounded-lg border border-[#DCD0FF]/70 bg-[#FAF9FF] p-4 hover:border-[var(--primary-blue)]/40 hover:bg-white transition-colors"
+                className="block rounded-lg surface-readable p-4 hover:border-[var(--primary-blue)]/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">

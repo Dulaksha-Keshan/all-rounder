@@ -35,7 +35,7 @@ export default function VisionHero() {
   }, []);
 
   return (
-    <section className="relative w-full bg-[#34365C] text-white py-20 overflow-hidden">
+    <section className="relative w-full bg-[#34365C]/78 backdrop-blur-[1px] text-white py-20 overflow-hidden">
 
       {/* Animated Stars */}
       <div className="absolute inset-0 pointer-events-none">

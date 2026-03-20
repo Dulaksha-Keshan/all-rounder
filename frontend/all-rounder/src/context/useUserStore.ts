@@ -52,6 +52,7 @@ interface UserState {
     currentUser: Student | Teacher | Organization | any | null;
     userRole: UserRole | null;
     isAuthenticated: boolean;
+    isVerified: boolean | null;
     isLoading: boolean;
     error: string | null;
 
@@ -94,6 +95,7 @@ const clearAuthState = () => {
         currentUser: null,
         userRole: null,
         isAuthenticated: false,
+        isVerified: null,
         error: null,
         following: [],
         followers: [],
@@ -116,6 +118,67 @@ const clearAuthState = () => {
 // fire at the same time (e.g., app refresh + onIdTokenChanged).
 let inFlightBackendProfileFetch: Promise<void> | null = null;
 
+const parseBooleanLike = (rawValue: unknown): boolean | null => {
+    if (typeof rawValue === 'boolean') {
+        return rawValue;
+    }
+
+    if (typeof rawValue === 'number') {
+        if (rawValue === 1) {
+            return true;
+        }
+        if (rawValue === 0) {
+            return false;
+        }
+    }
+
+    if (typeof rawValue === 'string') {
+        const normalized = rawValue.trim().toLowerCase();
+        if (normalized === 'true' || normalized === '1') {
+            return true;
+        }
+        if (normalized === 'false' || normalized === '0') {
+            return false;
+        }
+    }
+
+    return null;
+};
+
+const extractVerificationStatus = (userData: any): boolean | null => {
+    const candidates: unknown[] = [
+        userData?.is_verified,
+        userData?.isVerified,
+        userData?.verification?.is_verified,
+        userData?.verification?.isVerified,
+    ];
+
+    for (const candidate of candidates) {
+        const parsed = parseBooleanLike(candidate);
+        if (parsed !== null) {
+            return parsed;
+        }
+    }
+
+    return null;
+};
+
+const normalizeUserVerification = (userData: any) => {
+    const parsedIsVerified = extractVerificationStatus(userData);
+
+    if (parsedIsVerified === null || !userData || typeof userData !== 'object') {
+        return { userData, parsedIsVerified };
+    }
+
+    return {
+        userData: {
+            ...userData,
+            is_verified: parsedIsVerified,
+        },
+        parsedIsVerified,
+    };
+};
+
 const hydrateInitialEventsIfNeeded = () => {
     const eventState = useEventStore.getState();
     if (eventState.events.length === 0 && !eventState.isLoading) {
@@ -129,6 +192,7 @@ export const useUserStore = create<UserState>()(
             currentUser: null,
             userRole: null,
             isAuthenticated: false,
+            isVerified: null,
             isLoading: false,
             error: null,
             viewedUserProfile: null,
@@ -166,13 +230,15 @@ export const useUserStore = create<UserState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.post('/auth/register', payload);
-                    const userData = response.data.user;
+                    const normalized = normalizeUserVerification(response.data.user);
+                    const userData = normalized.userData;
 
                     if (userData) {
                         set({
                             currentUser: userData,
                             userRole: userData.userType || (getPayloadValue(payload, 'role') as UserRole),
                             isAuthenticated: true,
+                            isVerified: normalized.parsedIsVerified,
                             error: null
                         });
                     } else {
@@ -195,13 +261,15 @@ export const useUserStore = create<UserState>()(
                     // Assuming your backend logs them in or returns the user data here.
                     // If your backend JUST creates the org and requires them to log in separately,
                     // we can adjust this to call get().loginWithEmail() automatically.
-                    const userData = response.data.admin; // Adjust based on your backend's exact return object
+                    const normalized = normalizeUserVerification(response.data.admin);
+                    const userData = normalized.userData; // Adjust based on your backend's exact return object
 
                     if (userData) {
                         set({
                             currentUser: userData,
                             userRole: "ORG_ADMIN",
                             isAuthenticated: true,
+                            isVerified: normalized.parsedIsVerified,
                             error: null
                         });
                     }
@@ -248,13 +316,15 @@ export const useUserStore = create<UserState>()(
                         organizationId
                     });
 
-                    const userData = response.data.user;
+                    const normalized = normalizeUserVerification(response.data.user);
+                    const userData = normalized.userData;
 
                     // 4. Update Zustand state with the data from PostgreSQL
                     set({
                         currentUser: userData,
                         userRole: userData.userType || role,
                         isAuthenticated: true,
+                        isVerified: normalized.parsedIsVerified,
                         error: null
                     });
 
@@ -277,7 +347,8 @@ export const useUserStore = create<UserState>()(
                     set({ isLoading: true, error: null });
                     try {
                         const response = await api.get('/users/');
-                        const userData = response.data.user;
+                        const normalized = normalizeUserVerification(response.data.user);
+                        const userData = normalized.userData;
 
                         if (userData.school_id) {
                             const schoolStore = useSchoolStore.getState();
@@ -303,6 +374,7 @@ export const useUserStore = create<UserState>()(
                             currentUser: userData,
                             userRole: response.data.userType,
                             isAuthenticated: true,
+                            isVerified: normalized.parsedIsVerified,
                             error: null
                         });
 
@@ -444,6 +516,7 @@ export const useUserStore = create<UserState>()(
                 currentUser: state.currentUser,
                 userRole: state.userRole,
                 isAuthenticated: state.isAuthenticated,
+                isVerified: state.isVerified,
                 following: state.following,
                 followers: state.followers,
                 followRequests: state.followRequests,
@@ -454,6 +527,16 @@ export const useUserStore = create<UserState>()(
 );
 
 let isFirebaseAuthSyncInitialized = false;
+
+const shouldSkipProfileHydrationForPath = (pathname: string) => {
+    return (
+        pathname === '/' ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/signUp') ||
+        pathname.startsWith('/vision') ||
+        pathname.startsWith('/help')
+    );
+};
 
 const initializeFirebaseAuthSync = () => {
     if (typeof window === 'undefined' || isFirebaseAuthSyncInitialized) {
@@ -476,7 +559,8 @@ const initializeFirebaseAuthSync = () => {
             }
 
             const state = useUserStore.getState();
-            if (!state.isAuthenticated || !state.currentUser) {
+            const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+            if (!shouldSkipProfileHydrationForPath(pathname) && (!state.isAuthenticated || !state.currentUser)) {
                 await state.fetchBackendProfile();
             }
         } catch (error) {

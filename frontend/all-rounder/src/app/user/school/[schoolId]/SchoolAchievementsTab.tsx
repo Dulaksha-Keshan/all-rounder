@@ -25,7 +25,7 @@ export default function SchoolAchievementsTab({ schoolId }: SchoolAchievementsTa
   const isLoading = isFetchingSchoolAchievementsBySchoolId.has(schoolId);
 
   return (
-    <div className="mt-6 bg-white rounded-xl shadow-lg p-6 border border-[#DCD0FF]/50">
+    <div className="mt-6 surface-readable-strong rounded-xl p-6">
       <div className="mb-5 border-b border-gray-100 pb-3">
         <h2 className="text-xl font-bold text-[#34365C] mb-1">Achievements</h2>
         <p className="text-sm text-gray-500">Recent achievement posts published by this school community.</p>
