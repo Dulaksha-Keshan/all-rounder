@@ -19,7 +19,7 @@ export default function Home() {
 
     const checkAuthOnRefresh = async () => {
       try {
-        if (auth.currentUser) {
+        if (auth?.currentUser) {
           await fetchBackendProfile();
         }
       } catch (error) {

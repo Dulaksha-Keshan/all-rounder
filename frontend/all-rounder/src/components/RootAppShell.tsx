@@ -50,7 +50,7 @@ export default function RootAppShell({ children }: RootAppShellProps) {
           return;
         }
 
-        if (auth.currentUser && (!isAuthenticated || !currentUser)) {
+        if (auth?.currentUser && (!isAuthenticated || !currentUser)) {
           await fetchBackendProfile();
         }
       } catch (error) {

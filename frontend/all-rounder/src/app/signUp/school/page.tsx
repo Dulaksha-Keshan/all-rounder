@@ -174,6 +174,10 @@ export default function SchoolSignup() {
 
   const handleGoogleInitiate = async () => {
     try {
+      if (!auth || !googleProvider) {
+        throw new Error("Google sign-in is not configured.");
+      }
+
       const result = await signInWithPopup(auth, googleProvider);
       const token = await result.user.getIdToken();
       

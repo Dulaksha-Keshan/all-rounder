@@ -284,6 +284,10 @@ export const useUserStore = create<UserState>()(
             loginWithEmail: async (email, password) => {
                 set({ isLoading: true, error: null });
                 try {
+                    if (!auth) {
+                        throw new Error('Firebase Auth is not configured.');
+                    }
+
                     // 1. Log into Firebase Client SDK. This sets the local session.
                     await signInWithEmailAndPassword(auth, email, password);
 
@@ -302,6 +306,10 @@ export const useUserStore = create<UserState>()(
             loginWithGoogle: async (role, schoolId, organizationId) => {
                 set({ isLoading: true, error: null });
                 try {
+                    if (!auth || !googleProvider) {
+                        throw new Error('Google sign-in is not configured.');
+                    }
+
                     // 1. Trigger Google Popup via Firebase
                     const result = await signInWithPopup(auth, googleProvider);
 
@@ -423,7 +431,11 @@ export const useUserStore = create<UserState>()(
                 catch (err) { console.warn("Backend logout issue:", err); }
 
                 // Safe-call Firebase to sign out locally
-                try { await auth.signOut(); }
+                try {
+                    if (auth) {
+                        await auth.signOut();
+                    }
+                }
                 catch (err) { console.warn("Firebase logout issue:", err); }
 
                 // Keep Zustand auth state in sync with Firebase session state.
@@ -544,6 +556,10 @@ const initializeFirebaseAuthSync = () => {
     }
 
     isFirebaseAuthSyncInitialized = true;
+
+    if (!auth) {
+        return;
+    }
 
     onIdTokenChanged(auth, async (firebaseUser) => {
         if (!firebaseUser) {

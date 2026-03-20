@@ -52,6 +52,11 @@ function HomeClientContent() {
     }, [fetchFeed, fetchMyPosts, fetchSchools, schools.length]);
 
     useEffect(() => {
+        if (!auth) {
+            router.replace("/");
+            return;
+        }
+
         const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
             if (!firebaseUser) {
                 router.replace("/");
