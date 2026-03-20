@@ -34,7 +34,6 @@ const registerUpload = multer({
 const handleRegisterUpload = (req: Request, res: Response, next: () => void): void => {
   registerUpload.single('verificationAttachment')(req, res, (error: unknown) => {
     if (!error) {
-      req.file?.size && console.log(`Received file: ${req.file.originalname} (${req.file.size} bytes)`);
       next();
       return;
     }

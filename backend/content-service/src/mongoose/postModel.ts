@@ -41,7 +41,7 @@ const postSchema = new mongoose.Schema(
 
     category: {
       type: String,
-      enum: ["achievement", "participation", "event", "project"],
+      enum: ["achievement", "participation", "note", "project"],
       default: "achievement",
       required: true,
     },

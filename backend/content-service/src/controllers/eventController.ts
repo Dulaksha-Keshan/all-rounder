@@ -3,26 +3,9 @@ import { Request, Response } from "express";
 import mongoose, { InferSchemaType } from "mongoose";
 import Event from "../mongoose/eventModel.js";
 import { deleteFromR2, uploadToR2 } from '../utils/r2Upload.js';
-import { create } from 'node:domain';
 
 
 type Host = InferSchemaType<typeof Event.schema>["hosts"][number];
-
-//HELPER FUNCTION
-//common use case would be user sees an event and user sees details and click on the event hosts like school or organization to see details 
-async function fetchHostDetails(hostId: string, hostType: string) {
-  try {
-    const endpoint = hostType === "school"
-      ? `${process.env.USER_SERVICE_URL}/api/schools/${hostId}`
-      : `${process.env.USER_SERVICE_URL}/api/organizations/${hostId}`;
-
-    const response = await axios.get(endpoint);
-    return response.data;
-  } catch {
-    return null; // Don't fail if User Service is slow
-  }
-}
-
 
 export const createEvent = async (req: Request, res: Response): Promise<void> => {
   const uploadedKeys: string[] = []; // For rollback
@@ -159,7 +142,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
     let hostMappingSuccessCount = 0;
 
     // This is the event host mapping step
-    if (hosts && hosts.length > 1) {
+    if (hosts && hosts.length > 0) {
       for (const host of hosts) {
         try {
           await axios.post(
@@ -541,6 +524,13 @@ export const deleteEvent = async (
 
     event.isDeleted = true;
     await event.save();
+
+    try {
+      await axios.delete(`${process.env.USER_SERVICE_URL}/api/event-hosts/${eventId}`);
+    } catch (mappingDeleteError) {
+      // Event deletion should succeed even if mapping cleanup fails.
+      console.error("Failed to delete event host mappings:", mappingDeleteError);
+    }
 
     res.status(200).json({
       message: "Event deleted successfully",
