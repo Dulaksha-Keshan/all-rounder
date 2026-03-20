@@ -175,9 +175,7 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
     });
 
     res.status(200).json({
-      schoolId: id,
-      totalStudents: students.length,
-      students,
+      students
     });
   } catch (error: any) {
     console.error(error);
@@ -209,8 +207,7 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
     });
 
     res.status(200).json({
-      count: teachers.length,
-      teachers,
+      teachers
     });
   } catch (error: any) {
     console.error(error);
