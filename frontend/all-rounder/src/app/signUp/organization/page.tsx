@@ -30,6 +30,7 @@ import { useUserStore } from "@/context/useUserStore";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useToastStore } from "@/context/useToastStore";
 
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -59,11 +60,17 @@ export default function OrganizationSignup() {
 
   // Stores
   const { registerWithEmail, registerWithGoogle, registerNewOrganization, isLoading, error } = useUserStore();
+  const showToast = useToastStore((state) => state.showToast);
   const { organizations, fetchOrganizations } = useOrganizationStore();
 
   useEffect(() => {
     fetchOrganizations();
   }, [fetchOrganizations]);
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   // Flow State
   const [registrationMode, setRegistrationMode] = useState<"new" | "existing">("new");
@@ -278,11 +285,12 @@ export default function OrganizationSignup() {
         }
 
         if (!useUserStore.getState().error) {
-          alert("Account created! Your registration is under review.");
+          showToast("Account created! Your registration is under review.", "success");
           router.push("/login");
         }
       } catch (err) {
         console.error("Registration failed", err);
+        showToast("Registration failed. Please try again.", "error");
       }
     }
   };
@@ -339,8 +347,6 @@ export default function OrganizationSignup() {
 
         {/* Form Card */}
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
-          
-          {error && <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">{error}</div>}
 
           <form onSubmit={handleSubmit}>
 

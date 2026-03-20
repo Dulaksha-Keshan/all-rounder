@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, X, Loader } from "lucide-react";
 import { useSkillStore } from "@/context/useSkillStore";
+import { useToastStore } from "@/context/useToastStore";
 
 interface ProfileSkillsSectionProps {
   isEditable?: boolean;
@@ -42,6 +43,7 @@ export default function ProfileSkillsSection({
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkillsToAdd, setSelectedSkillsToAdd] = useState<number[]>([]);
+  const showToast = useToastStore((state) => state.showToast);
 
   // Fetch data on mount
   useEffect(() => {
@@ -60,6 +62,11 @@ export default function ProfileSkillsSection({
     fetchAllSkills,
     isAddingMode,
   ]);
+
+  useEffect(() => {
+    if (!mutationError) return;
+    showToast(mutationError, "error");
+  }, [mutationError, showToast]);
 
   const userSkillIds = userSkills.map((s) => s.skill_id);
   const availableSkills = allSkills.filter(
@@ -111,13 +118,6 @@ export default function ProfileSkillsSection({
           </button>
         )}
       </div>
-
-      {/* Error Message */}
-      {mutationError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 animate-slideDown">
-          {mutationError}
-        </div>
-      )}
 
       {/* Loading State */}
       {isLoadingUserSkills ? (

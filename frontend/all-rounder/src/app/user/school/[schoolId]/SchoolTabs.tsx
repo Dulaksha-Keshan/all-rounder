@@ -9,6 +9,7 @@ import SchoolAchievementsTab from "./SchoolAchievementsTab";
 import SchoolEventsTab from "./SchoolEventsTab";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useToastStore } from "@/context/useToastStore";
 
 const adminTabs = ["Overview", "Achievements", "Events", "Teachers", "Students"];
 const viewerTabs = ["Overview", "Achievements", "Events"];
@@ -55,6 +56,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
     getAllVerificationRequests,
     updateVerificationStatus,
   } = useSchoolStore();
+  const showToast = useToastStore((state) => state.showToast);
 
   const processedRequests = [...approvedRequests, ...rejectedRequests].sort((a, b) => {
     return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
@@ -154,9 +156,13 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
 
     try {
       await updateVerificationStatus(verificationModal.requestId, verificationModal.action);
+      showToast(
+        verificationModal.action === "APPROVED" ? "Request approved successfully." : "Request rejected successfully.",
+        "success"
+      );
     } catch (error) {
       console.error("Failed to update verification status:", error);
-      alert("Failed to process request.");
+      showToast("Failed to process request.", "error");
     } finally {
       setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" });
     }

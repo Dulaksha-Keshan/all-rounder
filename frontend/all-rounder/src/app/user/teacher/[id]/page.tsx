@@ -16,6 +16,7 @@ import { PostEntity } from '@/app/_type/type';
 import ChangePassword from '../../_components/ChangePassword';
 import MyAccount from '../../_components/MyAccount';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { useToastStore } from '@/context/useToastStore';
 
 const EMPTY_POST_IDS: string[] = [];
 
@@ -38,6 +39,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
   const fetchUserPosts = usePostStore((state) => state.fetchUserPosts);
   const userPostIds = usePostStore((state) => state.userPostIdsByKey[id] ?? EMPTY_POST_IDS);
   const isFetchingPosts = usePostStore((state) => state.isFetchingPosts);
+  const showToast = useToastStore((state) => state.showToast);
 
   // We will add these to your teacher store in the next step!
   const {
@@ -176,9 +178,9 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
       try {
         await updateProfile(editData);
         setIsEditing(false);
-        alert('Changes saved successfully!');
+        showToast('Changes saved successfully!', 'success');
       } catch (error) {
-        alert("Failed to save changes. Please try again.");
+        showToast('Failed to save changes. Please try again.', 'error');
       }
     }
   };
@@ -206,7 +208,7 @@ export default function TeacherProfile({ params }: TeacherProfileProps) {
         setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" });
       } catch (error) {
         console.error("Failed to update verification status:", error);
-        alert("Failed to process request.");
+        showToast('Failed to process request.', 'error');
       }
     }
   };

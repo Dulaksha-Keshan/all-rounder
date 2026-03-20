@@ -7,6 +7,7 @@ import { useEventStore } from "@/context/useEventStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { useOrganizationStore } from "@/context/useOrganizationStore";
 import { useUserStore } from "@/context/useUserStore";
+import { useToastStore } from "@/context/useToastStore";
 
 const EVENT_TYPES = ["workshop", "competition", "seminar", "webinar", "conference", "other"] as const;
 
@@ -90,6 +91,7 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
   const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
   const userRole = useUserStore((state) => state.userRole);
   const currentUser = useUserStore((state) => state.currentUser);
+  const showToast = useToastStore((state) => state.showToast);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -142,6 +144,11 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
       void fetchOrganizations();
     }
   }, [fetchSchools, fetchOrganizations, organizations.length, schools.length]);
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   if (!isAuthorized) {
     return null;
@@ -562,7 +569,6 @@ export default function EventCreator({ onCreated }: EventCreatorProps) {
 
       {validationError && <p className="mt-3 text-xs text-red-600">{validationError}</p>}
       {fieldErrors.primaryHost && <p className="mt-3 text-xs text-red-600">{fieldErrors.primaryHost}</p>}
-      {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
 
       <div className="mt-4 flex items-center justify-end gap-2">
         <button onClick={resetForm} className="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">

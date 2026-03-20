@@ -2,11 +2,12 @@
 
 import { Image as ImageIcon, FileText, Send, X } from "lucide-react";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePostStore } from "@/context/usePostStore";
 import { useUserStore } from "@/context/useUserStore";
 import RichTextEditor from "./RichTextEditor";
 import TagComponent from "@/components/TagComponent";
+import { useToastStore } from "@/context/useToastStore";
 
 interface PostCreatorProps {
     userImage?: string;
@@ -30,12 +31,18 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
     const resetCreateDraft = usePostStore((state) => state.resetCreateDraft);
     const isCreatingPost = usePostStore((state) => state.isCreatingPost);
     const postUploadError = usePostStore((state) => state.postUploadError);
+    const showToast = useToastStore((state) => state.showToast);
 
     const { title, content, category, visibility, tags, files } = createDraft;
     const [categoryOpen, setCategoryOpen] = useState(false);
     const normalizedContent = content.trim();
     const isContentEmpty = stripRichText(normalizedContent).length === 0;
     const isNoteCategory = (category as string) === "note";
+
+    useEffect(() => {
+        if (!postUploadError) return;
+        showToast(postUploadError, "error");
+    }, [postUploadError, showToast]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (isNoteCategory) {
@@ -166,13 +173,6 @@ export default function PostCreator({ userImage }: PostCreatorProps) {
                                     </button>
                                 </div>
                             ))}
-                        </div>
-                    )}
-
-                    {/* Error Message */}
-                    {postUploadError && (
-                        <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                            {postUploadError}
                         </div>
                     )}
 

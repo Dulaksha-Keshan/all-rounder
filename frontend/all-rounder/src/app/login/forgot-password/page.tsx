@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from "lucide-react";
+import { useToastStore } from "@/context/useToastStore";
 //import { useAuthStore } from "@/stores/authStore"; EXAMPLE
 
 const PASSWORD_REQUIREMENTS = [
@@ -116,8 +117,14 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const showToast = useToastStore((state) => state.showToast);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,13 +183,6 @@ export default function ForgotPasswordPage() {
 
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-
             <PasswordInput
               id="newPassword"
               label="New Password"

@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import gsap from "gsap";
 
 import { useUserStore } from "@/context/useUserStore";
+import { useToastStore } from "@/context/useToastStore";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const loginWithGoogle = useUserStore((state) => state.loginWithGoogle);
   const isLoading = useUserStore((state) => state.isLoading);
   const error = useUserStore((state) => state.error);
+  const showToast = useToastStore((state) => state.showToast);
 
   const [showPassword, setShowPassword] = useState(false);
   
@@ -42,6 +44,11 @@ export default function LoginPage() {
       console.error("Login failed", err);
     }
   };
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   useEffect(() => {
     if (!pageRef.current) return;
@@ -166,13 +173,6 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="auth-card bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
-
-          {/* Error Display */}
-          {error && (
-            <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}

@@ -17,6 +17,7 @@ import ProfilePostsGallery from '@/app/user/_components/ProfilePostsGallery';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import SkillPickerModal from '@/components/SkillPickerModal';
 import { PostEntity } from '@/app/_type/type';
+import { useToastStore } from '@/context/useToastStore';
 
 const EMPTY_POST_IDS: string[] = [];
 
@@ -44,6 +45,7 @@ export default function StudentProfile({ params }: StudentProfileProps) {
   const fetchAllSkills = useSkillStore((state) => state.fetchAllSkills);
   const hasFetchedAllSkills = useSkillStore((state) => state.hasFetchedAllSkills);
   const isLoadingAllSkills = useSkillStore((state) => state.isLoadingAllSkills);
+  const showToast = useToastStore((state) => state.showToast);
 
   // --- PROFILE LOGIC ---
   // 1. Determine if the logged-in user is viewing their own profile
@@ -204,9 +206,9 @@ export default function StudentProfile({ params }: StudentProfileProps) {
       try {
         await updateProfile(editData);
         setIsEditing(false);
-        alert('Changes saved successfully!');
+        showToast('Changes saved successfully!', 'success');
       } catch (error) {
-        alert("Failed to save changes. Please try again.");
+        showToast('Failed to save changes. Please try again.', 'error');
       }
     }
   };

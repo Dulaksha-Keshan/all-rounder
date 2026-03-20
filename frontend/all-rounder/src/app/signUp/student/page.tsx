@@ -11,6 +11,7 @@ import { useSchoolStore } from "@/context/useSchoolStore";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import SkillPickerModal from "@/components/SkillPickerModal";
+import { useToastStore } from "@/context/useToastStore";
 
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -42,6 +43,7 @@ export default function StudentSignup() {
   const registerWithGoogle = useUserStore((state) => state.registerWithGoogle);
   const isAuthLoading = useUserStore((state) => state.isLoading);
   const authError = useUserStore((state) => state.error);
+  const showToast = useToastStore((state) => state.showToast);
   
   // NEW: Pull teachers and the fetch action from the store
   const { schools, fetchSchools, schoolTeachers, fetchSchoolTeachers } = useSchoolStore();
@@ -49,6 +51,11 @@ export default function StudentSignup() {
   useEffect(() => {
     fetchSchools();
   }, [fetchSchools]);
+
+  useEffect(() => {
+    if (!authError) return;
+    showToast(authError, "error");
+  }, [authError, showToast]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [passwordError, setPasswordError] = useState("");
@@ -315,6 +322,7 @@ export default function StudentSignup() {
         }
       } catch (err) {
         console.error("Registration failed", err);
+        showToast("Registration failed. Please try again.", "error");
       }
     }
   };
@@ -351,7 +359,6 @@ export default function StudentSignup() {
         </div>
 
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
-          {authError && <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">{authError}</div>}
 
           <form onSubmit={handleSubmit}>
 
@@ -781,12 +788,12 @@ export default function StudentSignup() {
         isOpen={showSkillPickerModal}
         onClose={(skipped) => {
           setShowSkillPickerModal(false);
-          alert("Student account created! Awaiting teacher verification.");
+          showToast("Student account created! Awaiting teacher verification.", "success");
           router.push("/login");
         }}
         onComplete={() => {
           setShowSkillPickerModal(false);
-          alert("Student account created! Awaiting teacher verification.");
+          showToast("Student account created! Awaiting teacher verification.", "success");
           router.push("/login");
         }}
       />

@@ -21,6 +21,7 @@ import {
 import { useResourceRequestStore } from "@/context/useResourceRequestStore";
 import { useUserStore } from "@/context/useUserStore";
 import { ResourceRequestQuery } from "@/app/_type/type";
+import { useToastStore } from "@/context/useToastStore";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -71,6 +72,7 @@ export default function ResourceSharing() {
   } = useResourceRequestStore();
 
   const { isAuthenticated, userRole, currentUser } = useUserStore();
+  const showToast = useToastStore((state) => state.showToast);
   const isPublicView = currentUser == null;
 
   const [keyword, setKeyword] = useState("");
@@ -162,6 +164,11 @@ export default function ResourceSharing() {
   useEffect(() => {
     void loadResources();
   }, [isAuthenticated, currentUser]);
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -595,13 +602,6 @@ export default function ResourceSharing() {
               {isMutatingResource ? "Submitting..." : "Publish Request"}
             </button>
           </form>
-        )}
-
-        {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-            <AlertCircle className="w-5 h-5 mt-0.5" />
-            <p className="text-sm">{error}</p>
-          </div>
         )}
 
         <div ref={requestsRef} className="bg-white rounded-2xl shadow-lg border border-[#ECE9FF] overflow-hidden mb-8">

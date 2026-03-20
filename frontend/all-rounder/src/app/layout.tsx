@@ -5,6 +5,7 @@ import { Navbar } from "@/layout/navbar2";
 import Footer from "@/layout/Footer";
 import GoToTopButton from "@/components/GoToTopButton";
 import GlobalCursorFX from "@/components/GlobalCursorFX";
+import AppToastHost from "@/components/AppToastHost";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <GlobalCursorFX />
+        <AppToastHost />
         <Navbar/>
         <main className="pt-20 md:pt-28">
           {children}

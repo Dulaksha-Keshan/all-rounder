@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useResourceRequestStore } from "@/context/useResourceRequestStore";
+import { useToastStore } from "@/context/useToastStore";
 
 const RESOURCE_TYPES = [
   "funding",
@@ -32,6 +33,7 @@ export default function ResourceRequestCreator({ schoolId, onCreated }: Resource
   const isMutatingResource = useResourceRequestStore((state) => state.isMutatingResource);
   const error = useResourceRequestStore((state) => state.error);
   const clearError = useResourceRequestStore((state) => state.clearError);
+  const showToast = useToastStore((state) => state.showToast);
 
   const [form, setForm] = useState({
     title: "",
@@ -58,6 +60,11 @@ export default function ResourceRequestCreator({ schoolId, onCreated }: Resource
     form.requestedFor.trim() &&
     isNeededByValid
   );
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error, "error");
+  }, [error, showToast]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -182,10 +189,6 @@ export default function ResourceRequestCreator({ schoolId, onCreated }: Resource
         placeholder="Additional remarks (optional)"
         className="w-full min-h-20 px-3 py-2 rounded-lg border border-[var(--gray-200)] text-sm"
       />
-
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
 
       {!isNeededByValid && (
         <p className="text-sm text-red-600">Needed by date must be after today.</p>

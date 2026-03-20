@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { useSkillStore } from "@/context/useSkillStore";
+import { useToastStore } from "@/context/useToastStore";
 import { useShallow } from "zustand/react/shallow";
 
 interface SkillPickerModalProps {
@@ -41,6 +42,7 @@ export default function SkillPickerModal({
   const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
 
   // Fetch skills on mount
   useEffect(() => {
@@ -55,6 +57,11 @@ export default function SkillPickerModal({
     const userSkillIds = userSkills.map((s) => s.skill_id);
     setSelectedSkillIds(userSkillIds);
   }, [userSkills]);
+
+  useEffect(() => {
+    if (!mutationError) return;
+    showToast(mutationError, "error");
+  }, [mutationError, showToast]);
 
   const filteredSkills = allSkills.filter((skill) =>
     skill.skill_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -196,11 +203,6 @@ export default function SkillPickerModal({
 
           {/* Footer */}
           <div className="border-t border-gray-200 p-6 bg-gray-50">
-            {mutationError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                {mutationError}
-              </div>
-            )}
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => onClose(true)}

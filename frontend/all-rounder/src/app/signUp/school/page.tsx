@@ -27,6 +27,7 @@ import { useUserStore } from "@/context/useUserStore";
 import { useSchoolStore } from "@/context/useSchoolStore";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useToastStore } from "@/context/useToastStore";
 
 function PageBackground() {
   const starsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -58,11 +59,17 @@ export default function SchoolSignup() {
   const registerWithGoogle = useUserStore((state) => state.registerWithGoogle);
   const isAuthLoading = useUserStore((state) => state.isLoading);
   const authError = useUserStore((state) => state.error);
+  const showToast = useToastStore((state) => state.showToast);
   const { schools, fetchSchools } = useSchoolStore();
 
   useEffect(() => {
     fetchSchools();
   }, [fetchSchools]);
+
+  useEffect(() => {
+    if (!authError) return;
+    showToast(authError, "error");
+  }, [authError, showToast]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -237,11 +244,12 @@ export default function SchoolSignup() {
         }
 
         if (!useUserStore.getState().error) {
-          alert("School Admin account created! Your documentation is under review.");
+          showToast("School Admin account created! Your documentation is under review.", "success");
           router.push("/login");
         }
       } catch (err) {
         console.error("Registration failed", err);
+        showToast("Registration failed. Please try again.", "error");
       }
     }
   };
@@ -280,9 +288,7 @@ export default function SchoolSignup() {
 
         {/* Form Card */}
         <div className="bg-card rounded-xl shadow-2xl p-8 border border-secondary-lavender">
-          
-          {authError && <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">{authError}</div>}
-          
+
           <form onSubmit={handleSubmit}>
 
             {/* ── Step 1: Select Existing School ── */}
