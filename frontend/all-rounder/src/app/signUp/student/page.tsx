@@ -600,15 +600,14 @@ export default function StudentSignup() {
                 {formData.verificationOption === "TEACHER_REQUEST" && (
                   <>
                     <div className="p-4 border rounded-lg mb-6" style={{ background: "var(--secondary-pale-lavender)", borderColor: "var(--secondary-light-lavender)" }}>
-                    <select
-                      value={formData.gender}
-                      onChange={(e) => updateField("gender", e.target.value)}
-                      className={inputClass}
-                      style={inputStyle}
-                      required
-                      disabled={isGenderSelectionDisabled}
-                    >
-                    </div>
+                      <select
+                        value={formData.gender}
+                        onChange={(e) => updateField("gender", e.target.value)}
+                        className={inputClass}
+                        style={inputStyle}
+                        required
+                        disabled={isGenderSelectionDisabled}
+                      >
                       {isMixedSchool ? (
                         <>
                           <option value="male">Male</option>
@@ -619,6 +618,9 @@ export default function StudentSignup() {
                       ) : (
                         <option value="female">Female</option>
                       )}
+                      </select>
+                    </div>
+                    <div>
                       <label className={labelClass}>Select Your Teacher *</label>
                     {!isMixedSchool && (
                       <p className="text-xs text-gray-500 mt-1">
