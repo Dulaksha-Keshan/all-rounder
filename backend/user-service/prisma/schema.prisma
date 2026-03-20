@@ -29,6 +29,7 @@ model Student {
   profile_picture String?
   is_active       Boolean  @default(true)
   is_frozen       Boolean  @default(false)
+  is_verified     Boolean  @default(false)
 
   // Student Specifics
   grade      String
@@ -54,6 +55,7 @@ model Teacher {
   contact_number  String?
   profile_picture String?
   is_active       Boolean  @default(true)
+  is_verified     Boolean  @default(false)
 
   // Teacher Specifics
   subject     String?
@@ -68,10 +70,9 @@ model Teacher {
   school_id String
   school    School @relation(fields: [school_id], references: [school_id])
 
-  clubIds String[] @default([])
-  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  clubIds                  String[] @default([])
+  pendingVerificationIds   String[] @default([]) // requests waiting for approval
   processedVerificationIds String[] @default([]) // requests accepted and rejected
-
 }
 
 model Admin {
@@ -85,6 +86,7 @@ model Admin {
   contact_number  String?
   profile_picture String?
   is_active       Boolean  @default(true)
+  is_verified     Boolean  @default(false)
 
   // Admin Specifics
   staff_id   String?
@@ -103,24 +105,23 @@ model Admin {
 // ==========================================
 
 model School {
-  school_id      String   @id @default(uuid())
-  name           String
-  address        String
-  province       String
-  district       String
-  zone           String
-  school_level   String
-  student_count  Int?
-  gender         Gender
-  email          String
-  contact_number String
-  principal_name String?
-  web_link       String?
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-  pendingVerificationIds  String[] @default([]) // requests waiting for approval
+  school_id                String   @id @default(uuid())
+  name                     String
+  address                  String
+  province                 String
+  district                 String
+  zone                     String
+  school_level             String
+  student_count            Int?
+  gender                   Gender
+  email                    String
+  contact_number           String
+  principal_name           String?
+  web_link                 String?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+  pendingVerificationIds   String[] @default([]) // requests waiting for approval
   processedVerificationIds String[] @default([]) // requests accepted and rejected
-
 
   // School now relates to these 3 independent tables separately
   students   Student[]
@@ -130,16 +131,16 @@ model School {
 }
 
 model Organization {
-  organization_id   String      @id @default(uuid())
-  organization_name String
-  contact_person    String
-  website           String?
-  admins            Admin[]
-  eventHosts        EventHost[]
-  pendingVerificationIds  String[] @default([]) // requests waiting for approval
-  processedVerificationIds String[] @default([])
-  created_at        DateTime    @default(now())
-  updated_at        DateTime    @updatedAt
+  organization_id          String      @id @default(uuid())
+  organization_name        String
+  contact_person           String
+  website                  String?
+  admins                   Admin[]
+  eventHosts               EventHost[]
+  pendingVerificationIds   String[]    @default([]) // requests waiting for approval
+  processedVerificationIds String[]    @default([])
+  created_at               DateTime    @default(now())
+  updated_at               DateTime    @updatedAt
 }
 
 // ==========================================
@@ -181,7 +182,7 @@ model EventHost {
 model Follow {
   id String @id @default(uuid())
 
-  followerId String
+  followerId  String
   followingId String
 
   createdAt DateTime @default(now())

@@ -73,15 +73,15 @@ const getUserNamesBulk = async (uids: string[]): Promise<Map<string, string | nu
   if (uncachedUids.length > 0) {
     const [students, teachers, admins] = await Promise.all([
       prisma.student.findMany({
-        where: { uid: { in: uncachedUids } },
+        where: { uid: { in: uncachedUids }, is_verified: true, is_frozen: false },
         select: { uid: true, name: true },
       }),
       prisma.teacher.findMany({
-        where: { uid: { in: uncachedUids } },
+        where: { uid: { in: uncachedUids }, is_verified: true },
         select: { uid: true, name: true },
       }),
       prisma.admin.findMany({
-        where: { uid: { in: uncachedUids } },
+        where: { uid: { in: uncachedUids }, is_verified: true },
         select: { uid: true, name: true },
       }),
     ]);
@@ -352,6 +352,33 @@ const processDecision = async (
         },
       },
     });
+  }
+
+  if (decision === "APPROVED") {
+    switch (verification.userType) {
+      case UserType.STUDENT:
+        await prisma.student.update({
+          where: { uid: verification.userId },
+          data: { is_verified: true },
+        });
+        break;
+      case UserType.TEACHER:
+        await prisma.teacher.update({
+          where: { uid: verification.userId },
+          data: { is_verified: true },
+        });
+        break;
+      case UserType.SCHOOL_ADMIN:
+      case UserType.ORG_ADMIN:
+      case UserType.SUPER_ADMIN:
+        await prisma.admin.update({
+          where: { uid: verification.userId },
+          data: { is_verified: true },
+        });
+        break;
+      default:
+        break;
+    }
   }
 
   res.status(200).json({

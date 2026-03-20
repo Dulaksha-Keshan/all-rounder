@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 
 import eventRoutes from "./routes/eventRoute.js";
 import postRoutes from "./routes/postRoute.js";
-import resourceRoutes from "./routes/resourceRoute.js";
+import resourceRoutes from "./services/resourceRoute.js";
 
 dotenv.config();
 

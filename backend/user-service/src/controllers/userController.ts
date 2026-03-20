@@ -422,6 +422,7 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
         profile_picture: true,
         is_active: true,
         is_frozen: true,
+        is_verified: true,
         grade: true,
         about: true,
         school_id: true,
@@ -449,6 +450,7 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
         contact_number: true,
         profile_picture: true,
         is_active: true,
+        is_verified: true,
         subject: true,
         grade: true,
         designation: true,
@@ -512,15 +514,15 @@ export const getUsersBasicByUids = async (req: Request, res: Response): Promise<
 
     const [students, teachers, admins] = await Promise.all([
       prisma.student.findMany({
-        where: { uid: { in: uniqueUids } },
+        where: { uid: { in: uniqueUids }, is_verified: true, is_frozen: false },
         select: { uid: true, name: true },
       }),
       prisma.teacher.findMany({
-        where: { uid: { in: uniqueUids } },
+        where: { uid: { in: uniqueUids }, is_verified: true },
         select: { uid: true, name: true },
       }),
       prisma.admin.findMany({
-        where: { uid: { in: uniqueUids } },
+        where: { uid: { in: uniqueUids }, is_verified: true },
         select: { uid: true, name: true },
       }),
     ]);

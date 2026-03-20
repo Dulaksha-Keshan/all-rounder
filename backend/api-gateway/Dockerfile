@@ -9,16 +9,22 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies (including dev deps for build)
+RUN npm ci
 
 # Copy application code
 COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Remove dev dependencies for a smaller runtime image
+RUN npm prune --omit=dev
 
 # Expose port
 EXPOSE 3000
 
 # Start application
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
 
 

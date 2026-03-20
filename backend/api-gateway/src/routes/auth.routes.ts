@@ -9,6 +9,14 @@ import FormData from 'form-data';
 
 const router = express.Router();
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Unexpected error';
+};
+
 const registerUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -57,168 +65,357 @@ const handleRegisterUpload = (req: Request, res: Response, next: () => void): vo
 
 //Register with email and password
 
-router.post('/register', handleRegisterUpload, async (req: Request, res: Response) => {
-  try {
-    const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id,gender} = req.body;
-    const verificationAttachment = req.file;
-    console.log(req.file)
-    const selectedVerificationOption = verificationOption || 'DOCUMENT';
+// router.post('/register', handleRegisterUpload, async (req: Request, res: Response) => {
+//   try {
+//     const { email, password, name, role, grade, schoolId, organizationId, verificationOption, dateOfBirth,teacher_id,gender} = req.body;
+//     const verificationAttachment = req.file;
+//     console.log(req.file)
+//     const selectedVerificationOption = verificationOption || 'DOCUMENT';
 
-    if (!email || !password || !name || !role) {
-      res.status(400).json({
-        error: 'Missing required fields',
-        message: "Required Email, Password, Role, Name"
-      })
-      return
-    }
-
-
-
-    const validRoles = ['STUDENT', 'TEACHER', 'SCHOOL_ADMIN', 'ORG_ADMIN', 'SUPER_ADMIN'];
-    if (!validRoles.includes(role)) {
-      res.status(400).json({
-        error: 'Invalid role',
-        validRoles
-      });
-      return;
-    }
-
-    if ((role === 'STUDENT' || role === 'TEACHER') && !schoolId) {
-      res.status(400).json({
-        error: 'schoolId is required for students and teachers',
-        message: 'School is Missing'
-      });
-      return;
-    }
-
-    if (
-      (role === 'STUDENT' || role === 'TEACHER') &&
-      selectedVerificationOption === 'DOCUMENT' &&
-      !verificationAttachment
-    ) {
-      res.status(400).json({
-        error: 'Missing required fields',
-        message: 'verificationAttachment is required for DOCUMENT verification',
-      });
-      return;
-    }
-
-    const firebaseUser = await firebaseAuth.createUser(email, password, name);
-
-    // Forward to User Service to create in PostgreSQL
-    try {
-      const userPayload = new FormData();
-      userPayload.append('uid', firebaseUser.uid);
-      userPayload.append('email', email);
-      userPayload.append('name', name);
-      userPayload.append('userType', role);
-      userPayload.append('verificationOption', selectedVerificationOption);
-
-      if (dateOfBirth) {
-        const parsedDate = new Date(dateOfBirth);
-        if (Number.isNaN(parsedDate.getTime())) {
-          throw new Error('Invalid dateOfBirth');
-        }
-        userPayload.append('date_of_birth', parsedDate.toISOString());
-      }
-
-      if (schoolId) {
-        userPayload.append('school_id', schoolId);
-      }
-
-      if (organizationId) {
-        userPayload.append('organization_id', organizationId);
-      }
-
-      if(role === "STUDENT" && gender){
-        userPayload.append('gender', gender);
-      }
-
-      if ((role === 'STUDENT' || role === 'TEACHER') && grade) {
-        userPayload.append('grade', grade);
-      }
-
-      if (selectedVerificationOption === 'TEACHER_REQUEST' && teacher_id) {
-        userPayload.append('teacher_id', teacher_id);
-      }
-
-      if (verificationAttachment) {
-        userPayload.append('verificationAttachment', verificationAttachment.buffer, {
-          filename: verificationAttachment.originalname,
-          contentType: verificationAttachment.mimetype,
-        });
-      }
-
-      console.log('Forwarding register payload to User Service');
-
-      const userServiceResponse = await axios.post(
-        `${process.env.USER_SERVICE_URL}/api/users`,
-        userPayload,
-        {
-          headers: userPayload.getHeaders(),
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity,
-        }
-      );
+//     if (!email || !password || !name || !role) {
+//       res.status(400).json({
+//         error: 'Missing required fields',
+//         message: "Required Email, Password, Role, Name"
+//       })
+//       return
+//     }
 
 
-      const dbUser = userServiceResponse.data;
 
-      // Set custom claims in Firebase
-      const customClaims: any = {
-        role,
-      };
+//     const validRoles = ['STUDENT', 'TEACHER', 'SCHOOL_ADMIN', 'ORG_ADMIN', 'SUPER_ADMIN'];
+//     if (!validRoles.includes(role)) {
+//       res.status(400).json({
+//         error: 'Invalid role',
+//         validRoles
+//       });
+//       return;
+//     }
 
-      if (schoolId) customClaims.schoolId = schoolId;
-      if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
+//     if ((role === 'STUDENT' || role === 'TEACHER') && !schoolId) {
+//       res.status(400).json({
+//         error: 'schoolId is required for students and teachers',
+//         message: 'School is Missing'
+//       });
+//       return;
+//     }
 
-      await firebaseAuth.setCustomClaims(firebaseUser.uid, customClaims);
+//     if (
+//       (role === 'STUDENT' || role === 'TEACHER') &&
+//       selectedVerificationOption === 'DOCUMENT' &&
+//       !verificationAttachment
+//     ) {
+//       res.status(400).json({
+//         error: 'Missing required fields',
+//         message: 'verificationAttachment is required for DOCUMENT verification',
+//       });
+//       return;
+//     }
 
-      // Return success (user needs to login to get token)
-      res.status(201).json({
-        message: 'User registered successfully',
-        user: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName,
-          role
-        },
-      });
+//     const firebaseUser = await firebaseAuth.createUser(email, password, name);
 
-    } catch (dbError: any) {
-      // Rollback for Firebase user if database creation failed
-      if (dbError.response) {
-        console.error(" User Service Rejected Request:", dbError.response.data);
-      } else {
-        console.error("Network/Connection Error:", dbError.message);
-      }
+//     // Forward to User Service to create in PostgreSQL
+//     try {
+//       const userPayload = new FormData();
+//       userPayload.append('uid', firebaseUser.uid);
+//       userPayload.append('email', email);
+//       userPayload.append('name', name);
+//       userPayload.append('userType', role);
+//       userPayload.append('verificationOption', selectedVerificationOption);
 
-      // Rollback
-      await firebaseAuth.deleteUser(firebaseUser.uid);
+//       if (dateOfBirth) {
+//         const parsedDate = new Date(dateOfBirth);
+//         if (Number.isNaN(parsedDate.getTime())) {
+//           throw new Error('Invalid dateOfBirth');
+//         }
+//         userPayload.append('date_of_birth', parsedDate.toISOString());
+//       }
 
-      // Pass the *actual* error message to the frontend so you can see it in Postman
-      const actualMessage = dbError.response?.data?.message || dbError.message;
-      throw new Error(actualMessage);
-    }
-  } catch (error: any) {
-    console.error("Registration Error : ", error);
+//       if (schoolId) {
+//         userPayload.append('school_id', schoolId);
+//       }
 
-    if (error.message.includes('email-already-exists')) {
-      res.status(400).json({
-        error: 'Email already exists',
-        message: 'This email is already registered'
-      });
-      return;
-    }
+//       if (organizationId) {
+//         userPayload.append('organization_id', organizationId);
+//       }
 
-    res.status(500).json({
-      error: 'Registration failed',
-      message: error.message
+//       if(role === "STUDENT" && gender){
+//         userPayload.append('gender', gender);
+//       }
+
+//       if ((role === 'STUDENT' || role === 'TEACHER') && grade) {
+//         userPayload.append('grade', grade);
+//       }
+
+//       if (selectedVerificationOption === 'TEACHER_REQUEST' && teacher_id) {
+//         userPayload.append('teacher_id', teacher_id);
+//       }
+
+//       if (verificationAttachment) {
+//         userPayload.append('verificationAttachment', verificationAttachment.buffer, {
+//           filename: verificationAttachment.originalname,
+//           contentType: verificationAttachment.mimetype,
+//         });
+//       }
+
+//       console.log('Forwarding register payload to User Service');
+
+//       const userServiceResponse = await axios.post(
+//         `${process.env.USER_SERVICE_URL}/api/users`,
+//         userPayload,
+//         {
+//           headers: userPayload.getHeaders(),
+//           maxBodyLength: Infinity,
+//           maxContentLength: Infinity,
+//         }
+//       );
+
+
+//       const dbUser = userServiceResponse.data;
+
+//       // Set custom claims in Firebase
+//       const customClaims: any = {
+//         role,
+//       };
+
+//       if (schoolId) customClaims.schoolId = schoolId;
+//       if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
+
+//       await firebaseAuth.setCustomClaims(firebaseUser.uid, customClaims);
+
+//       // Return success (user needs to login to get token)
+//       res.status(201).json({
+//         message: 'User registered successfully',
+//         user: {
+//           uid: firebaseUser.uid,
+//           email: firebaseUser.email,
+//           name: firebaseUser.displayName,
+//           role
+//         },
+//       });
+
+//     } catch (dbError: any) {
+//       // Rollback for Firebase user if database creation failed
+//       if (dbError.response) {
+//         console.error(" User Service Rejected Request:", dbError.response.data);
+//       } else {
+//         console.error("Network/Connection Error:", dbError.message);
+//       }
+
+//       // Rollback
+//       await firebaseAuth.deleteUser(firebaseUser.uid);
+
+//       // Pass the *actual* error message to the frontend so you can see it in Postman
+//       const actualMessage = dbError.response?.data?.message || dbError.message;
+//       throw new Error(actualMessage);
+//     }
+//   } catch (error: any) {
+//     console.error("Registration Error : ", error);
+
+//     if (error.message.includes('email-already-exists')) {
+//       res.status(400).json({
+//         error: 'Email already exists',
+//         message: 'This email is already registered'
+//       });
+//       return;
+//     }
+
+//     res.status(500).json({
+//       error: 'Registration failed',
+//       message: error.message
+//     });
+//   }
+// })
+
+router.post("/register", handleRegisterUpload, async (req, res) => {
+let createdFirebaseUid = null;
+let firebaseUid = null;
+let firebaseEmail = null;
+let firebaseDisplayName = null;
+
+try {
+  const {
+    email,
+    password,
+    name,
+    role,
+    grade,
+    schoolId,
+    organizationId,
+    verificationOption,
+    dateOfBirth,
+    teacher_id,
+    gender,
+    idtoken,
+    authProvider,
+  } = req.body;
+
+  const verificationAttachment = req.file;
+  const selectedVerificationOption = verificationOption || "DOCUMENT";
+  const provider = String(authProvider || (idtoken ? "GOOGLE" : "EMAIL")).toUpperCase();
+  const isGoogleFlow = provider === "GOOGLE";
+
+  if (!name || !role) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      message: "Required Name, Role",
     });
   }
-})
 
+  if (!email) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      message: "Required Email",
+    });
+  }
 
+  if (!isGoogleFlow && !password) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      message: "Password required for EMAIL registration",
+    });
+  }
+
+  if (isGoogleFlow && !idtoken) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      message: "idtoken required for GOOGLE registration",
+    });
+  }
+
+  const validRoles = ["STUDENT", "TEACHER", "SCHOOL_ADMIN", "ORG_ADMIN", "SUPER_ADMIN"];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: "Invalid role", validRoles });
+  }
+
+  if ((role === "STUDENT" || role === "TEACHER") && !schoolId) {
+    return res.status(400).json({
+      error: "schoolId is required for students and teachers",
+      message: "School is Missing",
+    });
+  }
+
+  if (
+    (role === "STUDENT" || role === "TEACHER") &&
+    selectedVerificationOption === "DOCUMENT" &&
+    !verificationAttachment
+  ) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      message: "verificationAttachment is required for DOCUMENT verification",
+    });
+  }
+
+  if (isGoogleFlow) {
+    const decoded = await firebaseAuth.verifyToken(idtoken, true);
+    firebaseUid = decoded.uid;
+
+    const fbUser = await firebaseAuth.getUserByUid(decoded.uid);
+    firebaseEmail = fbUser.email || email;
+    firebaseDisplayName = fbUser.displayName || name;
+
+    // Optional strictness:
+    if (!firebaseEmail || firebaseEmail.toLowerCase() !== String(email).toLowerCase()) {
+      return res.status(400).json({
+        error: "Email mismatch",
+        message: "Email in token does not match payload email",
+      });
+    }
+  } else {
+    const firebaseUser = await firebaseAuth.createUser(email, password, name);
+    createdFirebaseUid = firebaseUser.uid;
+    firebaseUid = firebaseUser.uid;
+    firebaseEmail = firebaseUser.email || email;
+    firebaseDisplayName = firebaseUser.displayName || name;
+  }
+
+  try {
+    const userPayload = new FormData();
+    userPayload.append("uid", firebaseUid);
+    userPayload.append("email", firebaseEmail);
+    userPayload.append("name", firebaseDisplayName);
+    userPayload.append("userType", role);
+    userPayload.append("verificationOption", selectedVerificationOption);
+
+    if (dateOfBirth) {
+      const parsedDate = new Date(dateOfBirth);
+      if (Number.isNaN(parsedDate.getTime())) throw new Error("Invalid dateOfBirth");
+      userPayload.append("date_of_birth", parsedDate.toISOString());
+    }
+
+    if (schoolId) userPayload.append("school_id", schoolId);
+    if (organizationId) userPayload.append("organization_id", organizationId);
+    if (role === "STUDENT" && gender) userPayload.append("gender", gender);
+    if ((role === "STUDENT" || role === "TEACHER") && grade) userPayload.append("grade", grade);
+    if (selectedVerificationOption === "TEACHER_REQUEST" && teacher_id) {
+      userPayload.append("teacher_id", teacher_id);
+    }
+
+    if (verificationAttachment) {
+      userPayload.append("verificationAttachment", verificationAttachment.buffer, {
+        filename: verificationAttachment.originalname,
+        contentType: verificationAttachment.mimetype,
+      });
+    }
+
+    const userServiceResponse = await axios.post(
+      `${process.env.USER_SERVICE_URL}/api/users`,
+      userPayload,
+      {
+        headers: userPayload.getHeaders(),
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
+    );
+
+    const dbUser = userServiceResponse.data;
+
+    const customClaims: Record<string, unknown> = { role };
+    if (schoolId) customClaims.schoolId = schoolId;
+    if (dbUser.organizationId) customClaims.organizationId = dbUser.organizationId;
+
+    await firebaseAuth.setCustomClaims(firebaseUid, customClaims);
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        uid: firebaseUid,
+        email: firebaseEmail,
+        name: firebaseDisplayName,
+        role,
+      },
+    });
+  } catch (dbError: unknown) {
+    if (createdFirebaseUid) {
+      await firebaseAuth.deleteUser(createdFirebaseUid);
+    }
+    const responseMessage =
+      typeof dbError === 'object' &&
+      dbError !== null &&
+      'response' in dbError &&
+      typeof (dbError as { response?: unknown }).response === 'object' &&
+      (dbError as { response?: { data?: { message?: string } } }).response?.data?.message
+        ? (dbError as { response?: { data?: { message?: string } } }).response?.data?.message
+        : null;
+
+    const actualMessage = responseMessage || getErrorMessage(dbError);
+    throw new Error(actualMessage);
+  }
+} catch (error: unknown) {
+  const errorMessage = getErrorMessage(error);
+
+  if (errorMessage.includes("email-already-exists")) {
+    return res.status(400).json({
+      error: "Email already exists",
+      message: "This email is already registered",
+    });
+  }
+
+  return res.status(500).json({
+    error: "Registration failed",
+    message: errorMessage,
+  });
+}
+});
 
 //TODO:GOOGLE SIGN IN
 //infornt end it should be google sign in first and then after that relavant register details according to the selected the use type school..etc(if there are new users)

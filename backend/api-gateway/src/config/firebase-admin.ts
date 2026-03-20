@@ -46,9 +46,9 @@ export function getFirebaseAdmin(): admin.app.App {
 //main firebase fucntions for common usage 
 export const firebaseAuth = {
 
-  async verifyToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
+  async verifyToken(idToken: string, checkRevoked = false): Promise<admin.auth.DecodedIdToken> {
     try {
-      const decodedToken = await getFirebaseAdmin().auth().verifyIdToken(idToken);
+      const decodedToken = await getFirebaseAdmin().auth().verifyIdToken(idToken, checkRevoked);
 
       return decodedToken;
     } catch (error) {

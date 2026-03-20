@@ -199,7 +199,7 @@ export const getSchoolStudents = async (req: Request, res: Response): Promise<vo
     }
 
     const students = await prisma.student.findMany({
-      where: { school_id: id as string },
+      where: { school_id: id as string, is_verified: true, is_frozen: false },
       select: {
         uid: true,
         name: true,
@@ -229,6 +229,7 @@ export const getSchoolTeachers = async (req: Request, res: Response): Promise<vo
     const teachers = await prisma.teacher.findMany({
       where: {
         school_id: id as string,
+        is_verified: true,
       },
       select: {
         uid: true,
