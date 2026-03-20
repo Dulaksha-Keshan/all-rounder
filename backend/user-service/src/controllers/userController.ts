@@ -227,10 +227,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         createdUserType = userType;
         createdUserUid = user.uid;
 
+          verificationPayload = {
+            verificationMethod: "DOCUMENT_AI",
+            attachment: attachmentUrl,
+          };
+
         verification = await Verification.create({
           userId: user.uid,
-          userType: "ADMIN",
-          verificationMethod: "DOCUMENT_AI",
+          userType: userType,
+          ...verificationPayload,
         });
         createdVerificationId = verification._id.toString();
         break;
@@ -312,19 +317,27 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
     let user: any;
 
     if (userType === UserType.STUDENT) {
-      user = await prisma.student.findUnique({ where: { uid } });
+      user = await prisma.student.findUnique({ 
+        where: { uid },
+        include: { skills: true }
+      });
 
       if (!user) {
         res.status(404).json({ message: "Student not found" });
         return;
       }
 
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid } }),
+        prisma.follow.count({ where: { followerId: uid } }),
+      ]);
+
       // ... (your age calculation logic) ...
 
       res.status(200).json({
         message: "Student fetched successfully",
         userType: UserType.STUDENT,
-        user,
+        user: { ...user, followerCount, followingCount },
       });
       return;
     }
@@ -337,10 +350,15 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         return;
       }
 
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid } }),
+        prisma.follow.count({ where: { followerId: uid } }),
+      ]);
+
       res.status(200).json({
         message: "Teacher fetched successfully",
         userType: "TEACHER",
-        user,
+        user: { ...user, followerCount, followingCount },
       });
       return;
     }
@@ -353,10 +371,15 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         return;
       }
 
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid } }),
+        prisma.follow.count({ where: { followerId: uid } }),
+      ]);
+
       res.status(200).json({
         message: "Admin fetched successfully",
         userType: user.adminType,
-        user,
+        user: { ...user, followerCount, followingCount },
       });
       return;
     }
@@ -387,28 +410,69 @@ export const getUserByFirebaseUID = async (req: Request, res: Response): Promise
     let user: any;
     let userType: string;
 
-    user = await prisma.student.findUnique({ where: { uid: uid as string } });
-    if (user) {
+    user = await prisma.student.findUnique({
+      where: { uid: uid as string },
+      select: {
+        uid: true,
+        name: true,
+        email: true,
+        date_of_birth: true,
+        contact_number: true,
+        gender: true,
+        profile_picture: true,
+        is_active: true,
+        is_frozen: true,
+        grade: true,
+        about: true,
+        school_id: true,
+        skills: true,
+      },
+    });
+    if (user && user.is_active && !user.is_frozen) {
+      const { is_active, is_frozen, ...studentUser } = user;
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid as string} }),
+        prisma.follow.count({ where: { followerId: uid as string} }),
+      ]);
       userType = UserType.STUDENT;
-      const age = new Date().getFullYear() - new Date(user.date_of_birth).getFullYear();
-      if (age >= 19 && !user.is_frozen) {
-        await prisma.student.update({ where: { uid: user.uid }, data: { is_frozen: true } });
-        user.is_frozen = true;
-      }
-      user.canInteract = user.is_active && !user.is_frozen;
-      res.json({ userType, user });
+      res.json({ userType, user: { ...studentUser, followerCount, followingCount } });
       return;
     }
 
-    user = await prisma.teacher.findUnique({ where: { uid: uid as string } });
-    if (user) {
-      res.json({ userType: UserType.TEACHER, user });
+    user = await prisma.teacher.findUnique({
+      where: { uid: uid as string },
+      select: {
+        uid: true,
+        name: true,
+        email: true,
+        date_of_birth: true,
+        contact_number: true,
+        profile_picture: true,
+        is_active: true,
+        subject: true,
+        grade: true,
+        designation: true,
+        staff_id: true,
+        school_id: true,
+      },
+    });
+    if (user && user.is_active) {
+      const { is_active, ...teacherUser } = user;
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid as string} }),
+        prisma.follow.count({ where: { followerId: uid as string} }),
+      ]);
+      res.json({ userType: UserType.TEACHER, user: { ...teacherUser, followerCount, followingCount } });
       return;
     }
 
     user = await prisma.admin.findUnique({ where: { uid: uid as string } });
     if (user) {
-      res.json({ userType: user.adminType, user });
+      const [followerCount, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: uid as string} }),
+        prisma.follow.count({ where: { followerId: uid as string} }),
+      ]);
+      res.json({ userType: user.adminType, user: { ...user, followerCount, followingCount } });
       return
     }
     res.status(404).json({ message: "User not found" });

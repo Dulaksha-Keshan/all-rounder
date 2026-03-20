@@ -9,7 +9,7 @@ const verificationSchema = new mongoose.Schema(
 
     userType: {
       type: String,
-      enum: ["STUDENT", "TEACHER", "ADMIN"],
+      enum: ["STUDENT", "TEACHER", "SCHOOL_ADMIN","ORG_ADMIN", "SUPER_ADMIN"],
       required: true,
     },
 
