@@ -19,10 +19,10 @@ export default function SplashToLanding() {
       // Page reload or first visit - show splash
       setShowSplash(true);
       
-      // Hide splash after 2.5 seconds
+      // Hide splash after 3.8 seconds
       const timer = setTimeout(() => {
         setShowSplash(false);
-      }, 2500);
+      }, 3800);
 
       return () => clearTimeout(timer);
     }

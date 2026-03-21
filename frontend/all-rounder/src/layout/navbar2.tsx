@@ -81,6 +81,11 @@ export function Navbar() {
   }, [pathname]);
 
   const scrollToSection = (sectionId: string) => {
+    if (pathname !== "/") {
+      router.push(`/#${sectionId}`);
+      return;
+    }
+
     const element = document.getElementById(sectionId);
     if (element) element.scrollIntoView({ behavior: "smooth" });
   };
@@ -191,7 +196,9 @@ export function Navbar() {
                 <button
                   key={section}
                   onClick={() => {
-                    if (section === "Vision") {
+                    if (section === "Home") {
+                      router.push("/");
+                    } else if (section === "Vision") {
                       router.push("/vision");
                     } else if (section === "Resources") {
                       router.push("/resourceSharing");
