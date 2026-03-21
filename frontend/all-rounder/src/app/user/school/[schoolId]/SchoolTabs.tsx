@@ -35,11 +35,13 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
     action: "APPROVED" | "REJECTED" | null;
     requestId: string | null;
     requestLabel: string;
+    remarks: string;
   }>({
     isOpen: false,
     action: null,
     requestId: null,
     requestLabel: "",
+    remarks: "",
   });
 
   // Pull states and actions from School Store
@@ -148,6 +150,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
       action,
       requestId,
       requestLabel,
+      remarks: "",
     });
   };
 
@@ -155,7 +158,11 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
     if (!verificationModal.requestId || !verificationModal.action) return;
 
     try {
-      await updateVerificationStatus(verificationModal.requestId, verificationModal.action);
+      await updateVerificationStatus(
+        verificationModal.requestId,
+        verificationModal.action,
+        verificationModal.remarks
+      );
       showToast(
         verificationModal.action === "APPROVED" ? "Request approved successfully." : "Request rejected successfully.",
         "success"
@@ -164,7 +171,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
       console.error("Failed to update verification status:", error);
       showToast("Failed to process request.", "error");
     } finally {
-      setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" });
+      setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" });
     }
   };
 
@@ -413,7 +420,7 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
 
       <ConfirmationModal
         isOpen={verificationModal.isOpen}
-        onClose={() => setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "" })}
+        onClose={() => setVerificationModal({ isOpen: false, action: null, requestId: null, requestLabel: "", remarks: "" })}
         onConfirm={confirmVerificationAction}
         title={verificationModal.action === "APPROVED" ? "Approve Request" : "Reject Request"}
         message={
@@ -424,6 +431,10 @@ export default function SchoolTabs({ school, isAdmin }: SchoolTabsProps) {
         confirmLabel={verificationModal.action === "APPROVED" ? "Yes, Approve" : "Yes, Reject"}
         cancelLabel="Cancel"
         variant={verificationModal.action === "APPROVED" ? "success" : "danger"}
+        showRemarksField
+        remarksValue={verificationModal.remarks}
+        onRemarksChange={(remarks) => setVerificationModal((prev) => ({ ...prev, remarks }))}
+        remarksPlaceholder="Add remarks (optional)"
       />
     </>
   );

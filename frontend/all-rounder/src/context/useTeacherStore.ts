@@ -257,7 +257,8 @@ export const useTeacherStore = create<TeacherState>()(
             updateVerificationStatus: async (requestId: string, status: VerificationDecision, remarks: string) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const payload = { remarks };
+                    const normalizedRemarks = remarks?.trim() || 'no special remarks';
+                    const payload = { remarks: normalizedRemarks };
                     let response;
                     if (status === 'APPROVED') {
                         response = await api.patch(`/users/requests/${requestId}/accept`, payload);

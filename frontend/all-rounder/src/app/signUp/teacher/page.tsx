@@ -54,6 +54,7 @@ function PageBackground() {
 }
 
 export default function TeacherSignup() {
+  const MIN_TEACHER_AGE = 23;
   const router = useRouter();
   
   const registerWithEmail = useUserStore((state) => state.registerWithEmail);
@@ -141,12 +142,31 @@ export default function TeacherSignup() {
     school.name.toLowerCase().includes(schoolSearchTerm.toLowerCase())
   );
 
+  const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 0;
+    const dob = new Date(dateOfBirth);
+    if (Number.isNaN(dob.getTime())) return 0;
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age -= 1;
+    }
+
+    return age;
+  };
+
+  const isTeacherAgeValid = calculateAge(formData.dateOfBirth) >= MIN_TEACHER_AGE;
+
   const isStep1Valid = Boolean(
     formData.firstName.trim() &&
     formData.lastName.trim() &&
     formData.email.trim() &&
     formData.phone.trim() &&
     formData.dateOfBirth &&
+    isTeacherAgeValid &&
     (isGoogleFlow || (formData.password && formData.confirmPassword && formData.password === formData.confirmPassword))
   );
 
@@ -193,6 +213,11 @@ export default function TeacherSignup() {
     e.preventDefault();
 
     if (!isCurrentStepValid) {
+      return;
+    }
+
+    if (currentStep === 1 && !isTeacherAgeValid) {
+      setPasswordError(`Teacher must be at least ${MIN_TEACHER_AGE} years old.`);
       return;
     }
 
@@ -351,6 +376,7 @@ export default function TeacherSignup() {
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input type="date" value={formData.dateOfBirth} onChange={(e) => updateField("dateOfBirth", e.target.value)} className={iconInputClass} style={inputStyle} required placeholder="YYYY-MM-DD" title="Date of birth (YYYY-MM-DD)" />
                     </div>
+                    <p className="text-xs text-muted mt-1">Minimum age requirement: 23 years</p>
                   </div>
                 </div>
 

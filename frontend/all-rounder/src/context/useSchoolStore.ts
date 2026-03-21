@@ -68,7 +68,7 @@ interface SchoolState {
     // Verification actions
     fetchVerificationRequests: (school_id: string) => Promise<void>;
     getAllVerificationRequests: () => Promise<void>;
-    updateVerificationStatus: (requestId: string, status: VerificationDecision) => Promise<void>;
+    updateVerificationStatus: (requestId: string, status: VerificationDecision, remarks?: string) => Promise<void>;
 }
 
 export const useSchoolStore = create<SchoolState>()(
@@ -330,14 +330,16 @@ export const useSchoolStore = create<SchoolState>()(
                 }
             },
 
-            updateVerificationStatus: async (requestId: string, status: VerificationDecision) => {
+            updateVerificationStatus: async (requestId: string, status: VerificationDecision, remarks?: string) => {
                 set({ isLoading: true, error: null });
                 try {
+                    const normalizedRemarks = remarks?.trim() || 'no special remarks';
+                    const payload = { remarks: normalizedRemarks };
                     let response;
                     if (status === 'APPROVED') {
-                        response = await api.patch(`/users/requests/${requestId}/accept/${get().activeSchool?.school_id}`);
+                        response = await api.patch(`/users/requests/${requestId}/accept/${get().activeSchool?.school_id}`, payload);
                     } else {
-                        response = await api.patch(`/users/requests/${requestId}/reject/${get().activeSchool?.school_id}`);
+                        response = await api.patch(`/users/requests/${requestId}/reject/${get().activeSchool?.school_id}`, payload);
                     }
 
                     const updatedRequest = normalizeVerificationRequest(
